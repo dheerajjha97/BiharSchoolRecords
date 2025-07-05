@@ -35,6 +35,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const [isTranslatingFatherName, setIsTranslatingFatherName] = useState(false);
   const [isTranslatingMotherName, setIsTranslatingMotherName] = useState(false);
   const [isFetchingPinDetails, setIsFetchingPinDetails] = useState(false);
+  const [isFetchingBankDetails, setIsFetchingBankDetails] = useState(false);
   const [availableBlocks, setAvailableBlocks] = useState<string[]>([]);
 
   const handleTransliteration = async (
@@ -105,6 +106,40 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
       setAvailableBlocks([]);
     } finally {
       setIsFetchingPinDetails(false);
+    }
+  };
+
+  const handleIfscLookup = async (ifscCode: string) => {
+    if (ifscCode.length < 11) {
+      form.setValue("bankDetails.bankName", "", { shouldValidate: false });
+      form.setValue("bankDetails.branch", "", { shouldValidate: false });
+      return;
+    }
+
+    setIsFetchingBankDetails(true);
+    try {
+      const response = await fetch(`https://ifsc.razorpay.com/${ifscCode}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.BANK) {
+            form.setValue("bankDetails.bankName", data.BANK.toUpperCase(), { shouldValidate: true });
+            form.setValue("bankDetails.branch", data.BRANCH.toUpperCase(), { shouldValidate: true });
+        } else {
+            console.warn("Invalid IFSC code or data not found.");
+            form.setValue("bankDetails.bankName", "", { shouldValidate: true });
+            form.setValue("bankDetails.branch", "", { shouldValidate: true });
+        }
+      } else {
+        console.warn("Could not fetch bank details for the given IFSC code.");
+        form.setValue("bankDetails.bankName", "", { shouldValidate: true });
+        form.setValue("bankDetails.branch", "", { shouldValidate:true });
+      }
+    } catch (error) {
+      console.error("IFSC lookup failed:", error);
+      form.setValue("bankDetails.bankName", "", { shouldValidate: true });
+      form.setValue("bankDetails.branch", "", { shouldValidate: true });
+    } finally {
+      setIsFetchingBankDetails(false);
     }
   };
 
@@ -523,7 +558,35 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
       <FormSection title="Bank Account Details">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="bankDetails.accountNo" render={({ field }) => (<FormItem><FormLabel>Account Number</FormLabel><FormControl><Input placeholder="Bank Account Number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="bankDetails.ifsc" render={({ field }) => (<FormItem><FormLabel>IFSC Code</FormLabel><FormControl><Input placeholder="IFSC Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField
+              control={form.control}
+              name="bankDetails.ifsc"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>IFSC Code</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        placeholder="IFSC Code"
+                        {...field}
+                        onChange={(e) => {
+                          const upperCaseValue = e.target.value.toUpperCase();
+                          field.onChange(upperCaseValue);
+                        }}
+                        onBlur={(e) => {
+                          field.onBlur();
+                          handleIfscLookup(e.target.value);
+                        }}
+                      />
+                      {isFetchingBankDetails && (
+                        <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField control={form.control} name="bankDetails.bankName" render={({ field }) => (<FormItem><FormLabel>Bank Name</FormLabel><FormControl><Input placeholder="Name of the Bank" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="bankDetails.branch" render={({ field }) => (<FormItem><FormLabel>Branch Name</FormLabel><FormControl><Input placeholder="Branch Name" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
         </div>
