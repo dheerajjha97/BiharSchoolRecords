@@ -17,7 +17,7 @@ export default function DashboardPage() {
           </p>
         </header>
         <Button asChild>
-            <Link href="/dashboard/admissions/new">
+            <Link href="/admission/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 New Admission
             </Link>
