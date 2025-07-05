@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: 'EduAssist Forms',
-  description: 'Admission and Subject Selection Forms for Class 9 & Class 11 (Arts)',
+  description: 'Admission and Subject Selection Forms for Class 9 & Class 11 (Arts, Science, Commerce)',
 };
 
 export default function RootLayout({

@@ -222,12 +222,14 @@ export default function AdmissionWizard() {
                           name="admissionDetails.classSelection"
                           render={({ field }) => (
                           <FormItem>
-                              <FormLabel>Class Selection</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl><SelectTrigger><SelectValue placeholder="Select a class" /></SelectTrigger></FormControl>
+                              <FormLabel>Class / Stream Selection</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                  <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
                                   <SelectContent>
                                       <SelectItem value="9">Class 9</SelectItem>
                                       <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
+                                      <SelectItem value="11-science">Class 11 - Science</SelectItem>
+                                      <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
                                   </SelectContent>
                               </Select>
                               <FormMessage />

@@ -18,11 +18,11 @@ const fileSchema = z
 const admissionDetailsSchema = z.object({
   admissionNumber: z.string(),
   admissionDate: z.date({ required_error: "Admission date is required." }),
-  classSelection: z.enum(["9", "11-arts"], { required_error: "Please select a class." }),
+  classSelection: z.enum(["9", "11-arts", "11-science", "11-commerce"], { required_error: "Please select a class/stream." }),
 });
 
 const studentDetailsSchema = z.object({
-    studentPhoto: fileSchema,
+    studentPhoto: fileSchema.refine((file) => file, "Student photo is required."),
     nameEn: z.string().min(1, "Student's name is required"),
     nameHi: z.string().min(1, "Student's name in Hindi is required"),
     motherNameEn: z.string().min(1, "Mother's name is required"),
@@ -57,7 +57,7 @@ const addressDetailsSchema = z.object({
 
 const bankDetailsSchema = z.object({
     accountNo: z.string().min(1, "Bank account number is required."),
-    ifsc: z.string().min(1, "IFSC code is required."),
+    ifsc: z.string().min(1, "IFSC code is required.").length(11, "IFSC code must be 11 characters."),
     bankName: z.string().min(1, "Bank name is required."),
     branch: z.string().min(1, "Branch name is required."),
 });
@@ -112,7 +112,7 @@ export const formSchema = z.object({
         });
     }
 
-    if (data.admissionDetails.classSelection === "11-arts") {
+    if (data.admissionDetails.classSelection?.startsWith("11-")) {
         const class11Schema = z.object({
             matricBoard: z.string().min(1, "Board name is required"),
             matricBoardCode: z.string().min(1, "Board code is required"),
@@ -124,9 +124,9 @@ export const formSchema = z.object({
             compulsoryGroup2: z.string({ required_error: "Please select a subject from Group 2." }),
             electives: z.array(z.string()).min(3, "Please select exactly 3 elective subjects.").max(3, "Please select exactly 3 elective subjects."),
             optionalSubject: z.string().optional(),
-            studentSignatureEn: fileSchema,
-            studentSignatureHi: fileSchema,
-            parentSignature: fileSchema,
+            studentSignatureEn: fileSchema.refine((file) => file, "Student's English signature is required."),
+            studentSignatureHi: fileSchema.refine((file) => file, "Student's Hindi signature is required."),
+            parentSignature: fileSchema.refine((file) => file, "Parent's signature is required."),
         });
 
         const validationResult = class11Schema.safeParse(data.subjectDetails);

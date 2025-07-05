@@ -41,10 +41,19 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
     </div>
 )
 
+const streamDisplayNames: { [key: string]: string } = {
+  '9': 'Class 9',
+  '11-arts': 'Class 11 - Arts',
+  '11-science': 'Class 11 - Science',
+  '11-commerce': 'Class 11 - Commerce',
+};
+
 export function FormReviewStep({ formData }: FormReviewStepProps) {
   const { admissionDetails, studentDetails, contactDetails, addressDetails, bankDetails, otherDetails, prevSchoolDetails, subjectDetails } = formData;
-  const isClass11 = admissionDetails.classSelection === '11-arts';
+  
+  const isClass11 = admissionDetails.classSelection?.startsWith('11');
   const isClass9 = admissionDetails.classSelection === '9';
+  const displayStream = streamDisplayNames[admissionDetails.classSelection || ''] || admissionDetails.classSelection;
 
   return (
     <Card className="p-6">
@@ -57,7 +66,7 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
             <Section title="Admission Details">
                 <ReviewItem label="Admission Number" value={admissionDetails.admissionNumber} />
                 <ReviewItem label="Admission Date" value={admissionDetails.admissionDate} />
-                <ReviewItem label="Class" value={admissionDetails.classSelection === '9' ? 'Class 9' : 'Class 11 - Arts'} />
+                <ReviewItem label="Class / Stream" value={displayStream} />
             </Section>
             
             <Section title="Student Details">
