@@ -1,20 +1,5 @@
 import { z } from "zod";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-
-const fileSchema = z
-  .any()
-  .refine((file) => file, "Image is required.")
-  .refine((file) => file?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
-  .refine(
-    (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
-    ".jpg, .jpeg, .png and .webp files are accepted."
-  )
-  .optional()
-  .nullable();
-
-
 const admissionDetailsSchema = z.object({
   admissionNumber: z.string(),
   admissionDate: z.date({ required_error: "Admission date is required." }),
@@ -22,7 +7,6 @@ const admissionDetailsSchema = z.object({
 });
 
 const studentDetailsSchema = z.object({
-    studentPhoto: fileSchema.refine((file) => file, "Student photo is required."),
     nameEn: z.string().min(1, "Student's name is required"),
     nameHi: z.string().min(1, "Student's name in Hindi is required"),
     motherNameEn: z.string().min(1, "Mother's name is required"),

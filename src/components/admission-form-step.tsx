@@ -141,22 +141,6 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
 
   return (
     <div className="space-y-6">
-      <FormSection title="Student's Photo" description="Upload a recent passport-size photograph.">
-        <FormField
-          control={form.control}
-          name="studentDetails.studentPhoto"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Profile Photo</FormLabel>
-              <FormControl>
-                <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </FormSection>
-
       <FormSection title="Personal Details">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
@@ -337,7 +321,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Caste</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select caste" />
@@ -361,7 +345,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Religion</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select religion" />
@@ -428,7 +412,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nationality</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Select nationality" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="indian">Indian</SelectItem>
@@ -516,7 +500,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                   {availableBlocks.length > 1 ? (
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>

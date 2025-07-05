@@ -70,7 +70,6 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
             </Section>
             
             <Section title="Student Details">
-                <ReviewItem label="Student Photo" value={studentDetails.studentPhoto?.name} />
                 <ReviewItem label="Name (EN)" value={studentDetails.nameEn} />
                 <ReviewItem label="Name (HI)" value={studentDetails.nameHi} />
                 <ReviewItem label="Father's Name (EN)" value={studentDetails.fatherNameEn} />

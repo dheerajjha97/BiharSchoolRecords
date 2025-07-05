@@ -59,7 +59,6 @@ export default function AdmissionWizard() {
         classSelection: undefined,
       },
       studentDetails: {
-        studentPhoto: null,
         nameEn: "",
         nameHi: "",
         fatherNameEn: "",
@@ -72,8 +71,8 @@ export default function AdmissionWizard() {
         religion: undefined,
         isDifferentlyAbled: false,
         disabilityDetails: "",
-        nationality: undefined,
-        maritalStatus: undefined,
+        nationality: "indian",
+        maritalStatus: "unmarried",
       },
       contactDetails: {
         mobileNumber: "",
