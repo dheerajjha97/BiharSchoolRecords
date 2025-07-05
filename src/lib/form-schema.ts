@@ -68,10 +68,10 @@ const otherDetailsSchema = z.object({
 });
 
 const prevSchoolDetailsSchema = z.object({
-    schoolName: z.string().min(1, "Previous school name is required."),
-    slcNo: z.string().min(1, "SLC number is required."),
-    certIssueDate: z.date({ required_error: "Certificate issue date is required." }),
-    lastClassStudied: z.string().min(1, "Last class studied is required."),
+    schoolName: z.string().optional(),
+    slcNo: z.string().optional(),
+    certIssueDate: z.date().optional(),
+    lastClassStudied: z.string().optional(),
 });
 
 const subjectDetailsBaseSchema = z.object({
