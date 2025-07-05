@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -138,36 +137,58 @@ export default function PrintAdmissionPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !admissionNumber) {
+    // We need to check for window because this is a client component
+    // and localStorage is a browser feature.
+    if (typeof window === 'undefined') {
       return;
+    }
+
+    // admissionNumber comes from useParams, it might not be ready on first render.
+    if (!admissionNumber) {
+        setIsLoading(true);
+        return;
     }
 
     const loadStudentData = () => {
       setIsLoading(true);
       setError(null);
+      
       try {
         const admissionNumberToFind = decodeURIComponent(admissionNumber);
+        
+        // Step 1: Try to get data from localStorage
         const storedData = localStorage.getItem('fullAdmissionsData');
 
         if (!storedData) {
-          setError('No admission data found in storage.');
-          setIsLoading(false);
-          return;
-        }
-
-        const allStudents: FormValues[] = JSON.parse(storedData);
-
-        if (!Array.isArray(allStudents)) {
-          setError('Stored data is corrupted or not an array.');
+          setError('No admission data found in your browser\'s storage. This can happen if you are in a private/incognito window, or if data was cleared. Please try again from the student list page.');
           setIsLoading(false);
           return;
         }
         
+        // Step 2: Try to parse the data
+        let allStudents: FormValues[] = [];
+        try {
+            allStudents = JSON.parse(storedData);
+        } catch (parseError) {
+            console.error("Failed to parse student data from localStorage", parseError);
+            setError('The stored admission data seems to be corrupted. Please try clearing your site data and submitting a new form.');
+            setIsLoading(false);
+            return;
+        }
+
+        if (!Array.isArray(allStudents)) {
+          setError('Stored data is in an invalid format. Please try clearing your site data and submitting a new form.');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Step 3: Find the specific student
         const studentRaw = allStudents.find(
           (s) => s.admissionDetails.admissionNumber === admissionNumberToFind
         );
 
         if (studentRaw) {
+          // Step 4: Process and set the found student data
           const studentParsed: FormValues = {
             ...studentRaw,
             admissionDetails: {
@@ -187,11 +208,12 @@ export default function PrintAdmissionPage() {
           };
           setStudentData(studentParsed);
         } else {
-          setError('Student data not found. Please check the admission number and try again.');
+          // Student with the given admission number was not found in the stored list
+          setError(`Student with admission number "${admissionNumberToFind}" was not found. Please check the number and try again.`);
         }
       } catch (e) {
-        console.error("Failed to load or parse student data", e);
-        setError('An error occurred while loading student data.');
+        console.error("An unexpected error occurred while loading student data", e);
+        setError('An unexpected error occurred. Please check the console for details.');
       } finally {
         setIsLoading(false);
       }
@@ -214,7 +236,7 @@ export default function PrintAdmissionPage() {
   }
 
   if (error || !studentData) {
-    return <div className="flex items-center justify-center h-screen">{error || 'Student data not found. Please check the admission number and try again.'}</div>;
+    return <div className="flex items-center justify-center h-screen p-8 text-center text-red-600">{error || 'Student data not found. Please check the admission number and try again.'}</div>;
   }
 
   return (
