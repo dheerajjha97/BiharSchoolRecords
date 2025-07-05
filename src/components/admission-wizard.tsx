@@ -15,6 +15,7 @@ import { FormReviewStep } from "@/components/form-review-step";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { ArrowLeft, ArrowRight, Send } from "lucide-react";
 import {
   Select,
@@ -41,14 +42,12 @@ const STEPS = [
 export default function AdmissionWizard() {
   const [step, setStep] = useState(1);
   const [admissionNumber, setAdmissionNumber] = useState("");
-  const [admissionDate, setAdmissionDate] = useState<Date | undefined>();
   
   const { toast } = useToast();
 
   useEffect(() => {
-    // Auto-generate admission number and set date on component mount
+    // Auto-generate admission number on component mount
     setAdmissionNumber(`ADM-${Date.now()}`);
-    setAdmissionDate(new Date());
   }, []);
 
   const form = useForm<FormValues>({
@@ -71,8 +70,7 @@ export default function AdmissionWizard() {
   
   useEffect(() => {
     if (admissionNumber) form.setValue('admissionDetails.admissionNumber', admissionNumber, { shouldValidate: true });
-    if (admissionDate) form.setValue('admissionDetails.admissionDate', admissionDate, { shouldValidate: true });
-  }, [admissionNumber, admissionDate, form]);
+  }, [admissionNumber, form]);
 
   const processForm = async (data: FormValues) => {
     console.log("Form data:", data);
@@ -145,12 +143,17 @@ export default function AdmissionWizard() {
                             <Input value={admissionNumber} readOnly disabled />
                           </FormControl>
                       </FormItem>
-                      <FormItem>
-                          <FormLabel>Admission Date</FormLabel>
-                          <FormControl>
-                            <Input value={admissionDate?.toLocaleDateString()} readOnly disabled />
-                          </FormControl>
-                      </FormItem>
+                      <FormField
+                        control={form.control}
+                        name="admissionDetails.admissionDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Admission Date</FormLabel>
+                            <DatePicker date={field.value} setDate={field.onChange} />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                           control={form.control}
                           name="admissionDetails.classSelection"

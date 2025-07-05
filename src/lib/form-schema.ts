@@ -17,7 +17,7 @@ const fileSchema = z
 
 const admissionDetailsSchema = z.object({
   admissionNumber: z.string(),
-  admissionDate: z.date(),
+  admissionDate: z.date({ required_error: "Admission date is required." }),
   classSelection: z.enum(["9", "11-arts"], { required_error: "Please select a class." }),
 });
 
