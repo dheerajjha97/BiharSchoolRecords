@@ -1,9 +1,10 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useReactToPrint } from 'react-to-print';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,6 +32,7 @@ function StudentsListContent() {
   const [students, setStudents] = useState<FormValues[]>([]);
   const [classFilter, setClassFilter] = useState('all');
   const [studentToPrint, setStudentToPrint] = useState<FormValues | null>(null);
+  const printComponentRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -72,33 +74,18 @@ function StudentsListContent() {
     }
   }, []);
 
+  const handlePrint = useReactToPrint({
+    content: () => printComponentRef.current,
+    onAfterPrint: () => setStudentToPrint(null),
+  });
+
   useEffect(() => {
-    if (studentToPrint) {
-      const handleAfterPrint = () => {
-        setStudentToPrint(null);
-      };
-      
-      window.addEventListener('afterprint', handleAfterPrint, { once: true });
-      
-      const timer = setTimeout(() => {
-          window.print();
-      }, 100);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('afterprint', handleAfterPrint);
-      };
+    if (studentToPrint && printComponentRef.current) {
+      handlePrint();
     }
-  }, [studentToPrint]);
+  }, [studentToPrint, handlePrint]);
 
-  const filteredStudents = useMemo(() => {
-    if (classFilter === 'all') {
-      return students;
-    }
-    return students.filter(student => student.admissionDetails.classSelection === classFilter);
-  }, [students, classFilter]);
-  
-  const handlePrint = (admissionNumber: string) => {
+  const prepareToPrint = (admissionNumber: string) => {
     const student = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
     if (student) {
       setStudentToPrint(student);
@@ -107,9 +94,16 @@ function StudentsListContent() {
     }
   };
 
+  const filteredStudents = useMemo(() => {
+    if (classFilter === 'all') {
+      return students;
+    }
+    return students.filter(student => student.admissionDetails.classSelection === classFilter);
+  }, [students, classFilter]);
+  
   return (
     <>
-      <div className="no-print space-y-8">
+      <div className="space-y-8">
         <header className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
@@ -167,7 +161,7 @@ function StudentsListContent() {
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handlePrint(student.admissionDetails.admissionNumber)}>
+                          <Button variant="ghost" size="icon" onClick={() => prepareToPrint(student.admissionDetails.admissionNumber)}>
                             <Printer className="h-4 w-4" />
                             <span className="sr-only">Print</span>
                           </Button>
@@ -187,11 +181,11 @@ function StudentsListContent() {
           </CardContent>
         </Card>
       </div>
-      {studentToPrint && (
-        <div className="print-only hidden">
-          <PrintableForm formData={studentToPrint} />
-        </div>
-      )}
+      <div className="hidden">
+        {studentToPrint && (
+          <PrintableForm ref={printComponentRef} formData={studentToPrint} />
+        )}
+      </div>
     </>
   );
 }
