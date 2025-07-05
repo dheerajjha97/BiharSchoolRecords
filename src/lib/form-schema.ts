@@ -36,7 +36,6 @@ const studentDetailsSchema = z.object({
     isDifferentlyAbled: z.boolean(),
     disabilityDetails: z.string().optional(),
     religion: z.enum(["hindu", "islam", "sikh", "jain", "buddhism", "christ", "other"], { required_error: "Please select a religion." }),
-    area: z.enum(["rural", "urban"], { required_error: "Please select an area." }),
     maritalStatus: z.enum(["married", "unmarried"], { required_error: "Please select marital status." }),
 });
 
@@ -53,6 +52,7 @@ const addressDetailsSchema = z.object({
     district: z.string().min(1, "District is required."),
     ps: z.string().min(1, "Police station is required."),
     pin: z.string().regex(/^\d{6}$/, "Please enter a valid 6-digit PIN code."),
+    area: z.enum(["rural", "urban"], { required_error: "Please select an area." }),
 });
 
 const bankDetailsSchema = z.object({

@@ -74,7 +74,6 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                 <ReviewItem label="Differently Abled" value={studentDetails.isDifferentlyAbled} />
                 {studentDetails.isDifferentlyAbled && <ReviewItem label="Disability Details" value={studentDetails.disabilityDetails} />}
                 <ReviewItem label="Nationality" value={studentDetails.nationality} />
-                <ReviewItem label="Area" value={studentDetails.area} />
                 <ReviewItem label="Marital Status" value={studentDetails.maritalStatus} />
             </Section>
 
@@ -83,6 +82,7 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                 <ReviewItem label="Email" value={contactDetails.emailId} />
                 <ReviewItem label="Aadhar Number" value={contactDetails.aadharNumber} />
                 <ReviewItem label="Address" value={`${addressDetails.village}, ${addressDetails.post}, ${addressDetails.block}, ${addressDetails.district}, P.S. ${addressDetails.ps}, PIN: ${addressDetails.pin}`} />
+                <ReviewItem label="Area" value={addressDetails.area} />
             </Section>
 
             <Section title="Bank Details">
