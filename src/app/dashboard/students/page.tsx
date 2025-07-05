@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Pencil, Printer } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
+import { PrintableForm } from '@/components/printable-form';
 
 const classOptions = [
   { value: 'all', label: 'All Classes' },
@@ -29,6 +30,7 @@ const classDisplayNameMap: { [key: string]: string } = {
 function StudentsListContent() {
   const [students, setStudents] = useState<FormValues[]>([]);
   const [classFilter, setClassFilter] = useState('all');
+  const [studentToPrint, setStudentToPrint] = useState<FormValues | null>(null);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -42,16 +44,52 @@ function StudentsListContent() {
     const storedData = localStorage.getItem('fullAdmissionsData');
     if (storedData) {
       try {
-        const parsedData = JSON.parse(storedData);
-        if (Array.isArray(parsedData)) {
-          setStudents(parsedData);
+        const rawData: any[] = JSON.parse(storedData);
+        if (Array.isArray(rawData)) {
+            const parsedStudents: FormValues[] = rawData.map(student => ({
+                ...student,
+                admissionDetails: {
+                    ...student.admissionDetails,
+                    admissionDate: new Date(student.admissionDetails.admissionDate),
+                },
+                studentDetails: {
+                    ...student.studentDetails,
+                    dob: new Date(student.studentDetails.dob),
+                },
+                prevSchoolDetails: {
+                    ...student.prevSchoolDetails,
+                    certIssueDate: student.prevSchoolDetails.certIssueDate
+                        ? new Date(student.prevSchoolDetails.certIssueDate)
+                        : undefined,
+                },
+            }));
+          setStudents(parsedStudents);
         }
       } catch (error) {
         console.error("Failed to parse student data from localStorage", error);
-        setStudents([]); // Reset to empty array on error
+        setStudents([]);
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (studentToPrint) {
+      const handleAfterPrint = () => {
+        setStudentToPrint(null);
+      };
+      
+      window.addEventListener('afterprint', handleAfterPrint, { once: true });
+      
+      const timer = setTimeout(() => {
+          window.print();
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+    }
+  }, [studentToPrint]);
 
   const filteredStudents = useMemo(() => {
     if (classFilter === 'all') {
@@ -61,104 +99,100 @@ function StudentsListContent() {
   }, [students, classFilter]);
   
   const handlePrint = (admissionNumber: string) => {
-    const studentToPrint = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
-
-    if (studentToPrint) {
-      try {
-        // Temporarily store just the data for the student being printed.
-        // This is a more robust way to pass data to the new tab.
-        localStorage.setItem('studentToPrint', JSON.stringify(studentToPrint));
-        const url = `/print/${encodeURIComponent(admissionNumber)}`;
-        window.open(url, '_blank');
-      } catch (e) {
-          console.error("Failed to store student data for printing.", e);
-          alert("An error occurred while preparing the data for printing.");
-      }
+    const student = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
+    if (student) {
+      setStudentToPrint(student);
     } else {
-      console.error(`Could not find student with admission number ${admissionNumber} to print.`);
       alert("Could not find the student's data to print.");
     }
   };
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
-          <p className="text-muted-foreground">View, edit, and manage student records.</p>
-        </div>
-        <Button asChild variant="outline">
-          <Link href="/dashboard">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
-      </header>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>All Students</CardTitle>
-          <CardDescription>A complete list of all student admissions.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex justify-end">
-            <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="w-full md:w-[240px]">
-                <SelectValue placeholder="Filter by class..." />
-              </SelectTrigger>
-              <SelectContent>
-                {classOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <>
+      <div className="no-print space-y-8">
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
+            <p className="text-muted-foreground">View, edit, and manage student records.</p>
           </div>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Admission No.</TableHead>
-                  <TableHead>Class</TableHead>
-                  <TableHead>Father's Name</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
-                    <TableRow key={student.admissionDetails.admissionNumber}>
-                      <TableCell className="font-medium">{student.studentDetails.nameEn}</TableCell>
-                      <TableCell>{student.admissionDetails.admissionNumber}</TableCell>
-                      <TableCell>{classDisplayNameMap[student.admissionDetails.classSelection]}</TableCell>
-                      <TableCell>{student.studentDetails.fatherNameEn}</TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button variant="ghost" size="icon" disabled>
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handlePrint(student.admissionDetails.admissionNumber)}>
-                          <Printer className="h-4 w-4" />
-                          <span className="sr-only">Print</span>
-                        </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
+        </header>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>All Students</CardTitle>
+            <CardDescription>A complete list of all student admissions.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 flex justify-end">
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger className="w-full md:w-[240px]">
+                  <SelectValue placeholder="Filter by class..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {classOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student Name</TableHead>
+                    <TableHead>Admission No.</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead>Father's Name</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map((student) => (
+                      <TableRow key={student.admissionDetails.admissionNumber}>
+                        <TableCell className="font-medium">{student.studentDetails.nameEn}</TableCell>
+                        <TableCell>{student.admissionDetails.admissionNumber}</TableCell>
+                        <TableCell>{classDisplayNameMap[student.admissionDetails.classSelection]}</TableCell>
+                        <TableCell>{student.studentDetails.fatherNameEn}</TableCell>
+                        <TableCell className="text-right space-x-1">
+                          <Button variant="ghost" size="icon" disabled>
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handlePrint(student.admissionDetails.admissionNumber)}>
+                            <Printer className="h-4 w-4" />
+                            <span className="sr-only">Print</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        No students found.
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      No students found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      {studentToPrint && (
+        <div className="print-only hidden">
+          <PrintableForm formData={studentToPrint} />
+        </div>
+      )}
+    </>
   );
 }
 
