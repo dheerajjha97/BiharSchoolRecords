@@ -8,10 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Printer } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer, AlertTriangle } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
 import { Skeleton } from '@/components/ui/skeleton';
+import { firebaseError } from '@/lib/firebase';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const classOptions = [
   { value: 'all', label: 'All Classes' },
@@ -43,6 +45,10 @@ function StudentsListContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    if (firebaseError) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const unsubscribe = listenToAdmissions((allStudents) => {
       setStudents(allStudents);
@@ -62,6 +68,13 @@ function StudentsListContent() {
   return (
     <>
       <div className="space-y-8">
+        {firebaseError && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Configuration Error</AlertTitle>
+            <AlertDescription>{firebaseError}</AlertDescription>
+          </Alert>
+        )}
         <header className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
@@ -139,7 +152,7 @@ function StudentsListContent() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="h-24 text-center">
-                        No students found.
+                        {firebaseError ? "Could not load data due to configuration error." : "No students found."}
                       </TableCell>
                     </TableRow>
                   )}
