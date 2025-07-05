@@ -1,16 +1,18 @@
+
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
+import { useState, useEffect, useMemo, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import ReactToPrint from 'react-to-print';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Printer } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer, Loader2 } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
+import { getAdmissions } from '@/lib/admissions';
 import { PrintableForm } from '@/components/printable-form';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const classOptions = [
   { value: 'all', label: 'All Classes' },
@@ -28,12 +30,12 @@ const classDisplayNameMap: { [key: string]: string } = {
 };
 
 function StudentsListContent() {
-  const [students, setStudents] = useState<FormValues[]>([]);
+  const [students, setStudents] = useState<(FormValues & { id: string })[]>([]);
+  const [loading, setLoading] = useState(true);
   const [classFilter, setClassFilter] = useState('all');
-  const [studentToPrint, setStudentToPrint] = useState<FormValues | null>(null);
   
-  const printComponentRef = useRef<HTMLDivElement>(null);
-  const printTriggerRef = useRef<HTMLButtonElement>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [studentToPrint, setStudentToPrint] = useState<FormValues | null>(null);
 
   const searchParams = useSearchParams();
 
@@ -44,53 +46,42 @@ function StudentsListContent() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const storedData = localStorage.getItem('fullAdmissionsData');
-    if (storedData) {
-      try {
-        const rawData: any[] = JSON.parse(storedData);
-        if (Array.isArray(rawData)) {
-            const parsedStudents: FormValues[] = rawData.map(student => ({
-                ...student,
-                admissionDetails: {
-                    ...student.admissionDetails,
-                    admissionDate: new Date(student.admissionDetails.admissionDate),
-                },
-                studentDetails: {
-                    ...student.studentDetails,
-                    dob: new Date(student.studentDetails.dob),
-                },
-                prevSchoolDetails: {
-                    ...student.prevSchoolDetails,
-                    certIssueDate: student.prevSchoolDetails.certIssueDate
-                        ? new Date(student.prevSchoolDetails.certIssueDate)
-                        : undefined,
-                },
-            }));
-          setStudents(parsedStudents);
-        }
-      } catch (error) {
-        console.error("Failed to parse student data from localStorage", error);
-        setStudents([]);
-      }
+  const fetchStudents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const allStudents = await getAdmissions();
+      setStudents(allStudents);
+    } catch (error) {
+      console.error("Failed to fetch students from Firestore", error);
+      setStudents([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (studentToPrint && printTriggerRef.current) {
-      printTriggerRef.current.click();
-    }
-  }, [studentToPrint]);
+    fetchStudents();
+  }, [fetchStudents]);
 
-
-  const prepareToPrint = (admissionNumber: string) => {
-    const student = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
-    if (student) {
-      setStudentToPrint(student);
-    } else {
-      alert("Could not find the student's data to print.");
-    }
+  const handlePrintClick = (student: FormValues) => {
+    setStudentToPrint(student);
+    setIsPrinting(true);
   };
+  
+  useEffect(() => {
+    const handleAfterPrint = () => {
+        setIsPrinting(false);
+        setStudentToPrint(null);
+    };
+
+    if (isPrinting) {
+        window.addEventListener('afterprint', handleAfterPrint);
+    }
+
+    return () => {
+        window.removeEventListener('afterprint', handleAfterPrint);
+    };
+}, [isPrinting]);
 
   const filteredStudents = useMemo(() => {
     if (classFilter === 'all') {
@@ -105,7 +96,7 @@ function StudentsListContent() {
         <header className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
-            <p className="text-muted-foreground">View, edit, and manage student records.</p>
+            <p className="text-muted-foreground">View, edit, and manage student records from the database.</p>
           </div>
           <Button asChild variant="outline">
             <Link href="/dashboard">
@@ -147,9 +138,17 @@ function StudentsListContent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredStudents.length > 0 ? (
+                  {loading ? (
+                     Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell colSpan={5}>
+                                <Skeleton className="h-6 w-full" />
+                            </TableCell>
+                        </TableRow>
+                     ))
+                  ) : filteredStudents.length > 0 ? (
                     filteredStudents.map((student) => (
-                      <TableRow key={student.admissionDetails.admissionNumber}>
+                      <TableRow key={student.id}>
                         <TableCell className="font-medium">{student.studentDetails.nameEn}</TableCell>
                         <TableCell>{student.admissionDetails.admissionNumber}</TableCell>
                         <TableCell>{classDisplayNameMap[student.admissionDetails.classSelection]}</TableCell>
@@ -159,7 +158,7 @@ function StudentsListContent() {
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => prepareToPrint(student.admissionDetails.admissionNumber)}>
+                          <Button variant="ghost" size="icon" onClick={() => handlePrintClick(student)}>
                             <Printer className="h-4 w-4" />
                             <span className="sr-only">Print</span>
                           </Button>
@@ -179,25 +178,33 @@ function StudentsListContent() {
           </CardContent>
         </Card>
       </div>
-      <div className="hidden">
-        {studentToPrint && (
-          <>
-            <ReactToPrint
-                content={() => printComponentRef.current}
-                onAfterPrint={() => setStudentToPrint(null)}
-                trigger={() => <button ref={printTriggerRef}>Print</button>}
-            />
-            <PrintableForm ref={printComponentRef} formData={studentToPrint} />
-          </>
-        )}
-      </div>
+
+      {isPrinting && studentToPrint && (
+        <div className="fixed inset-0 bg-white z-50 overflow-y-auto print-container p-4 sm:p-8">
+            <div className="max-w-4xl mx-auto">
+                <div className="flex justify-end gap-4 mb-4 print-hide">
+                    <Button variant="outline" onClick={() => setIsPrinting(false)}>Cancel</Button>
+                    <Button onClick={() => window.print()}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print Now
+                    </Button>
+                </div>
+                <PrintableForm formData={studentToPrint} />
+            </div>
+        </div>
+      )}
     </>
   );
 }
 
 export default function StudentsListPage() {
   return (
-    <Suspense fallback={<div>Loading students...</div>}>
+    <Suspense fallback={
+        <div className="space-y-4">
+            <Skeleton className="h-10 w-1/3" />
+            <Skeleton className="h-80 w-full" />
+        </div>
+    }>
       <StudentsListContent />
     </Suspense>
   )

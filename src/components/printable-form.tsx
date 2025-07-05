@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -39,7 +40,7 @@ const streamDisplayNames: { [key: string]: string } = {
   '11-commerce': 'Class 11 - Commerce',
 };
 
-export const PrintableForm = React.forwardRef<HTMLDivElement, { formData: FormValues }>(({ formData }, ref) => {
+export const PrintableForm = ({ formData }: { formData: FormValues }) => {
   const { admissionDetails, studentDetails, contactDetails, addressDetails, bankDetails, otherDetails, prevSchoolDetails, subjectDetails } = formData;
   
   const isClass11 = admissionDetails.classSelection?.startsWith('11');
@@ -47,7 +48,7 @@ export const PrintableForm = React.forwardRef<HTMLDivElement, { formData: FormVa
   const displayStream = streamDisplayNames[admissionDetails.classSelection || ''] || admissionDetails.classSelection;
 
   return (
-    <div ref={ref} className="bg-white text-black font-body">
+    <div className="bg-white text-black font-body">
         <header className="text-center mb-8 relative">
             <div className="absolute top-0 right-0 w-32 h-40 border-2 border-gray-400 flex items-center justify-center text-gray-500 text-sm p-2">
                 Paste Passport Size Photo Here
@@ -140,6 +141,4 @@ export const PrintableForm = React.forwardRef<HTMLDivElement, { formData: FormVa
         </div>
     </div>
   );
-});
-
-PrintableForm.displayName = 'PrintableForm';
+};

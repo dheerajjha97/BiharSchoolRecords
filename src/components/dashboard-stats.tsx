@@ -1,10 +1,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, Palette, FlaskConical, Landmark } from "lucide-react";
+import { getAdmissions } from '@/lib/admissions';
 import type { FormValues } from '@/lib/form-schema';
 
 export default function DashboardStats() {
@@ -15,21 +16,12 @@ export default function DashboardStats() {
     science: 0,
     commerce: 0,
   });
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const calculateStats = () => {
-      const storedData = localStorage.getItem('fullAdmissionsData');
-      let students: FormValues[] = [];
-      if (storedData) {
-        try {
-          const parsedData = JSON.parse(storedData);
-          if (Array.isArray(parsedData)) {
-            students = parsedData;
-          }
-        } catch (error) {
-          console.error("Failed to parse stats data from localStorage", error);
-        }
-      }
+  const calculateStats = useCallback(async () => {
+    setLoading(true);
+    try {
+      const students = await getAdmissions();
       setStats({
         total: students.length,
         class9: students.filter(s => s.admissionDetails.classSelection === '9').length,
@@ -37,17 +29,16 @@ export default function DashboardStats() {
         science: students.filter(s => s.admissionDetails.classSelection === '11-science').length,
         commerce: students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
       });
-    };
-
-    calculateStats(); // Initial calculation
-
-    // Listen for changes from other tabs or when data is updated
-    window.addEventListener('storage', calculateStats);
-    
-    return () => {
-      window.removeEventListener('storage', calculateStats);
-    };
+    } catch (error) {
+      console.error("Failed to fetch stats data from Firestore", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    calculateStats();
+  }, [calculateStats]);
 
   const statsData = [
     { title: "Total Admissions", value: stats.total.toLocaleString(), icon: Users, colorClass: "text-chart-1", classId: "all" },
@@ -56,6 +47,24 @@ export default function DashboardStats() {
     { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, colorClass: "text-chart-4", classId: "11-science" },
     { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, colorClass: "text-chart-5", classId: "11-commerce" },
   ];
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        {statsData.map((stat) => (
+           <Card key={stat.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">...</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

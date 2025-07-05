@@ -88,6 +88,21 @@ body {
 }
 
 @media print {
+   body * {
+     visibility: hidden;
+   }
+   .print-container, .print-container * {
+     visibility: visible;
+   }
+   .print-container {
+     position: absolute;
+     left: 0;
+     top: 0;
+     width: 100%;
+   }
+   .print-hide {
+     display: none;
+   }
    @page {
     size: A4;
     margin: 1.5cm;

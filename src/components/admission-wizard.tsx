@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { z } from "zod";
 import { useSearchParams } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
+import { addAdmission, getAdmissionCount, getClassAdmissionCount } from "@/lib/admissions";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
-import { ArrowLeft, ArrowRight, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Send, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -43,8 +43,7 @@ const STEPS = [
 
 function AdmissionWizardContent() {
   const [step, setStep] = useState(1);
-  const [admissionNumber, setAdmissionNumber] = useState("");
-  const [rollNumberCounters, setRollNumberCounters] = useState<{ [key: string]: number }>({});
+  const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -55,74 +54,31 @@ function AdmissionWizardContent() {
       admissionDetails: {
         admissionNumber: "",
         rollNumber: "",
-        admissionDate: undefined,
+        admissionDate: new Date(),
         classSelection: undefined,
       },
       studentDetails: {
-        nameEn: "",
-        nameHi: "",
-        fatherNameEn: "",
-        fatherNameHi: "",
-        motherNameEn: "",
-        motherNameHi: "",
-        dob: undefined,
-        gender: undefined,
-        caste: undefined,
-        religion: undefined,
-        isDifferentlyAbled: false,
-        disabilityDetails: "",
-        nationality: "indian",
-        maritalStatus: "unmarried",
+        nameEn: "", nameHi: "",
+        fatherNameEn: "", fatherNameHi: "",
+        motherNameEn: "", motherNameHi: "",
+        dob: undefined, gender: undefined,
+        caste: undefined, religion: undefined,
+        isDifferentlyAbled: false, disabilityDetails: "",
+        nationality: "indian", maritalStatus: "unmarried",
       },
-      contactDetails: {
-        mobileNumber: "",
-        emailId: "",
-        aadharNumber: "",
-      },
-      addressDetails: {
-        village: "",
-        post: "",
-        block: "",
-        district: "",
-        ps: "",
-        pin: "",
-        area: undefined,
-      },
-      bankDetails: {
-        accountNo: "",
-        ifsc: "",
-        bankName: "",
-        branch: "",
-      },
-      otherDetails: {
-        identificationMark1: "",
-        identificationMark2: "",
-      },
-      prevSchoolDetails: {
-        schoolName: "",
-        slcNo: "",
-        certIssueDate: undefined,
-        lastClassStudied: "",
-      },
-      subjectDetails: {
-        matricBoard: "",
-        matricBoardCode: "",
-        matricRollNo: "",
-        matricRegNo: "",
-        matricPassingYear: "",
-        medium: undefined,
-        compulsoryGroup1: undefined,
-        compulsoryGroup2: undefined,
-        electives: [],
-        optionalSubject: undefined,
-        mil: undefined,
-      },
+      contactDetails: { mobileNumber: "", emailId: "", aadharNumber: "", },
+      addressDetails: { village: "", post: "", block: "", district: "", ps: "", pin: "", area: undefined, },
+      bankDetails: { accountNo: "", ifsc: "", bankName: "", branch: "", },
+      otherDetails: { identificationMark1: "", identificationMark2: "", },
+      prevSchoolDetails: { schoolName: "", slcNo: "", certIssueDate: undefined, lastClassStudied: "", },
+      subjectDetails: { matricBoard: "", matricBoardCode: "", matricRollNo: "", matricRegNo: "", matricPassingYear: "", medium: undefined, compulsoryGroup1: undefined, compulsoryGroup2: undefined, electives: [], optionalSubject: undefined, mil: undefined, },
     },
     mode: "onChange",
   });
   
   const selectedClass = form.watch("admissionDetails.classSelection");
 
+  // Set class from URL query parameter
   useEffect(() => {
     const classFromQuery = searchParams.get('class');
     if (classFromQuery && ['9', '11-arts', '11-science', '11-commerce'].includes(classFromQuery)) {
@@ -130,114 +86,62 @@ function AdmissionWizardContent() {
     }
   }, [searchParams, form]);
 
+  const generateAdmissionNumber = useCallback(async () => {
+    try {
+      const count = await getAdmissionCount();
+      const year = new Date().getFullYear().toString().slice(-2);
+      const nextId = (count + 1).toString().padStart(4, '0');
+      form.setValue('admissionDetails.admissionNumber', `ADM/${year}/${nextId}`);
+    } catch (error) {
+      toast({ title: "Error", description: "Could not generate admission number.", variant: "destructive" });
+    }
+  }, [form, toast]);
 
+  // Generate a new admission number on component mount
   useEffect(() => {
-    // Determine the next admission number based on existing data
-    let lastAdmissionId = 0;
-    const storedData = localStorage.getItem('fullAdmissionsData');
-    if (storedData) {
-      try {
-        const students = JSON.parse(storedData);
-        if (Array.isArray(students) && students.length > 0) {
-          // Find the highest admission number
-          const highestId = students.reduce((maxId, student) => {
-            if (student?.admissionDetails?.admissionNumber) {
-              const parts = student.admissionDetails.admissionNumber.split('/');
-              if (parts.length === 3) {
-                const id = parseInt(parts[2], 10);
-                if (!isNaN(id) && id > maxId) {
-                  return id;
-                }
-              }
-            }
-            return maxId;
-          }, 0);
-          lastAdmissionId = highestId;
-        }
-      } catch (error) {
-        console.error("Failed to parse student data to determine admission number", error);
+    generateAdmissionNumber();
+  }, [generateAdmissionNumber]);
+
+  // Update roll number when class selection changes
+  useEffect(() => {
+    const updateRollNumber = async () => {
+      if (selectedClass) {
+        const count = await getClassAdmissionCount(selectedClass);
+        form.setValue('admissionDetails.rollNumber', String(count + 1), { shouldValidate: true });
+      } else {
+        form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
       }
-    }
-    
-    const year = new Date().getFullYear().toString().slice(-2);
-    const nextId = (lastAdmissionId + 1).toString().padStart(4, '0');
-    setAdmissionNumber(`ADM/${year}/${nextId}`);
-    
-    // Load roll number counters
-    const storedCounters = localStorage.getItem('rollNumberCounters');
-    if (storedCounters) {
-      setRollNumberCounters(JSON.parse(storedCounters));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectedClass) {
-      const nextRollNumber = (rollNumberCounters[selectedClass] || 0) + 1;
-      form.setValue('admissionDetails.rollNumber', String(nextRollNumber), { shouldValidate: true });
-    } else {
-      form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
-    }
-  }, [selectedClass, rollNumberCounters, form]);
-  
-  useEffect(() => {
-    if (admissionNumber) {
-      form.setValue('admissionDetails.admissionNumber', admissionNumber, { shouldValidate: true });
-    }
-  }, [admissionNumber, form]);
+    };
+    updateRollNumber();
+  }, [selectedClass, form]);
 
 
   const processForm = async (data: FormValues) => {
-    console.log("Form data submitted:", data);
-
-    // Simulate saving to a database
-    // 1. Update and save roll number counters
-    const newCounters = {
-      ...rollNumberCounters,
-      [data.admissionDetails.classSelection]: (rollNumberCounters[data.admissionDetails.classSelection] || 0) + 1,
-    };
-    setRollNumberCounters(newCounters);
-    localStorage.setItem('rollNumberCounters', JSON.stringify(newCounters));
-
-    // 2. Save full student data for student list and printing
-    let existingFullData = [];
+    setIsLoading(true);
     try {
-        const storedFullData = localStorage.getItem('fullAdmissionsData');
-        const parsed = storedFullData ? JSON.parse(storedFullData) : [];
-        if(Array.isArray(parsed)) existingFullData = parsed;
-    } catch (e) { 
-        console.error("Could not parse existing full data, starting fresh.", e);
+      await addAdmission(data);
+      toast({
+        title: "Form Submitted!",
+        description: `The admission form for ${data.studentDetails.nameEn} has been successfully submitted.`,
+      });
+      form.reset();
+      setStep(1);
+      await generateAdmissionNumber(); // Generate new number for the next form
+    } catch (error) {
+       toast({
+        title: "Submission Failed",
+        description: "There was an error saving the form. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+        setIsLoading(false);
     }
-    localStorage.setItem('fullAdmissionsData', JSON.stringify([data, ...existingFullData]));
-
-
-    toast({
-      title: "Form Submitted!",
-      description: `The admission form for ${data.studentDetails.nameEn} has been successfully submitted.`,
-    });
-
-    // Reset form and step for next admission
-    form.reset();
-    setStep(1);
-
-    // This is needed to regenerate a new admission number for the next form
-    const lastId = parseInt(data.admissionDetails.admissionNumber.split('/')[2], 10);
-    const year = new Date().getFullYear().toString().slice(-2);
-    const nextId = (lastId + 1).toString().padStart(4, '0');
-    setAdmissionNumber(`ADM/${year}/${nextId}`);
   };
   
   const handleNext = async () => {
     let fieldsToValidate: (keyof FormValues)[] | any[];
     if (step === 1) {
-      fieldsToValidate = [
-        "admissionDetails", 
-        "studentDetails", 
-        "contactDetails",
-        "addressDetails",
-        "bankDetails",
-        "otherDetails",
-        "prevSchoolDetails",
-      ];
+      fieldsToValidate = [ "admissionDetails", "studentDetails", "contactDetails", "addressDetails", "bankDetails", "otherDetails", "prevSchoolDetails", ];
     } else if (step === 2) {
       fieldsToValidate = ["subjectDetails"];
     } else {
@@ -345,19 +249,20 @@ function AdmissionWizardContent() {
 
             <div className="flex justify-between pt-4">
               {step > 1 && (
-                <Button type="button" variant="outline" onClick={handlePrev}>
+                <Button type="button" variant="outline" onClick={handlePrev} disabled={isLoading}>
                   <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                 </Button>
               )}
               <div />
               {step < STEPS.length && (
-                <Button type="button" onClick={handleNext}>
+                <Button type="button" onClick={handleNext} disabled={isLoading}>
                   Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
               {step === STEPS.length && (
-                <Button type="submit" variant="default">
-                  Submit Form <Send className="ml-2 h-4 w-4" />
+                <Button type="submit" variant="default" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  {isLoading ? "Submitting..." : "Submit Form"}
                 </Button>
               )}
             </div>

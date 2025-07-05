@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     Table,
     TableBody,
@@ -13,6 +13,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { FormValues } from '@/lib/form-schema';
+import { getAdmissions } from "@/lib/admissions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const classVariantMap: { [key: string]: "default" | "secondary" | "destructive" | "outline" | null | undefined } = {
     '11-science': 'default',
@@ -27,57 +29,32 @@ const classDisplayNameMap: { [key: string]: string } = {
     '9': 'Class 9'
 };
 
-type Admission = {
-    name: string;
-    admissionNumber: string;
-    class: string;
-    date: string;
-}
-
 export default function RecentAdmissions() {
-    const [admissions, setAdmissions] = useState<Admission[]>([]);
+    const [admissions, setAdmissions] = useState<(FormValues & {id: string})[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const loadAdmissions = useCallback(async () => {
+        setLoading(true);
+        try {
+            const recentAdmissions = await getAdmissions(10); // Fetch top 10 recent
+            setAdmissions(recentAdmissions);
+        } catch (error) {
+            console.error("Failed to parse recent admissions data from localStorage", error);
+            setAdmissions([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        const loadAdmissions = () => {
-            const storedData = localStorage.getItem('fullAdmissionsData');
-            if (storedData) {
-                try {
-                    const parsedData: FormValues[] = JSON.parse(storedData);
-                    if (Array.isArray(parsedData)) {
-                        const summaryData: Admission[] = parsedData.map(student => ({
-                            name: student.studentDetails.nameEn,
-                            admissionNumber: student.admissionDetails.admissionNumber,
-                            class: student.admissionDetails.classSelection,
-                            date: student.admissionDetails.admissionDate as unknown as string,
-                        }));
-                        setAdmissions(summaryData);
-                    } else {
-                         setAdmissions([]);
-                    }
-                } catch (error) {
-                    console.error("Failed to parse recent admissions data from localStorage", error);
-                    setAdmissions([]);
-                }
-            } else {
-                setAdmissions([]);
-            }
-        };
-
         loadAdmissions();
-
-        // This listener ensures that if data changes in another tab, this tab updates too.
-        window.addEventListener('storage', loadAdmissions);
-
-        return () => {
-            window.removeEventListener('storage', loadAdmissions);
-        };
-    }, []);
+    }, [loadAdmissions]);
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Recent Admissions</CardTitle>
-                <CardDescription>A list of the most recent student admissions.</CardDescription>
+                <CardDescription>A list of the most recent student admissions from the database.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -90,16 +67,25 @@ export default function RecentAdmissions() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {admissions.length > 0 ? admissions.slice(0, 10).map((admission) => ( // Show top 10 recent
-                            <TableRow key={admission.admissionNumber}>
-                                <TableCell className="font-medium">{admission.name}</TableCell>
-                                <TableCell>{admission.admissionNumber}</TableCell>
+                        {loading ? (
+                            Array.from({length: 5}).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-[80px] rounded-full" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : admissions.length > 0 ? admissions.map((admission) => (
+                            <TableRow key={admission.id}>
+                                <TableCell className="font-medium">{admission.studentDetails.nameEn}</TableCell>
+                                <TableCell>{admission.admissionDetails.admissionNumber}</TableCell>
                                 <TableCell>
-                                    <Badge variant={classVariantMap[admission.class]}>
-                                        {classDisplayNameMap[admission.class] || admission.class}
+                                    <Badge variant={classVariantMap[admission.admissionDetails.classSelection]}>
+                                        {classDisplayNameMap[admission.admissionDetails.classSelection] || admission.admissionDetails.classSelection}
                                     </Badge>
                                 </TableCell>
-                                <TableCell>{new Date(admission.date).toLocaleDateString()}</TableCell>
+                                <TableCell>{new Date(admission.admissionDetails.admissionDate).toLocaleDateString()}</TableCell>
                             </TableRow>
                         )) : (
                             <TableRow>
