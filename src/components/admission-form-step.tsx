@@ -1,6 +1,8 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import {
   FormControl,
   FormDescription,
@@ -21,6 +23,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DatePicker } from "@/components/ui/date-picker";
 import { FormSection } from "@/components/form-section";
 import type { FormValues } from "@/lib/form-schema";
+import { transliterate } from "@/ai/flows/transliterate-flow";
 
 interface AdmissionFormStepProps {
   form: UseFormReturn<FormValues>;
@@ -28,6 +31,30 @@ interface AdmissionFormStepProps {
 
 export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const isDifferentlyAbled = form.watch("studentDetails.isDifferentlyAbled");
+  const [isTranslatingName, setIsTranslatingName] = useState(false);
+  const [isTranslatingFatherName, setIsTranslatingFatherName] = useState(false);
+  const [isTranslatingMotherName, setIsTranslatingMotherName] = useState(false);
+
+  const handleTransliteration = async (
+    sourceText: string,
+    targetField: "studentDetails.nameHi" | "studentDetails.fatherNameHi" | "studentDetails.motherNameHi",
+    setLoading: (loading: boolean) => void
+  ) => {
+    if (!sourceText.trim()) return;
+    setLoading(true);
+    try {
+      const result = await transliterate({ text: sourceText });
+      if (result.transliteratedText) {
+        form.setValue(targetField, result.transliteratedText, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error("Transliteration failed:", error);
+      // Optional: Show a toast notification to the user about the failure
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -56,7 +83,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Student's Name (English)</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., John Doe" {...field} />
+                  <Input 
+                    placeholder="e.g., John Doe" 
+                    {...field}
+                    onBlur={(e) => {
+                        field.onBlur();
+                        handleTransliteration(e.target.value, "studentDetails.nameHi", setIsTranslatingName);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -69,7 +103,12 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Student's Name (Hindi)</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., जॉन डो" {...field} />
+                  <div className="relative">
+                    <Input placeholder="e.g., जॉन डो" {...field} />
+                    {isTranslatingName && (
+                        <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -82,7 +121,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Father's Name (English)</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Richard Doe" {...field} />
+                  <Input 
+                    placeholder="e.g., Richard Doe" 
+                    {...field}
+                    onBlur={(e) => {
+                        field.onBlur();
+                        handleTransliteration(e.target.value, "studentDetails.fatherNameHi", setIsTranslatingFatherName);
+                    }}
+                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -95,7 +141,12 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Father's Name (Hindi)</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., रिचर्ड डो" {...field} />
+                    <div className="relative">
+                        <Input placeholder="e.g., रिचर्ड डो" {...field} />
+                        {isTranslatingFatherName && (
+                            <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                        )}
+                    </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -108,7 +159,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Mother's Name (English)</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Jane Doe" {...field} />
+                  <Input 
+                    placeholder="e.g., Jane Doe" 
+                    {...field} 
+                    onBlur={(e) => {
+                        field.onBlur();
+                        handleTransliteration(e.target.value, "studentDetails.motherNameHi", setIsTranslatingMotherName);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,7 +179,12 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Mother's Name (Hindi)</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., जेन डो" {...field} />
+                    <div className="relative">
+                        <Input placeholder="e.g., जेन डो" {...field} />
+                        {isTranslatingMotherName && (
+                            <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                        )}
+                    </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
