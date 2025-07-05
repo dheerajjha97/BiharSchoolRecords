@@ -34,6 +34,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const [isTranslatingName, setIsTranslatingName] = useState(false);
   const [isTranslatingFatherName, setIsTranslatingFatherName] = useState(false);
   const [isTranslatingMotherName, setIsTranslatingMotherName] = useState(false);
+  const [isFetchingPinDetails, setIsFetchingPinDetails] = useState(false);
 
   const handleTransliteration = async (
     sourceText: string,
@@ -52,6 +53,29 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
       // Optional: Show a toast notification to the user about the failure
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePinCodeLookup = async (pinCode: string) => {
+    if (pinCode.length !== 6) return;
+    setIsFetchingPinDetails(true);
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pinCode}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      if (data && data[0].Status === "Success" && data[0].PostOffice.length > 0) {
+        const postOffice = data[0].PostOffice[0];
+        form.setValue("addressDetails.district", postOffice.District.toUpperCase(), { shouldValidate: true });
+        form.setValue("addressDetails.block", postOffice.Block.toUpperCase(), { shouldValidate: true });
+      } else {
+        console.warn("Could not fetch address details for the given PIN code.");
+      }
+    } catch (error) {
+      console.error("PIN code lookup failed:", error);
+    } finally {
+      setIsFetchingPinDetails(false);
     }
   };
 
@@ -390,11 +414,31 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               )}
             />
             <FormField control={form.control} name="addressDetails.district" render={({ field }) => (<FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="District" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="addressDetails.pin" render={({ field }) => (
+              <FormItem>
+                  <FormLabel>PIN Code</FormLabel>
+                  <FormControl>
+                      <div className="relative">
+                          <Input 
+                              placeholder="PIN Code" 
+                              {...field} 
+                              onBlur={(e) => {
+                                  field.onBlur();
+                                  handlePinCodeLookup(e.target.value);
+                              }}
+                          />
+                          {isFetchingPinDetails && (
+                              <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                          )}
+                      </div>
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+            )} />
             <FormField control={form.control} name="addressDetails.village" render={({ field }) => (<FormItem><FormLabel>Village / Town</FormLabel><FormControl><Input placeholder="Village" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="addressDetails.post" render={({ field }) => (<FormItem><FormLabel>Post Office</FormLabel><FormControl><Input placeholder="Post Office" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="addressDetails.block" render={({ field }) => (<FormItem><FormLabel>Block</FormLabel><FormControl><Input placeholder="Block" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="addressDetails.ps" render={({ field }) => (<FormItem><FormLabel>Police Station</FormLabel><FormControl><Input placeholder="P.S." {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="addressDetails.pin" render={({ field }) => (<FormItem><FormLabel>PIN Code</FormLabel><FormControl><Input placeholder="PIN Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>
       </FormSection>
 
