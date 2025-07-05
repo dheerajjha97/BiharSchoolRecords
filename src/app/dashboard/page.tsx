@@ -1,14 +1,22 @@
-
 import DashboardStats from '@/components/dashboard-stats';
 import RecentAdmissions from '@/components/recent-admissions';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { AlertTriangle, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import GenerateQrCode from '@/components/generate-qr-code';
+import { firebaseError } from '@/lib/firebase';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function DashboardPage() {
   return (
     <div className="space-y-8">
+      {firebaseError && (
+          <Alert variant="destructive" className="mb-8">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Configuration Error</AlertTitle>
+            <AlertDescription>{firebaseError}</AlertDescription>
+          </Alert>
+        )}
       <div className="flex items-center justify-between">
         <header>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>

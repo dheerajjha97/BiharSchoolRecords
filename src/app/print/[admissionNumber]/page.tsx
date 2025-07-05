@@ -1,14 +1,12 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import type { FormValues } from '@/lib/form-schema';
 import { PrintableForm } from '@/components/printable-form';
 import { Button } from '@/components/ui/button';
 import { Loader2, Printer, AlertTriangle } from 'lucide-react';
-import { convertTimestamps } from '@/lib/admissions';
+import { getAdmissionById } from '@/lib/admissions';
+import { firebaseError } from '@/lib/firebase';
 
 export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
@@ -16,6 +14,12 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (firebaseError) {
+      setError(firebaseError);
+      setLoading(false);
+      return;
+    }
+
     if (!params.admissionNumber) {
       setError('No admission ID provided.');
       setLoading(false);
@@ -25,14 +29,10 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     const fetchStudentData = async () => {
       try {
         setLoading(true);
-        const docRef = doc(db, 'admissions', params.admissionNumber);
-        const docSnap = await getDoc(docRef);
+        const data = await getAdmissionById(params.admissionNumber);
 
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          // Firestore returns Timestamps, we need to convert them back to JS Dates
-          const convertedData = convertTimestamps(JSON.parse(JSON.stringify(data)));
-          setStudentData(convertedData as FormValues);
+        if (data) {
+          setStudentData(data);
         } else {
           setError(`No admission record found for ID: ${params.admissionNumber}`);
         }
@@ -58,9 +58,9 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-destructive p-4 text-center">
-        <AlertTriangle className="h-8 w-8 mr-2" />
-        <p>{error}</p>
+      <div className="flex flex-col items-center justify-center min-h-screen text-destructive p-4 text-center">
+        <AlertTriangle className="h-8 w-8 mb-2" />
+        <p className="max-w-md">{error}</p>
       </div>
     );
   }

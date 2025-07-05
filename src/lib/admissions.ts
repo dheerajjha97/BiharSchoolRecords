@@ -1,6 +1,5 @@
-
-import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where, onSnapshot, type Unsubscribe } from 'firebase/firestore';
+import { db, firebaseError } from './firebase';
+import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where, onSnapshot, type Unsubscribe, doc, getDoc } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 import { Timestamp } from 'firebase/firestore';
 
@@ -19,6 +18,10 @@ export const convertTimestamps = (data: any): any => {
 
 
 export const addAdmission = async (data: FormValues) => {
+  if (!db) {
+    console.error(firebaseError);
+    throw new Error(firebaseError || "Failed to save admission: Database not available.");
+  }
   try {
     const docRef = await addDoc(collection(db, 'admissions'), data);
     return docRef.id;
@@ -29,6 +32,10 @@ export const addAdmission = async (data: FormValues) => {
 };
 
 export const getAdmissions = async (count?: number) => {
+  if (!db) {
+    console.error(firebaseError || "Database not configured.");
+    return [];
+  }
   const admissionsCollection = collection(db, 'admissions');
   const q = count
     ? query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'), limit(count))
@@ -46,6 +53,11 @@ export const getAdmissions = async (count?: number) => {
 };
 
 export const listenToAdmissions = (callback: (admissions: (FormValues & { id: string })[]) => void, count?: number): Unsubscribe => {
+    if (!db) {
+        console.error(firebaseError || "Database not configured.");
+        callback([]);
+        return () => {}; // Return a no-op unsubscribe function
+    }
     const admissionsCollection = collection(db, 'admissions');
     const q = count
         ? query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'), limit(count))
@@ -68,6 +80,10 @@ export const listenToAdmissions = (callback: (admissions: (FormValues & { id: st
 };
 
 export const getAdmissionCount = async (): Promise<number> => {
+    if (!db) {
+        console.error(firebaseError || "Database not configured.");
+        return 0;
+    }
     try {
         const admissionsCollection = collection(db, 'admissions');
         const snapshot = await getCountFromServer(admissionsCollection);
@@ -79,6 +95,10 @@ export const getAdmissionCount = async (): Promise<number> => {
 }
 
 export const getClassAdmissionCount = async (classSelection: string): Promise<number> => {
+    if (!db) {
+        console.error(firebaseError || "Database not configured.");
+        return 0;
+    }
     try {
         const admissionsCollection = collection(db, 'admissions');
         const q = query(admissionsCollection, where('admissionDetails.classSelection', '==', classSelection));
@@ -89,3 +109,26 @@ export const getClassAdmissionCount = async (classSelection: string): Promise<nu
         return 0;
     }
 }
+
+
+export const getAdmissionById = async (id: string): Promise<FormValues | null> => {
+  if (!db) {
+    console.error(firebaseError || "Database not configured.");
+    return null;
+  }
+  try {
+    const docRef = doc(db, "admissions", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const convertedData = convertTimestamps(JSON.parse(JSON.stringify(data)));
+      return convertedData as FormValues;
+    } else {
+      return null;
+    }
+  } catch (e) {
+    console.error("Error fetching document:", e);
+    return null;
+  }
+};
