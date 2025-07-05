@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import type { FormValues } from '@/lib/form-schema';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
@@ -128,13 +129,16 @@ const PrintableForm = ({ formData }: { formData: FormValues }) => {
   );
 };
 
-export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
+export default function PrintAdmissionPage() {
+  const params = useParams();
+  const admissionNumber = params.admissionNumber as string;
+  
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !admissionNumber) {
       return;
     }
 
@@ -142,7 +146,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
       setIsLoading(true);
       setError(null);
       try {
-        const admissionNumberToFind = decodeURIComponent(params.admissionNumber);
+        const admissionNumberToFind = decodeURIComponent(admissionNumber);
         const storedData = localStorage.getItem('fullAdmissionsData');
 
         if (!storedData) {
@@ -194,7 +198,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     };
 
     loadStudentData();
-  }, [params.admissionNumber]);
+  }, [admissionNumber]);
 
   useEffect(() => {
     if (studentData) {
