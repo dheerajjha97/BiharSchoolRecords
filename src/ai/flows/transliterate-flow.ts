@@ -28,9 +28,19 @@ const prompt = ai.definePrompt({
   name: 'transliteratePrompt',
   input: {schema: TransliterateInputSchema},
   output: {schema: TransliterateOutputSchema},
-  prompt: `You are an expert linguist. Your task is to transliterate the given English name into Hindi based on its pronunciation.
-The name will be in all capital letters.
-Do not translate the meaning. Only provide the transliterated name in Hindi script.
+  prompt: `You are an expert linguist specializing in phonetics and transliteration.
+Your task is to transliterate the given English name into Hindi script based on its pronunciation.
+Do not translate the meaning of the name. Only provide the transliterated name in Hindi.
+
+The input name will be in all capital letters.
+
+Examples:
+- English Name: RAKESH
+  Hindi: राकेश
+- English Name: SUSHMITA
+  Hindi: सुष्मिता
+- English Name: JOHN
+  Hindi: जॉन
 
 English Name: {{{text}}}
 `,

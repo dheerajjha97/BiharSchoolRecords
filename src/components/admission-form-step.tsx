@@ -89,7 +89,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     onBlur={(e) => {
                         field.onBlur();
-                        handleTransliteration(e.target.value, "studentDetails.nameHi", setIsTranslatingName);
+                        handleTransliteration(form.getValues("studentDetails.nameEn"), "studentDetails.nameHi", setIsTranslatingName);
                     }}
                   />
                 </FormControl>
@@ -128,7 +128,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     onBlur={(e) => {
                         field.onBlur();
-                        handleTransliteration(e.target.value, "studentDetails.fatherNameHi", setIsTranslatingFatherName);
+                        handleTransliteration(form.getValues("studentDetails.fatherNameEn"), "studentDetails.fatherNameHi", setIsTranslatingFatherName);
                     }}
                    />
                 </FormControl>
@@ -167,7 +167,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     onBlur={(e) => {
                         field.onBlur();
-                        handleTransliteration(e.target.value, "studentDetails.motherNameHi", setIsTranslatingMotherName);
+                        handleTransliteration(form.getValues("studentDetails.motherNameEn"), "studentDetails.motherNameHi", setIsTranslatingMotherName);
                     }}
                   />
                 </FormControl>
