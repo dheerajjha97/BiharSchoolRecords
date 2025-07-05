@@ -52,7 +52,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
 
   if (classSelection === "9") {
     const milSelection = form.watch("subjectDetails.mil");
-    const silSubject = milSelection === 'hindi' ? 'Sanskrit' : 'Hindi';
+    const silSubject = milSelection === 'hindi' ? 'Sanskrit' : (milSelection === 'urdu' ? 'Hindi' : '');
 
     return (
       <div className="space-y-6">
@@ -64,7 +64,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
               <FormItem className="mb-6 space-y-3">
                 <FormLabel>1. MIL - Modern Indian Language (Choose One)</FormLabel>
                 <FormControl>
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4">
+                  <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4">
                     <FormItem className="flex items-center space-x-2">
                       <FormControl><RadioGroupItem value="hindi" /></FormControl>
                       <FormLabel className="font-normal">Hindi</FormLabel>
@@ -119,7 +119,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
               <FormItem className="mb-6">
                 <FormLabel>Medium of Instruction</FormLabel>
                 <FormControl>
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4 pt-2">
+                  <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="hindi" /></FormControl><FormLabel className="font-normal">Hindi</FormLabel></FormItem>
                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="english" /></FormControl><FormLabel className="font-normal">English</FormLabel></FormItem>
                   </RadioGroup>
@@ -134,7 +134,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
             render={({ field }) => (
               <FormItem className="mb-6">
                 <FormLabel>Compulsory Group-1 (Choose One)</FormLabel>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid grid-cols-2 gap-4 pt-2">
+                <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4 pt-2">
                   {compulsoryGroup1Subjects.map((subject) => (
                     <FormItem key={subject.id} className="flex items-center space-x-2"><FormControl><RadioGroupItem value={subject.id} /></FormControl><FormLabel className="font-normal">{subject.label}</FormLabel></FormItem>
                   ))}
@@ -150,7 +150,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
               <FormItem className="mb-6">
                 <FormLabel>Compulsory Group-2 (Choose One)</FormLabel>
                 <FormDescription>Cannot be the same as Group-1 selection.</FormDescription>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid grid-cols-2 gap-4 pt-2">
+                <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4 pt-2">
                   {compulsoryGroup2Subjects.map((subject) => (
                     <FormItem key={subject.id} className="flex items-center space-x-2">
                       <FormControl><RadioGroupItem value={subject.id} disabled={subject.id === compGroup1Selection} /></FormControl>
@@ -203,7 +203,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Optional Subject (Choose 1)</FormLabel>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+                <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
                   {optionalSubjects.map((subject) => (
                     <FormItem key={subject.id} className="flex items-center space-x-2"><FormControl><RadioGroupItem value={subject.id} /></FormControl><FormLabel className="font-normal">{subject.label}</FormLabel></FormItem>
                   ))}

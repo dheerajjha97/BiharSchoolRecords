@@ -305,7 +305,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                     className="flex items-center space-x-4 pt-2"
                   >
                     <FormItem className="flex items-center space-x-2">
@@ -390,7 +390,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                  <FormControl>
                   <RadioGroup
                     onValueChange={(value) => field.onChange(value === "true")}
-                    defaultValue={String(field.value)}
+                    value={String(field.value)}
                     className="flex items-center space-x-4 pt-2"
                   >
                     <FormItem className="flex items-center space-x-2">
@@ -446,7 +446,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Marital Status</FormLabel>
                  <FormControl>
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4 pt-2">
+                  <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="unmarried" /></FormControl><FormLabel className="font-normal">Unmarried</FormLabel></FormItem>
                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal">Married</FormLabel></FormItem>
                   </RadioGroup>
@@ -497,7 +497,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormItem>
                   <FormLabel>Area</FormLabel>
                   <FormControl>
-                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4 pt-2">
+                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
                       <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="rural" /></FormControl><FormLabel className="font-normal">Rural</FormLabel></FormItem>
                       <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="urban" /></FormControl><FormLabel className="font-normal">Urban</FormLabel></FormItem>
                     </RadioGroup>
