@@ -67,6 +67,7 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                 <ReviewItem label="Admission Number" value={admissionDetails.admissionNumber} />
                 <ReviewItem label="Admission Date" value={admissionDetails.admissionDate} />
                 <ReviewItem label="Class / Stream" value={displayStream} />
+                <ReviewItem label="Roll Number" value={admissionDetails.rollNumber} />
             </Section>
             
             <Section title="Student Details">

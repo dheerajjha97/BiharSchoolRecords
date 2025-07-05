@@ -42,19 +42,16 @@ const STEPS = [
 export default function AdmissionWizard() {
   const [step, setStep] = useState(1);
   const [admissionNumber, setAdmissionNumber] = useState("");
+  const [rollNumber, setRollNumber] = useState("");
   
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Auto-generate admission number on component mount
-    setAdmissionNumber(`ADM-${Date.now()}`);
-  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       admissionDetails: {
         admissionNumber: "",
+        rollNumber: "",
         admissionDate: undefined,
         classSelection: undefined,
       },
@@ -121,9 +118,42 @@ export default function AdmissionWizard() {
     mode: "onChange",
   });
   
+  const selectedClass = form.watch("admissionDetails.classSelection");
+
   useEffect(() => {
-    if (admissionNumber) form.setValue('admissionDetails.admissionNumber', admissionNumber, { shouldValidate: true });
+    // Auto-generate admission number in ADM/YY/XXX format on component mount
+    const year = new Date().getFullYear().toString().slice(-2);
+    // In a real application, the unique ID would come from a database sequence
+    const uniqueId = String(Date.now()).slice(-3).padStart(3, '0');
+    setAdmissionNumber(`ADM/${year}/${uniqueId}`);
+  }, []);
+
+  useEffect(() => {
+    if (selectedClass) {
+      // In a real application, you would fetch the next available roll number
+      // for the selected class/stream from your database.
+      // For this prototype, we'll generate a random placeholder number.
+      const placeholderRoll = Math.floor(Math.random() * 100) + 1;
+      setRollNumber(String(placeholderRoll));
+    } else {
+      setRollNumber("");
+    }
+  }, [selectedClass]);
+  
+  useEffect(() => {
+    if (admissionNumber) {
+      form.setValue('admissionDetails.admissionNumber', admissionNumber, { shouldValidate: true });
+    }
   }, [admissionNumber, form]);
+
+  useEffect(() => {
+    if (rollNumber) {
+      form.setValue('admissionDetails.rollNumber', rollNumber, { shouldValidate: true });
+    } else {
+      form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
+    }
+  }, [rollNumber, form]);
+
 
   const processForm = async (data: FormValues) => {
     console.log("Form data:", data);
@@ -137,8 +167,6 @@ export default function AdmissionWizard() {
     // setStep(1);
   };
   
-  const selectedClass = form.watch("admissionDetails.classSelection");
-
   const handleNext = async () => {
     let fieldsToValidate: (keyof FormValues)[] | any[];
     if (step === 1) {
@@ -189,7 +217,7 @@ export default function AdmissionWizard() {
             {step === 1 && (
               <>
                  <Card className="bg-muted/50">
-                  <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  <CardContent className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                       <FormField
                         control={form.control}
                         name="admissionDetails.admissionNumber"
@@ -199,6 +227,7 @@ export default function AdmissionWizard() {
                             <FormControl>
                               <Input {...field} readOnly disabled />
                             </FormControl>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
@@ -228,6 +257,19 @@ export default function AdmissionWizard() {
                                       <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
                                   </SelectContent>
                               </Select>
+                              <FormMessage />
+                          </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="admissionDetails.rollNumber"
+                          render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Roll Number</FormLabel>
+                              <FormControl>
+                                <Input {...field} readOnly disabled placeholder="Select class first" />
+                              </FormControl>
                               <FormMessage />
                           </FormItem>
                           )}
