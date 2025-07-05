@@ -33,6 +33,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { firebaseError } from "@/lib/firebase";
 
 
 const STEPS = [
@@ -87,6 +88,10 @@ function AdmissionWizardContent() {
   }, [searchParams, form]);
 
   const generateAdmissionNumber = useCallback(async () => {
+    if (firebaseError) {
+      form.setValue('admissionDetails.admissionNumber', 'CONFIG_ERROR');
+      return;
+    }
     try {
       const count = await getAdmissionCount();
       const year = new Date().getFullYear().toString().slice(-2);
@@ -105,6 +110,10 @@ function AdmissionWizardContent() {
   // Update roll number when class selection changes
   useEffect(() => {
     const updateRollNumber = async () => {
+      if (firebaseError) {
+        form.setValue('admissionDetails.rollNumber', 'ERROR');
+        return;
+      }
       if (selectedClass) {
         const count = await getClassAdmissionCount(selectedClass);
         form.setValue('admissionDetails.rollNumber', String(count + 1), { shouldValidate: true });
@@ -117,6 +126,14 @@ function AdmissionWizardContent() {
 
 
   const processForm = async (data: FormValues) => {
+    if (firebaseError) {
+      toast({
+        title: "Configuration Error",
+        description: firebaseError,
+        variant: "destructive",
+      });
+      return;
+    }
     setIsLoading(true);
     try {
       const newAdmissionId = await addAdmission(data);
@@ -264,7 +281,7 @@ function AdmissionWizardContent() {
                 </Button>
               )}
               {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isLoading}>
+                <Button type="submit" variant="default" disabled={isLoading || !!firebaseError}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                   {isLoading ? "Submitting..." : "Submit Form"}
                 </Button>
