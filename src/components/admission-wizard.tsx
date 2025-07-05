@@ -42,7 +42,7 @@ const STEPS = [
 export default function AdmissionWizard() {
   const [step, setStep] = useState(1);
   const [admissionNumber, setAdmissionNumber] = useState("");
-  const [rollNumber, setRollNumber] = useState("");
+  const [rollNumberCounters, setRollNumberCounters] = useState<{ [key: string]: number }>({});
   
   const { toast } = useToast();
 
@@ -130,15 +130,15 @@ export default function AdmissionWizard() {
 
   useEffect(() => {
     if (selectedClass) {
-      // In a real application, you would fetch the next available roll number
-      // for the selected class/stream from your database.
-      // For this prototype, we'll set the first roll number to 1.
-      const placeholderRoll = 1;
-      setRollNumber(String(placeholderRoll));
+      // This simulates fetching the next available roll number.
+      // In a real app, this logic would be on the server with a database.
+      const nextRollNumber = (rollNumberCounters[selectedClass] || 0) + 1;
+      form.setValue('admissionDetails.rollNumber', String(nextRollNumber), { shouldValidate: true });
     } else {
-      setRollNumber("");
+      // Clear roll number if no class is selected
+      form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
     }
-  }, [selectedClass]);
+  }, [selectedClass, rollNumberCounters, form]);
   
   useEffect(() => {
     if (admissionNumber) {
@@ -146,25 +146,26 @@ export default function AdmissionWizard() {
     }
   }, [admissionNumber, form]);
 
-  useEffect(() => {
-    if (rollNumber) {
-      form.setValue('admissionDetails.rollNumber', rollNumber, { shouldValidate: true });
-    } else {
-      form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
-    }
-  }, [rollNumber, form]);
-
 
   const processForm = async (data: FormValues) => {
     console.log("Form data:", data);
-    // Here you would handle form submission, e.g., send to Firebase
+
+    // On successful submission, we update our counter "database".
+    // This simulates the roll number being officially assigned.
+    setRollNumberCounters(prevCounters => ({
+      ...prevCounters,
+      [data.admissionDetails.classSelection]: (prevCounters[data.admissionDetails.classSelection] || 0) + 1,
+    }));
+    
     toast({
       title: "Form Submitted!",
-      description: "The admission form has been successfully submitted.",
+      description: `The admission form for ${data.studentDetails.nameEn} has been successfully submitted.`,
     });
-    // Potentially reset form or redirect
-    // form.reset();
-    // setStep(1);
+
+    // We reset the form to allow for a new admission entry.
+    // This will demonstrate the roll number incrementing for the next student.
+    form.reset();
+    setStep(1);
   };
   
   const handleNext = async () => {
