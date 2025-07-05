@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -13,7 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { FormValues } from '@/lib/form-schema';
-import { getAdmissions } from "@/lib/admissions";
+import { listenToAdmissions } from "@/lib/admissions";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const classVariantMap: { [key: string]: "default" | "secondary" | "destructive" | "outline" | null | undefined } = {
@@ -33,22 +33,15 @@ export default function RecentAdmissions() {
     const [admissions, setAdmissions] = useState<(FormValues & {id: string})[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const loadAdmissions = useCallback(async () => {
-        setLoading(true);
-        try {
-            const recentAdmissions = await getAdmissions(10); // Fetch top 10 recent
-            setAdmissions(recentAdmissions);
-        } catch (error) {
-            console.error("Failed to parse recent admissions data from localStorage", error);
-            setAdmissions([]);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
     useEffect(() => {
-        loadAdmissions();
-    }, [loadAdmissions]);
+        setLoading(true);
+        const unsubscribe = listenToAdmissions((recentAdmissions) => {
+            setAdmissions(recentAdmissions);
+            setLoading(false);
+        }, 10); // Fetch top 10 recent
+
+        return () => unsubscribe();
+    }, []);
 
     return (
         <Card>

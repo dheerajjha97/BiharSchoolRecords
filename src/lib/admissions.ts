@@ -1,11 +1,11 @@
 
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where, onSnapshot, type Unsubscribe } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 import { Timestamp } from 'firebase/firestore';
 
 // Helper to convert Firestore Timestamps to JS Dates in nested objects
-const convertTimestamps = (data: any): any => {
+export const convertTimestamps = (data: any): any => {
   if (!data) return data;
   for (const key in data) {
     if (data[key] instanceof Timestamp) {
@@ -43,6 +43,28 @@ export const getAdmissions = async (count?: number) => {
     admissions.push({ id: doc.id, ...convertedData } as FormValues & { id: string });
   });
   return admissions;
+};
+
+export const listenToAdmissions = (callback: (admissions: (FormValues & { id: string })[]) => void, count?: number): Unsubscribe => {
+    const admissionsCollection = collection(db, 'admissions');
+    const q = count
+        ? query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'), limit(count))
+        : query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const admissions: (FormValues & { id: string })[] = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const convertedData = convertTimestamps(JSON.parse(JSON.stringify(data)));
+            admissions.push({ id: doc.id, ...convertedData } as FormValues & { id: string });
+        });
+        callback(admissions);
+    }, (error) => {
+        console.error("Error listening to admissions:", error);
+        callback([]); // Pass empty array on error
+    });
+
+    return unsubscribe;
 };
 
 export const getAdmissionCount = async (): Promise<number> => {

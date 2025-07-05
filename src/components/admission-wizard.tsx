@@ -119,11 +119,15 @@ function AdmissionWizardContent() {
   const processForm = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      await addAdmission(data);
+      const newAdmissionId = await addAdmission(data);
       toast({
         title: "Form Submitted!",
         description: `The admission form for ${data.studentDetails.nameEn} has been successfully submitted.`,
       });
+
+      // Automatically open the print page for the new admission
+      window.open(`/print/${newAdmissionId}`, '_blank');
+
       form.reset();
       setStep(1);
       await generateAdmissionNumber(); // Generate new number for the next form

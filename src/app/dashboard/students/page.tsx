@@ -1,16 +1,16 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useCallback } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Printer, Loader2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
-import { getAdmissions } from '@/lib/admissions';
+import { listenToAdmissions } from '@/lib/admissions';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const classOptions = [
@@ -42,22 +42,15 @@ function StudentsListContent() {
     }
   }, [searchParams]);
 
-  const fetchStudents = useCallback(async () => {
-    setLoading(true);
-    try {
-      const allStudents = await getAdmissions();
-      setStudents(allStudents);
-    } catch (error) {
-      console.error("Failed to fetch students from Firestore", error);
-      setStudents([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchStudents();
-  }, [fetchStudents]);
+    setLoading(true);
+    const unsubscribe = listenToAdmissions((allStudents) => {
+      setStudents(allStudents);
+      setLoading(false);
+    });
+
+    return () => unsubscribe(); // Cleanup listener
+  }, []);
 
   const filteredStudents = useMemo(() => {
     if (classFilter === 'all') {

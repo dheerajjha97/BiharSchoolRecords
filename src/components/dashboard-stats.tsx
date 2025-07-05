@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, Palette, FlaskConical, Landmark } from "lucide-react";
-import { getAdmissions } from '@/lib/admissions';
+import { listenToAdmissions } from '@/lib/admissions';
 import type { FormValues } from '@/lib/form-schema';
 
 export default function DashboardStats() {
@@ -18,10 +18,9 @@ export default function DashboardStats() {
   });
   const [loading, setLoading] = useState(true);
 
-  const calculateStats = useCallback(async () => {
+  useEffect(() => {
     setLoading(true);
-    try {
-      const students = await getAdmissions();
+    const unsubscribe = listenToAdmissions((students) => {
       setStats({
         total: students.length,
         class9: students.filter(s => s.admissionDetails.classSelection === '9').length,
@@ -29,16 +28,11 @@ export default function DashboardStats() {
         science: students.filter(s => s.admissionDetails.classSelection === '11-science').length,
         commerce: students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
       });
-    } catch (error) {
-      console.error("Failed to fetch stats data from Firestore", error);
-    } finally {
       setLoading(false);
-    }
-  }, []);
+    });
 
-  useEffect(() => {
-    calculateStats();
-  }, [calculateStats]);
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, []);
 
   const statsData = [
     { title: "Total Admissions", value: stats.total.toLocaleString(), icon: Users, colorClass: "text-chart-1", classId: "all" },
