@@ -1,4 +1,7 @@
 
+'use client';
+
+import { useState, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -10,8 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Note: In a real app, this data would come from an API
-const recentAdmissions = [
+const defaultAdmissions = [
     { name: "Aarav Sharma", admissionNumber: "ADM/24/1250", class: "11-science", date: "2024-07-20" },
     { name: "Diya Patel", admissionNumber: "ADM/24/1249", class: "9", date: "2024-07-20" },
     { name: "Vivaan Singh", admissionNumber: "ADM/24/1248", class: "11-commerce", date: "2024-07-19" },
@@ -33,7 +35,41 @@ const classDisplayNameMap: { [key: string]: string } = {
     '9': 'Class 9'
 };
 
+type Admission = {
+    name: string;
+    admissionNumber: string;
+    class: string;
+    date: string;
+}
+
 export default function RecentAdmissions() {
+    const [admissions, setAdmissions] = useState<Admission[]>([]);
+
+    useEffect(() => {
+        // This effect runs on the client-side after hydration
+        const storedAdmissions = localStorage.getItem('admissions');
+        if (storedAdmissions) {
+            setAdmissions(JSON.parse(storedAdmissions));
+        } else {
+            // If no admissions in storage, use the default list and save it
+            setAdmissions(defaultAdmissions);
+            localStorage.setItem('admissions', JSON.stringify(defaultAdmissions));
+            localStorage.setItem('lastAdmissionId', '1250');
+        }
+
+        const handleStorageUpdate = () => {
+            const updatedAdmissions = localStorage.getItem('admissions');
+            if(updatedAdmissions) {
+                setAdmissions(JSON.parse(updatedAdmissions));
+            }
+        };
+
+        window.addEventListener('storage', handleStorageUpdate);
+        return () => {
+            window.removeEventListener('storage', handleStorageUpdate);
+        };
+    }, []);
+
     return (
         <Card>
             <CardHeader>
@@ -51,7 +87,7 @@ export default function RecentAdmissions() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {recentAdmissions.map((admission) => (
+                        {admissions.length > 0 ? admissions.slice(0, 10).map((admission) => ( // Show top 10 recent
                             <TableRow key={admission.admissionNumber}>
                                 <TableCell className="font-medium">{admission.name}</TableCell>
                                 <TableCell>{admission.admissionNumber}</TableCell>
@@ -62,7 +98,11 @@ export default function RecentAdmissions() {
                                 </TableCell>
                                 <TableCell>{new Date(admission.date).toLocaleDateString()}</TableCell>
                             </TableRow>
-                        ))}
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center">No admissions yet.</TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </CardContent>

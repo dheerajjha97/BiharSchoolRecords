@@ -4,6 +4,7 @@ import RecentAdmissions from '@/components/recent-admissions';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
+import GenerateQrCode from '@/components/generate-qr-code';
 
 export default function DashboardPage() {
   return (
@@ -23,7 +24,14 @@ export default function DashboardPage() {
         </Button>
       </div>
       <DashboardStats />
-      <RecentAdmissions />
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <RecentAdmissions />
+        </div>
+        <div>
+          <GenerateQrCode />
+        </div>
+      </div>
     </div>
   );
 }

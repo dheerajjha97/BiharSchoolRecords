@@ -1,9 +1,11 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
+import { useSearchParams } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
 import { Button } from "@/components/ui/button";
@@ -39,12 +41,13 @@ const STEPS = [
   { id: 3, name: "Review & Submit" },
 ];
 
-export default function AdmissionWizard() {
+function AdmissionWizardContent() {
   const [step, setStep] = useState(1);
   const [admissionNumber, setAdmissionNumber] = useState("");
   const [rollNumberCounters, setRollNumberCounters] = useState<{ [key: string]: number }>({});
   
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -113,6 +116,7 @@ export default function AdmissionWizard() {
         electives: [],
         optionalSubject: undefined,
         mil: undefined,
+        sil: undefined,
       },
     },
     mode: "onChange",
@@ -121,21 +125,31 @@ export default function AdmissionWizard() {
   const selectedClass = form.watch("admissionDetails.classSelection");
 
   useEffect(() => {
-    // Auto-generate admission number in ADM/YY/XXX format on component mount
+    const classFromQuery = searchParams.get('class');
+    if (classFromQuery && ['9', '11-arts', '11-science', '11-commerce'].includes(classFromQuery)) {
+      form.setValue('admissionDetails.classSelection', classFromQuery as any, { shouldValidate: true });
+    }
+  }, [searchParams, form]);
+
+
+  useEffect(() => {
+    // Simulate fetching last admission number and roll counters from a database
+    const lastAdmissionId = parseInt(localStorage.getItem('lastAdmissionId') || '0', 10);
     const year = new Date().getFullYear().toString().slice(-2);
-    // In a real application, the unique ID would be fetched from a database to ensure it's unique and sequential.
-    const uniqueId = '001';
-    setAdmissionNumber(`ADM/${year}/${uniqueId}`);
+    const nextId = (lastAdmissionId + 1).toString().padStart(3, '0');
+    setAdmissionNumber(`ADM/${year}/${nextId}`);
+    
+    const storedCounters = localStorage.getItem('rollNumberCounters');
+    if (storedCounters) {
+      setRollNumberCounters(JSON.parse(storedCounters));
+    }
   }, []);
 
   useEffect(() => {
     if (selectedClass) {
-      // This simulates fetching the next available roll number.
-      // In a real app, this logic would be on the server with a database.
       const nextRollNumber = (rollNumberCounters[selectedClass] || 0) + 1;
       form.setValue('admissionDetails.rollNumber', String(nextRollNumber), { shouldValidate: true });
     } else {
-      // Clear roll number if no class is selected
       form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
     }
   }, [selectedClass, rollNumberCounters, form]);
@@ -150,22 +164,42 @@ export default function AdmissionWizard() {
   const processForm = async (data: FormValues) => {
     console.log("Form data:", data);
 
-    // On successful submission, we update our counter "database".
-    // This simulates the roll number being officially assigned.
-    setRollNumberCounters(prevCounters => ({
-      ...prevCounters,
-      [data.admissionDetails.classSelection]: (prevCounters[data.admissionDetails.classSelection] || 0) + 1,
-    }));
+    // Simulate saving to a database
+    // 1. Update and save roll number counters
+    const newCounters = {
+      ...rollNumberCounters,
+      [data.admissionDetails.classSelection]: (rollNumberCounters[data.admissionDetails.classSelection] || 0) + 1,
+    };
+    setRollNumberCounters(newCounters);
+    localStorage.setItem('rollNumberCounters', JSON.stringify(newCounters));
+
+    // 2. Update and save last admission ID
+    const newAdmissionId = parseInt(data.admissionDetails.admissionNumber.split('/')[2], 10);
+    localStorage.setItem('lastAdmissionId', String(newAdmissionId));
+
+    // 3. Save student data
+    const existingAdmissions = JSON.parse(localStorage.getItem('admissions') || '[]');
+    const newAdmissionData = {
+        name: data.studentDetails.nameEn,
+        admissionNumber: data.admissionDetails.admissionNumber,
+        class: data.admissionDetails.classSelection,
+        date: new Date().toISOString().split('T')[0], // "YYYY-MM-DD"
+    };
+    localStorage.setItem('admissions', JSON.stringify([newAdmissionData, ...existingAdmissions]));
     
     toast({
       title: "Form Submitted!",
       description: `The admission form for ${data.studentDetails.nameEn} has been successfully submitted.`,
     });
 
-    // We reset the form to allow for a new admission entry.
-    // This will demonstrate the roll number incrementing for the next student.
     form.reset();
     setStep(1);
+
+    // This is needed to regenerate a new admission number for the next form
+    const lastAdmissionId = parseInt(localStorage.getItem('lastAdmissionId') || '0', 10);
+    const year = new Date().getFullYear().toString().slice(-2);
+    const nextId = (lastAdmissionId + 1).toString().padStart(3, '0');
+    setAdmissionNumber(`ADM/${year}/${nextId}`);
   };
   
   const handleNext = async () => {
@@ -308,4 +342,13 @@ export default function AdmissionWizard() {
       </CardContent>
     </Card>
   );
+}
+
+
+export default function AdmissionWizard() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AdmissionWizardContent />
+    </Suspense>
+  )
 }
