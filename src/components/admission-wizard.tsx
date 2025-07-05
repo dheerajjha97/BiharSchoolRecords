@@ -160,7 +160,7 @@ function AdmissionWizardContent() {
     }
     
     const year = new Date().getFullYear().toString().slice(-2);
-    const nextId = (lastAdmissionId + 1).toString().padStart(3, '0');
+    const nextId = (lastAdmissionId + 1).toString().padStart(4, '0');
     setAdmissionNumber(`ADM/${year}/${nextId}`);
     
     // Load roll number counters
@@ -222,7 +222,7 @@ function AdmissionWizardContent() {
     // This is needed to regenerate a new admission number for the next form
     const lastId = parseInt(data.admissionDetails.admissionNumber.split('/')[2], 10);
     const year = new Date().getFullYear().toString().slice(-2);
-    const nextId = (lastId + 1).toString().padStart(3, '0');
+    const nextId = (lastId + 1).toString().padStart(4, '0');
     setAdmissionNumber(`ADM/${year}/${nextId}`);
   };
   
