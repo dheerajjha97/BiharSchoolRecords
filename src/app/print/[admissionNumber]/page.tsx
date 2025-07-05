@@ -131,48 +131,73 @@ const PrintableForm = ({ formData }: { formData: FormValues }) => {
 export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-        const admissionNumber = decodeURIComponent(params.admissionNumber);
-        const allData = localStorage.getItem('fullAdmissionsData');
-        if (allData) {
-          const parsedData = JSON.parse(allData);
-          if (!Array.isArray(parsedData)) {
-              console.error("Stored data is not an array.");
-              throw new Error("Stored data is not an array");
-          }
-          const students: FormValues[] = parsedData;
-          // When parsing from JSON, date strings need to be converted back to Date objects
-          const studentRaw = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
-          if (studentRaw) {
-              const studentParsed: FormValues = {
-                  ...studentRaw,
-                  admissionDetails: {
-                      ...studentRaw.admissionDetails,
-                      admissionDate: new Date(studentRaw.admissionDetails.admissionDate),
-                  },
-                  studentDetails: {
-                      ...studentRaw.studentDetails,
-                      dob: new Date(studentRaw.studentDetails.dob),
-                  },
-                  prevSchoolDetails: {
-                      ...studentRaw.prevSchoolDetails,
-                      certIssueDate: studentRaw.prevSchoolDetails.certIssueDate ? new Date(studentRaw.prevSchoolDetails.certIssueDate) : undefined,
-                  }
-              }
-              setStudentData(studentParsed);
-          }
-        }
-    } catch(e) {
-        console.error("Failed to load or parse student data", e);
+    if (typeof window === 'undefined') {
+      return;
     }
-    setIsLoading(false);
+
+    const loadStudentData = () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const admissionNumberToFind = decodeURIComponent(params.admissionNumber);
+        const storedData = localStorage.getItem('fullAdmissionsData');
+
+        if (!storedData) {
+          setError('No admission data found in storage.');
+          setIsLoading(false);
+          return;
+        }
+
+        const allStudents: FormValues[] = JSON.parse(storedData);
+
+        if (!Array.isArray(allStudents)) {
+          setError('Stored data is corrupted or not an array.');
+          setIsLoading(false);
+          return;
+        }
+        
+        const studentRaw = allStudents.find(
+          (s) => s.admissionDetails.admissionNumber === admissionNumberToFind
+        );
+
+        if (studentRaw) {
+          const studentParsed: FormValues = {
+            ...studentRaw,
+            admissionDetails: {
+              ...studentRaw.admissionDetails,
+              admissionDate: new Date(studentRaw.admissionDetails.admissionDate),
+            },
+            studentDetails: {
+              ...studentRaw.studentDetails,
+              dob: new Date(studentRaw.studentDetails.dob),
+            },
+            prevSchoolDetails: {
+              ...studentRaw.prevSchoolDetails,
+              certIssueDate: studentRaw.prevSchoolDetails.certIssueDate
+                ? new Date(studentRaw.prevSchoolDetails.certIssueDate)
+                : undefined,
+            },
+          };
+          setStudentData(studentParsed);
+        } else {
+          setError('Student data not found. Please check the admission number and try again.');
+        }
+      } catch (e) {
+        console.error("Failed to load or parse student data", e);
+        setError('An error occurred while loading student data.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStudentData();
   }, [params.admissionNumber]);
 
   useEffect(() => {
     if (studentData) {
-      // Delay printing slightly to ensure content is rendered
       const timer = setTimeout(() => {
         window.print();
       }, 500);
@@ -184,8 +209,8 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     return <div className="flex items-center justify-center h-screen">Loading printable form...</div>;
   }
 
-  if (!studentData) {
-    return <div className="flex items-center justify-center h-screen">Student data not found. Please check the admission number and try again.</div>;
+  if (error || !studentData) {
+    return <div className="flex items-center justify-center h-screen">{error || 'Student data not found. Please check the admission number and try again.'}</div>;
   }
 
   return (
