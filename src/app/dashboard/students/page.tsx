@@ -83,7 +83,7 @@ function StudentsListContent() {
     if (studentToPrint && printComponentRef.current) {
       handlePrint();
     }
-  }, [studentToPrint, handlePrint]);
+  }, [studentToPrint]);
 
   const prepareToPrint = (admissionNumber: string) => {
     const student = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
