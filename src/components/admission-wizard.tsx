@@ -123,8 +123,8 @@ export default function AdmissionWizard() {
   useEffect(() => {
     // Auto-generate admission number in ADM/YY/XXX format on component mount
     const year = new Date().getFullYear().toString().slice(-2);
-    // In a real application, the unique ID would come from a database sequence
-    const uniqueId = String(Date.now()).slice(-3).padStart(3, '0');
+    // In a real application, the unique ID would be fetched from a database to ensure it's unique and sequential.
+    const uniqueId = '001';
     setAdmissionNumber(`ADM/${year}/${uniqueId}`);
   }, []);
 
