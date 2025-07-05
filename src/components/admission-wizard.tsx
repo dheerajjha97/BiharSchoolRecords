@@ -59,11 +59,67 @@ export default function AdmissionWizard() {
         classSelection: undefined,
       },
       studentDetails: {
+        studentPhoto: null,
+        nameEn: "",
+        nameHi: "",
+        fatherNameEn: "",
+        fatherNameHi: "",
+        motherNameEn: "",
+        motherNameHi: "",
+        dob: undefined,
+        gender: undefined,
+        caste: undefined,
+        religion: undefined,
         isDifferentlyAbled: false,
+        disabilityDetails: "",
+        nationality: undefined,
+        maritalStatus: undefined,
+      },
+      contactDetails: {
+        mobileNumber: "",
+        emailId: "",
+        aadharNumber: "",
+      },
+      addressDetails: {
+        village: "",
+        post: "",
+        block: "",
+        district: "",
+        ps: "",
+        pin: "",
+        area: undefined,
+      },
+      bankDetails: {
+        accountNo: "",
+        ifsc: "",
+        bankName: "",
+        branch: "",
+      },
+      otherDetails: {
+        identificationMark1: "",
+        identificationMark2: "",
+      },
+      prevSchoolDetails: {
+        schoolName: "",
+        slcNo: "",
+        certIssueDate: undefined,
+        lastClassStudied: "",
       },
       subjectDetails: {
+        matricBoard: "",
+        matricBoardCode: "",
+        matricRollNo: "",
+        matricRegNo: "",
+        matricPassingYear: "",
+        medium: undefined,
+        compulsoryGroup1: undefined,
+        compulsoryGroup2: undefined,
         electives: [],
-      }
+        optionalSubject: undefined,
+        studentSignatureEn: null,
+        studentSignatureHi: null,
+        parentSignature: null,
+      },
     },
     mode: "onChange",
   });
@@ -137,12 +193,18 @@ export default function AdmissionWizard() {
               <>
                  <Card className="bg-muted/50">
                   <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                      <FormItem>
-                          <FormLabel>Admission Number</FormLabel>
-                          <FormControl>
-                            <Input value={admissionNumber} readOnly disabled />
-                          </FormControl>
-                      </FormItem>
+                      <FormField
+                        control={form.control}
+                        name="admissionDetails.admissionNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Admission Number</FormLabel>
+                            <FormControl>
+                              <Input {...field} readOnly disabled />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={form.control}
                         name="admissionDetails.admissionDate"

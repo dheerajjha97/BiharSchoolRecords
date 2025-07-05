@@ -102,7 +102,7 @@ export const formSchema = z.object({
     bankDetails: bankDetailsSchema,
     otherDetails: otherDetailsSchema,
     prevSchoolDetails: prevSchoolDetailsSchema,
-    subjectDetails: z.union([class11SubjectSchema, subjectDetailsBaseSchema.optional()]),
+    subjectDetails: class11SubjectSchema.partial().optional(),
 }).superRefine((data, ctx) => {
     if (data.studentDetails.isDifferentlyAbled && !data.studentDetails.disabilityDetails) {
         ctx.addIssue({
@@ -112,17 +112,22 @@ export const formSchema = z.object({
         });
     }
     if (data.admissionDetails.classSelection === "11-arts") {
-        const subjectDetails = data.subjectDetails as z.infer<typeof class11SubjectSchema>;
-        if(!subjectDetails) {
-             ctx.addIssue({ code: "custom", message: "Subject details are required for Class 11", path: ["subjectDetails"] });
-             return;
-        }
-        if (subjectDetails.compulsoryGroup1 && subjectDetails.compulsoryGroup1 === subjectDetails.compulsoryGroup2) {
-            ctx.addIssue({
-                code: "custom",
-                message: "Group 2 subject must be different from Group 1.",
-                path: ["subjectDetails.compulsoryGroup2"],
+        const subjectValidationResult = class11SubjectSchema.safeParse(data.subjectDetails);
+        if (!subjectValidationResult.success) {
+            subjectValidationResult.error.issues.forEach((issue) => {
+                ctx.addIssue({
+                    ...issue,
+                    path: ["subjectDetails", ...issue.path],
+                });
             });
+        } else {
+             if (subjectValidationResult.data.compulsoryGroup1 && subjectValidationResult.data.compulsoryGroup1 === subjectValidationResult.data.compulsoryGroup2) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Group 2 subject must be different from Group 1.",
+                    path: ["subjectDetails.compulsoryGroup2"],
+                });
+            }
         }
     }
 });
