@@ -132,8 +132,8 @@ export default function AdmissionWizard() {
     if (selectedClass) {
       // In a real application, you would fetch the next available roll number
       // for the selected class/stream from your database.
-      // For this prototype, we'll generate a random placeholder number.
-      const placeholderRoll = Math.floor(Math.random() * 100) + 1;
+      // For this prototype, we'll set the first roll number to 1.
+      const placeholderRoll = 1;
       setRollNumber(String(placeholderRoll));
     } else {
       setRollNumber("");
