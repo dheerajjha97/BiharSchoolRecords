@@ -84,9 +84,9 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormLabel>Student's Name (English)</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="e.g., John Doe" 
+                    placeholder="e.g., JOHN DOE" 
                     {...field}
-                    className="uppercase"
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     onBlur={(e) => {
                         field.onBlur();
                         handleTransliteration(e.target.value, "studentDetails.nameHi", setIsTranslatingName);
@@ -123,9 +123,9 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormLabel>Father's Name (English)</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="e.g., Richard Doe" 
+                    placeholder="e.g., RICHARD DOE" 
                     {...field}
-                    className="uppercase"
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     onBlur={(e) => {
                         field.onBlur();
                         handleTransliteration(e.target.value, "studentDetails.fatherNameHi", setIsTranslatingFatherName);
@@ -162,9 +162,9 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormLabel>Mother's Name (English)</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="e.g., Jane Doe" 
+                    placeholder="e.g., JANE DOE" 
                     {...field} 
-                    className="uppercase"
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     onBlur={(e) => {
                         field.onBlur();
                         handleTransliteration(e.target.value, "studentDetails.motherNameHi", setIsTranslatingMotherName);
@@ -323,7 +323,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormItem>
                   <FormLabel>Specify Disability</FormLabel>
                   <FormControl>
-                    <Input placeholder="Details of disability" {...field} className="uppercase" />
+                    <Input placeholder="Details of disability" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -373,11 +373,11 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
             <FormField control={form.control} name="contactDetails.aadharNumber" render={({ field }) => (<FormItem><FormLabel>Aadhar Number</FormLabel><FormControl><Input placeholder="12-digit Aadhar number" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-             <FormField control={form.control} name="addressDetails.village" render={({ field }) => (<FormItem><FormLabel>Village / Town</FormLabel><FormControl><Input placeholder="Village" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.post" render={({ field }) => (<FormItem><FormLabel>Post Office</FormLabel><FormControl><Input placeholder="Post Office" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.block" render={({ field }) => (<FormItem><FormLabel>Block</FormLabel><FormControl><Input placeholder="Block" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.district" render={({ field }) => (<FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="District" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.ps" render={({ field }) => (<FormItem><FormLabel>Police Station</FormLabel><FormControl><Input placeholder="P.S." {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
+             <FormField control={form.control} name="addressDetails.village" render={({ field }) => (<FormItem><FormLabel>Village / Town</FormLabel><FormControl><Input placeholder="Village" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+             <FormField control={form.control} name="addressDetails.post" render={({ field }) => (<FormItem><FormLabel>Post Office</FormLabel><FormControl><Input placeholder="Post Office" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+             <FormField control={form.control} name="addressDetails.block" render={({ field }) => (<FormItem><FormLabel>Block</FormLabel><FormControl><Input placeholder="Block" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+             <FormField control={form.control} name="addressDetails.district" render={({ field }) => (<FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="District" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+             <FormField control={form.control} name="addressDetails.ps" render={({ field }) => (<FormItem><FormLabel>Police Station</FormLabel><FormControl><Input placeholder="P.S." {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
              <FormField control={form.control} name="addressDetails.pin" render={({ field }) => (<FormItem><FormLabel>PIN Code</FormLabel><FormControl><Input placeholder="PIN Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -404,21 +404,21 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="bankDetails.accountNo" render={({ field }) => (<FormItem><FormLabel>Account Number</FormLabel><FormControl><Input placeholder="Bank Account Number" {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="bankDetails.ifsc" render={({ field }) => (<FormItem><FormLabel>IFSC Code</FormLabel><FormControl><Input placeholder="IFSC Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="bankDetails.bankName" render={({ field }) => (<FormItem><FormLabel>Bank Name</FormLabel><FormControl><Input placeholder="Name of the Bank" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="bankDetails.branch" render={({ field }) => (<FormItem><FormLabel>Branch Name</FormLabel><FormControl><Input placeholder="Branch Name" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="bankDetails.bankName" render={({ field }) => (<FormItem><FormLabel>Bank Name</FormLabel><FormControl><Input placeholder="Name of the Bank" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="bankDetails.branch" render={({ field }) => (<FormItem><FormLabel>Branch Name</FormLabel><FormControl><Input placeholder="Branch Name" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
         </div>
       </FormSection>
 
       <FormSection title="Other Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="otherDetails.identificationMark1" render={({ field }) => (<FormItem><FormLabel>Identification Mark 1</FormLabel><FormControl><Input placeholder="First identification mark" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="otherDetails.identificationMark2" render={({ field }) => (<FormItem><FormLabel>Identification Mark 2</FormLabel><FormControl><Input placeholder="Second identification mark" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="otherDetails.identificationMark1" render={({ field }) => (<FormItem><FormLabel>Identification Mark 1</FormLabel><FormControl><Input placeholder="First identification mark" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="otherDetails.identificationMark2" render={({ field }) => (<FormItem><FormLabel>Identification Mark 2</FormLabel><FormControl><Input placeholder="Second identification mark" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
         </div>
       </FormSection>
 
       <FormSection title="Previous School Details">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="prevSchoolDetails.schoolName" render={({ field }) => (<FormItem><FormLabel>School Name</FormLabel><FormControl><Input placeholder="Previous school name" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="prevSchoolDetails.schoolName" render={({ field }) => (<FormItem><FormLabel>School Name</FormLabel><FormControl><Input placeholder="Previous school name" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="prevSchoolDetails.slcNo" render={({ field }) => (<FormItem><FormLabel>SLC No.</FormLabel><FormControl><Input placeholder="School Leaving Certificate No." {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField
               control={form.control}
