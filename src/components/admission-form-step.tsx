@@ -112,7 +112,6 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const handleIfscLookup = async (ifscCode: string) => {
     if (ifscCode.length < 11) {
       form.setValue("bankDetails.bankName", "", { shouldValidate: false });
-      form.setValue("bankDetails.branch", "", { shouldValidate: false });
       return;
     }
 
@@ -123,21 +122,17 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
         const data = await response.json();
         if (data && data.BANK) {
             form.setValue("bankDetails.bankName", data.BANK.toUpperCase(), { shouldValidate: true });
-            form.setValue("bankDetails.branch", data.BRANCH.toUpperCase(), { shouldValidate: true });
         } else {
             console.warn("Invalid IFSC code or data not found.");
             form.setValue("bankDetails.bankName", "", { shouldValidate: true });
-            form.setValue("bankDetails.branch", "", { shouldValidate: true });
         }
       } else {
         console.warn("Could not fetch bank details for the given IFSC code.");
         form.setValue("bankDetails.bankName", "", { shouldValidate: true });
-        form.setValue("bankDetails.branch", "", { shouldValidate:true });
       }
     } catch (error) {
       console.error("IFSC lookup failed:", error);
       form.setValue("bankDetails.bankName", "", { shouldValidate: true });
-      form.setValue("bankDetails.branch", "", { shouldValidate: true });
     } finally {
       setIsFetchingBankDetails(false);
     }
