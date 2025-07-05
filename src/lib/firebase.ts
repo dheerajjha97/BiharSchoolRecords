@@ -18,7 +18,6 @@ let firebaseError: string | null = null;
 
 if (missingEnvVars.length > 0) {
   firebaseError = `Firebase configuration is missing. Please ensure all required environment variables are set in your .env.local file. Missing: ${missingEnvVars.join(', ')}. After adding them, please restart the development server.`;
-  console.error(firebaseError);
 } else {
     const firebaseConfig = {
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
