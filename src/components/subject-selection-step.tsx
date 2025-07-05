@@ -69,7 +69,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
       <div className="space-y-6">
         <FormSection title="Matriculation Details">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="subjectDetails.matricBoard" render={({ field }) => (<FormItem><FormLabel>Matric Board Name</FormLabel><FormControl><Input placeholder="e.g., BSEB, CBSE" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="subjectDetails.matricBoard" render={({ field }) => (<FormItem><FormLabel>Matric Board Name</FormLabel><FormControl><Input placeholder="e.g., BSEB, CBSE" {...field} className="capitalize" /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="subjectDetails.matricBoardCode" render={({ field }) => (<FormItem><FormLabel>Board Code</FormLabel><FormControl><Input placeholder="Board Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="subjectDetails.matricRollNo" render={({ field }) => (<FormItem><FormLabel>Roll Number</FormLabel><FormControl><Input placeholder="Matric Roll No." {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="subjectDetails.matricRegNo" render={({ field }) => (<FormItem><FormLabel>Registration Number</FormLabel><FormControl><Input placeholder="Matric Registration No." {...field} /></FormControl><FormMessage /></FormItem>)} />
