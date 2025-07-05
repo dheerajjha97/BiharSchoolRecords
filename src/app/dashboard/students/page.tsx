@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useReactToPrint } from 'react-to-print';
+import ReactToPrint from 'react-to-print';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,7 +31,10 @@ function StudentsListContent() {
   const [students, setStudents] = useState<FormValues[]>([]);
   const [classFilter, setClassFilter] = useState('all');
   const [studentToPrint, setStudentToPrint] = useState<FormValues | null>(null);
+  
   const printComponentRef = useRef<HTMLDivElement>(null);
+  const printTriggerRef = useRef<HTMLButtonElement>(null);
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -73,22 +76,11 @@ function StudentsListContent() {
     }
   }, []);
 
-  const handlePrint = useReactToPrint({
-    content: () => printComponentRef.current,
-    onAfterPrint: () => setStudentToPrint(null),
-  });
-
   useEffect(() => {
-    if (studentToPrint) {
-      // We use a small timeout to allow React to render the component with the `ref`
-      // before the print function is called. This resolves the timing issue.
-      const timer = setTimeout(() => {
-        handlePrint();
-      }, 100);
-
-      return () => clearTimeout(timer);
+    if (studentToPrint && printTriggerRef.current) {
+      printTriggerRef.current.click();
     }
-  }, [studentToPrint, handlePrint]);
+  }, [studentToPrint]);
 
 
   const prepareToPrint = (admissionNumber: string) => {
@@ -189,7 +181,14 @@ function StudentsListContent() {
       </div>
       <div className="hidden">
         {studentToPrint && (
-          <PrintableForm ref={printComponentRef} formData={studentToPrint} />
+          <>
+            <ReactToPrint
+                content={() => printComponentRef.current}
+                onAfterPrint={() => setStudentToPrint(null)}
+                trigger={() => <button ref={printTriggerRef}>Print</button>}
+            />
+            <PrintableForm ref={printComponentRef} formData={studentToPrint} />
+          </>
         )}
       </div>
     </>
