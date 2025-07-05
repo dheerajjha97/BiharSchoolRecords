@@ -35,6 +35,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const [isTranslatingFatherName, setIsTranslatingFatherName] = useState(false);
   const [isTranslatingMotherName, setIsTranslatingMotherName] = useState(false);
   const [isFetchingPinDetails, setIsFetchingPinDetails] = useState(false);
+  const [availableBlocks, setAvailableBlocks] = useState<string[]>([]);
 
   const handleTransliteration = async (
     sourceText: string,
@@ -57,7 +58,15 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   };
 
   const handlePinCodeLookup = async (pinCode: string) => {
-    if (pinCode.length !== 6) return;
+    // Reset blocks and form value when a new lookup starts
+    setAvailableBlocks([]);
+    form.setValue("addressDetails.block", "", { shouldValidate: false });
+
+    if (pinCode.length !== 6) {
+        form.setValue("addressDetails.district", "", { shouldValidate: true });
+        return;
+    };
+    
     setIsFetchingPinDetails(true);
     try {
       const response = await fetch(`https://api.postalpincode.in/pincode/${pinCode}`);
@@ -66,14 +75,34 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
       }
       const data = await response.json();
       if (data && data[0].Status === "Success" && data[0].PostOffice.length > 0) {
-        const postOffice = data[0].PostOffice[0];
-        form.setValue("addressDetails.district", postOffice.District.toUpperCase(), { shouldValidate: true });
-        form.setValue("addressDetails.block", postOffice.Block.toUpperCase(), { shouldValidate: true });
+        const postOffices = data[0].PostOffice;
+        
+        // Set District (usually the same for one PIN)
+        form.setValue("addressDetails.district", postOffices[0].District.toUpperCase(), { shouldValidate: true });
+
+        // Get unique blocks, filtering out "NA" values
+        const uniqueBlocks = [...new Set(postOffices.map((po: any) => po.Block.toUpperCase()))].filter(b => b && b !== 'N/A' && b !== 'NA');
+
+        if (uniqueBlocks.length === 1) {
+          form.setValue("addressDetails.block", uniqueBlocks[0], { shouldValidate: true });
+          setAvailableBlocks([]);
+        } else if (uniqueBlocks.length > 1) {
+          setAvailableBlocks(uniqueBlocks);
+          // Let user choose the block
+        } else {
+          // No blocks found or only "NA", clear the list
+          setAvailableBlocks([]);
+        }
+
       } else {
         console.warn("Could not fetch address details for the given PIN code.");
+        form.setValue("addressDetails.district", "", { shouldValidate: true });
+        setAvailableBlocks([]);
       }
     } catch (error) {
       console.error("PIN code lookup failed:", error);
+      form.setValue("addressDetails.district", "", { shouldValidate: true });
+      setAvailableBlocks([]);
     } finally {
       setIsFetchingPinDetails(false);
     }
@@ -110,7 +139,10 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                   <Input 
                     placeholder="e.g., JOHN DOE" 
                     {...field}
-                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const upperCaseValue = e.target.value.toUpperCase();
+                      field.onChange(upperCaseValue);
+                    }}
                     onBlur={(e) => {
                         field.onBlur();
                         handleTransliteration(form.getValues("studentDetails.nameEn"), "studentDetails.nameHi", setIsTranslatingName);
@@ -149,7 +181,10 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                   <Input 
                     placeholder="e.g., RICHARD DOE" 
                     {...field}
-                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const upperCaseValue = e.target.value.toUpperCase();
+                      field.onChange(upperCaseValue);
+                    }}
                     onBlur={(e) => {
                         field.onBlur();
                         handleTransliteration(form.getValues("studentDetails.fatherNameEn"), "studentDetails.fatherNameHi", setIsTranslatingFatherName);
@@ -188,7 +223,10 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                   <Input 
                     placeholder="e.g., JANE DOE" 
                     {...field} 
-                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const upperCaseValue = e.target.value.toUpperCase();
+                      field.onChange(upperCaseValue);
+                    }}
                     onBlur={(e) => {
                         field.onBlur();
                         handleTransliteration(form.getValues("studentDetails.motherNameEn"), "studentDetails.motherNameHi", setIsTranslatingMotherName);
@@ -399,6 +437,31 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <FormField
               control={form.control}
+              name="addressDetails.pin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>PIN Code</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        placeholder="PIN Code"
+                        {...field}
+                        onBlur={(e) => {
+                          field.onBlur();
+                          handlePinCodeLookup(e.target.value);
+                        }}
+                      />
+                      {isFetchingPinDetails && (
+                        <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="addressDetails.area"
               render={({ field }) => (
                 <FormItem>
@@ -414,30 +477,45 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               )}
             />
             <FormField control={form.control} name="addressDetails.district" render={({ field }) => (<FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="District" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="addressDetails.pin" render={({ field }) => (
-              <FormItem>
-                  <FormLabel>PIN Code</FormLabel>
-                  <FormControl>
-                      <div className="relative">
-                          <Input 
-                              placeholder="PIN Code" 
-                              {...field} 
-                              onBlur={(e) => {
-                                  field.onBlur();
-                                  handlePinCodeLookup(e.target.value);
-                              }}
-                          />
-                          {isFetchingPinDetails && (
-                              <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
-                          )}
-                      </div>
-                  </FormControl>
+            <FormField
+              control={form.control}
+              name="addressDetails.block"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Block</FormLabel>
+                  {availableBlocks.length > 1 ? (
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a block" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availableBlocks.map((block) => (
+                          <SelectItem key={block} value={block}>
+                            {block}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <FormControl>
+                      <Input
+                        placeholder="Block"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      />
+                    </FormControl>
+                  )}
                   <FormMessage />
-              </FormItem>
-            )} />
+                </FormItem>
+              )}
+            />
             <FormField control={form.control} name="addressDetails.village" render={({ field }) => (<FormItem><FormLabel>Village / Town</FormLabel><FormControl><Input placeholder="Village" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="addressDetails.post" render={({ field }) => (<FormItem><FormLabel>Post Office</FormLabel><FormControl><Input placeholder="Post Office" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="addressDetails.block" render={({ field }) => (<FormItem><FormLabel>Block</FormLabel><FormControl><Input placeholder="Block" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="addressDetails.ps" render={({ field }) => (<FormItem><FormLabel>Police Station</FormLabel><FormControl><Input placeholder="P.S." {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
         </div>
       </FormSection>
