@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, School } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, School, Users } from 'lucide-react';
 
 import {
   SidebarProvider,
@@ -48,6 +48,18 @@ export default function DashboardLayout({
                 <Link href="/dashboard">
                   <LayoutDashboard />
                   <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/dashboard/students')}
+                tooltip="Students List"
+              >
+                <Link href="/dashboard/students">
+                  <Users />
+                  <span>Students List</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
