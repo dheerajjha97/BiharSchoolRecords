@@ -48,7 +48,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
   const displayStream = streamDisplayNames[admissionDetails.classSelection || ''] || admissionDetails.classSelection;
 
   return (
-    <div className="bg-white text-black font-body">
+    <div className="bg-white text-black font-body print-container">
         <header className="text-center mb-8 relative">
             <div className="absolute top-0 right-0 w-32 h-40 border-2 border-gray-400 flex items-center justify-center text-gray-500 text-sm p-2">
                 Paste Passport Size Photo Here

@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Pencil, Printer, Loader2 } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { getAdmissions } from '@/lib/admissions';
-import { PrintableForm } from '@/components/printable-form';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const classOptions = [
@@ -33,9 +32,6 @@ function StudentsListContent() {
   const [students, setStudents] = useState<(FormValues & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [classFilter, setClassFilter] = useState('all');
-  
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [studentToPrint, setStudentToPrint] = useState<FormValues | null>(null);
 
   const searchParams = useSearchParams();
 
@@ -62,26 +58,6 @@ function StudentsListContent() {
   useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
-
-  const handlePrintClick = (student: FormValues) => {
-    setStudentToPrint(student);
-    setIsPrinting(true);
-  };
-  
-  useEffect(() => {
-    const handleAfterPrint = () => {
-        setIsPrinting(false);
-        setStudentToPrint(null);
-    };
-
-    if (isPrinting) {
-        window.addEventListener('afterprint', handleAfterPrint);
-    }
-
-    return () => {
-        window.removeEventListener('afterprint', handleAfterPrint);
-    };
-}, [isPrinting]);
 
   const filteredStudents = useMemo(() => {
     if (classFilter === 'all') {
@@ -158,9 +134,11 @@ function StudentsListContent() {
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handlePrintClick(student)}>
-                            <Printer className="h-4 w-4" />
-                            <span className="sr-only">Print</span>
+                          <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/print/${student.id}`} target="_blank" rel="noopener noreferrer">
+                                <Printer className="h-4 w-4" />
+                                <span className="sr-only">Print</span>
+                            </Link>
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -178,21 +156,6 @@ function StudentsListContent() {
           </CardContent>
         </Card>
       </div>
-
-      {isPrinting && studentToPrint && (
-        <div className="fixed inset-0 bg-white z-50 overflow-y-auto print-container p-4 sm:p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="flex justify-end gap-4 mb-4 print-hide">
-                    <Button variant="outline" onClick={() => setIsPrinting(false)}>Cancel</Button>
-                    <Button onClick={() => window.print()}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print Now
-                    </Button>
-                </div>
-                <PrintableForm formData={studentToPrint} />
-            </div>
-        </div>
-      )}
     </>
   );
 }
