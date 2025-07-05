@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -80,10 +79,17 @@ function StudentsListContent() {
   });
 
   useEffect(() => {
-    if (studentToPrint && printComponentRef.current) {
-      handlePrint();
+    if (studentToPrint) {
+      // We use a small timeout to allow React to render the component with the `ref`
+      // before the print function is called. This resolves the timing issue.
+      const timer = setTimeout(() => {
+        handlePrint();
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [studentToPrint]);
+  }, [studentToPrint, handlePrint]);
+
 
   const prepareToPrint = (admissionNumber: string) => {
     const student = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
