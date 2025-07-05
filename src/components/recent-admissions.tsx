@@ -13,15 +13,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const defaultAdmissions = [
-    { name: "Aarav Sharma", admissionNumber: "ADM/24/1250", class: "11-science", date: "2024-07-20" },
-    { name: "Diya Patel", admissionNumber: "ADM/24/1249", class: "9", date: "2024-07-20" },
-    { name: "Vivaan Singh", admissionNumber: "ADM/24/1248", class: "11-commerce", date: "2024-07-19" },
-    { name: "Isha Gupta", admissionNumber: "ADM/24/1247", class: "11-arts", date: "2024-07-19" },
-    { name: "Kabir Verma", admissionNumber: "ADM/24/1246", class: "11-science", date: "2024-07-18" },
-    { name: "Ananya Reddy", admissionNumber: "ADM/24/1245", class: "9", date: "2024-07-18" },
-];
-
 const classVariantMap: { [key: string]: "default" | "secondary" | "destructive" | "outline" | null | undefined } = {
     '11-science': 'default',
     '11-commerce': 'secondary',
@@ -46,27 +37,22 @@ export default function RecentAdmissions() {
     const [admissions, setAdmissions] = useState<Admission[]>([]);
 
     useEffect(() => {
-        // This effect runs on the client-side after hydration
-        const storedAdmissions = localStorage.getItem('admissions');
-        if (storedAdmissions) {
-            setAdmissions(JSON.parse(storedAdmissions));
-        } else {
-            // If no admissions in storage, use the default list and save it
-            setAdmissions(defaultAdmissions);
-            localStorage.setItem('admissions', JSON.stringify(defaultAdmissions));
-            localStorage.setItem('lastAdmissionId', '1250');
-        }
-
-        const handleStorageUpdate = () => {
-            const updatedAdmissions = localStorage.getItem('admissions');
-            if(updatedAdmissions) {
-                setAdmissions(JSON.parse(updatedAdmissions));
+        const loadAdmissions = () => {
+            const storedAdmissions = localStorage.getItem('admissions');
+            if (storedAdmissions) {
+                setAdmissions(JSON.parse(storedAdmissions));
+            } else {
+                setAdmissions([]);
             }
         };
 
-        window.addEventListener('storage', handleStorageUpdate);
+        loadAdmissions();
+
+        // This listener ensures that if data changes in another tab, this tab updates too.
+        window.addEventListener('storage', loadAdmissions);
+
         return () => {
-            window.removeEventListener('storage', handleStorageUpdate);
+            window.removeEventListener('storage', loadAdmissions);
         };
     }, []);
 
@@ -100,7 +86,7 @@ export default function RecentAdmissions() {
                             </TableRow>
                         )) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center">No admissions yet.</TableCell>
+                                <TableCell colSpan={4} className="h-24 text-center">No admissions yet.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>

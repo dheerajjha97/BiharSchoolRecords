@@ -1,17 +1,55 @@
+'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, Palette, FlaskConical, Landmark } from "lucide-react";
-
-const statsData = [
-  { title: "Total Admissions", value: "1,250", icon: Users, colorClass: "text-chart-1", classId: "all" },
-  { title: "Class 9", value: "450", icon: BookOpen, colorClass: "text-chart-2", classId: "9" },
-  { title: "Class 11 Arts", value: "300", icon: Palette, colorClass: "text-chart-3", classId: "11-arts" },
-  { title: "Class 11 Science", value: "280", icon: FlaskConical, colorClass: "text-chart-4", classId: "11-science" },
-  { title: "Class 11 Commerce", value: "220", icon: Landmark, colorClass: "text-chart-5", classId: "11-commerce" },
-];
+import type { FormValues } from '@/lib/form-schema';
 
 export default function DashboardStats() {
+  const [stats, setStats] = useState({
+    total: 0,
+    class9: 0,
+    arts: 0,
+    science: 0,
+    commerce: 0,
+  });
+
+  useEffect(() => {
+    const calculateStats = () => {
+      const storedData = localStorage.getItem('fullAdmissionsData');
+      if (storedData) {
+        const students: FormValues[] = JSON.parse(storedData);
+        setStats({
+          total: students.length,
+          class9: students.filter(s => s.admissionDetails.classSelection === '9').length,
+          arts: students.filter(s => s.admissionDetails.classSelection === '11-arts').length,
+          science: students.filter(s => s.admissionDetails.classSelection === '11-science').length,
+          commerce: students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
+        });
+      } else {
+        setStats({ total: 0, class9: 0, arts: 0, science: 0, commerce: 0 });
+      }
+    };
+
+    calculateStats(); // Initial calculation
+
+    // Listen for changes from other tabs or when data is updated
+    window.addEventListener('storage', calculateStats);
+    
+    return () => {
+      window.removeEventListener('storage', calculateStats);
+    };
+  }, []);
+
+  const statsData = [
+    { title: "Total Admissions", value: stats.total.toLocaleString(), icon: Users, colorClass: "text-chart-1", classId: "all" },
+    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, colorClass: "text-chart-2", classId: "9" },
+    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, colorClass: "text-chart-3", classId: "11-arts" },
+    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, colorClass: "text-chart-4", classId: "11-science" },
+    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, colorClass: "text-chart-5", classId: "11-commerce" },
+  ];
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       {statsData.map((stat) => (
@@ -24,7 +62,7 @@ export default function DashboardStats() {
             <CardContent>
               <div className={`text-2xl font-bold ${stat.colorClass}`}>{stat.value}</div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                Click to view list
               </p>
             </CardContent>
           </Card>
