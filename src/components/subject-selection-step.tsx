@@ -14,8 +14,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormSection } from "@/components/form-section";
 import type { FormValues } from "@/lib/form-schema";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
 
 interface SubjectSelectionStepProps {
   form: UseFormReturn<FormValues>;
@@ -53,14 +51,50 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
   const compGroup1Selection = form.watch("subjectDetails.compulsoryGroup1");
 
   if (classSelection === "9") {
+    const milSelection = form.watch("subjectDetails.mil");
+    const silSubject = milSelection === 'hindi' ? 'Sanskrit' : 'Hindi';
+
     return (
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Class 9 Subject Information</AlertTitle>
-        <AlertDescription>
-          For Class 9, subjects are pre-defined and will be assigned by the school administration. No selection is required at this stage.
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <FormSection title="Subject Selection (Class 9)">
+          <FormField
+            control={form.control}
+            name="subjectDetails.mil"
+            render={({ field }) => (
+              <FormItem className="mb-6 space-y-3">
+                <FormLabel>1. MIL - Modern Indian Language (Choose One)</FormLabel>
+                <FormControl>
+                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4">
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl><RadioGroupItem value="hindi" /></FormControl>
+                      <FormLabel className="font-normal">Hindi</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl><RadioGroupItem value="urdu" /></FormControl>
+                      <FormLabel className="font-normal">Urdu</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormItem className="mb-6">
+            <FormLabel>2. SIL - Second Indian Language</FormLabel>
+            <p className="text-sm font-medium text-muted-foreground pt-2">
+                {milSelection ? `Your assigned SIL is ${silSubject}.` : 'Select your MIL to see your assigned SIL.'}
+            </p>
+          </FormItem>
+
+          <FormItem>
+            <FormLabel>3. Compulsory Subjects</FormLabel>
+            <p className="text-sm font-medium text-muted-foreground pt-2">
+              Mathematics, Social Science, English
+            </p>
+          </FormItem>
+        </FormSection>
+      </div>
     );
   }
 

@@ -28,7 +28,7 @@ const ReviewItem = ({ label, value }: { label: string; value: any }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between py-2">
       <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2 text-right">{String(displayValue)}</dd>
+      <dd className="mt-1 text-sm text-foreground sm:mt-0 sm:col-span-2 text-right capitalize">{String(displayValue)}</dd>
     </div>
   );
 };
@@ -44,6 +44,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 export function FormReviewStep({ formData }: FormReviewStepProps) {
   const { admissionDetails, studentDetails, contactDetails, addressDetails, bankDetails, otherDetails, prevSchoolDetails, subjectDetails } = formData;
   const isClass11 = admissionDetails.classSelection === '11-arts';
+  const isClass9 = admissionDetails.classSelection === '9';
 
   return (
     <Card className="p-6">
@@ -104,8 +105,16 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                  <ReviewItem label="Last Class Studied" value={prevSchoolDetails.lastClassStudied} />
             </Section>
 
+            {isClass9 && subjectDetails && (
+                <Section title="Subject Selection (Class 9)">
+                    <ReviewItem label="MIL" value={subjectDetails.mil} />
+                    <ReviewItem label="SIL" value={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
+                    <ReviewItem label="Other Subjects" value="Mathematics, Social Science, English" />
+                </Section>
+            )}
+
             {isClass11 && subjectDetails && (
-                <Section title="Subject Selection">
+                <Section title="Subject Selection (Class 11)">
                     <ReviewItem label="Matric Board Name" value={subjectDetails.matricBoard} />
                     <ReviewItem label="Board Code" value={subjectDetails.matricBoardCode} />
                     <ReviewItem label="Roll No." value={subjectDetails.matricRollNo} />

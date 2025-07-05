@@ -119,6 +119,7 @@ export default function AdmissionWizard() {
         studentSignatureEn: null,
         studentSignatureHi: null,
         parentSignature: null,
+        mil: undefined,
       },
     },
     mode: "onChange",

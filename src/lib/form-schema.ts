@@ -46,13 +46,13 @@ const contactDetailsSchema = z.object({
 });
 
 const addressDetailsSchema = z.object({
-    village: z.string().min(1, "Village/Town is required."),
-    post: z.string().min(1, "Post office is required."),
-    block: z.string().min(1, "Block is required."),
-    district: z.string().min(1, "District is required."),
-    ps: z.string().min(1, "Police station is required."),
     pin: z.string().regex(/^\d{6}$/, "Please enter a valid 6-digit PIN code."),
     area: z.enum(["rural", "urban"], { required_error: "Please select an area." }),
+    district: z.string().min(1, "District is required."),
+    block: z.string().min(1, "Block is required."),
+    village: z.string().min(1, "Village/Town is required."),
+    post: z.string().min(1, "Post office is required."),
+    ps: z.string().min(1, "Police station is required."),
 });
 
 const bankDetailsSchema = z.object({
@@ -74,23 +74,23 @@ const prevSchoolDetailsSchema = z.object({
     lastClassStudied: z.string().optional(),
 });
 
-const subjectDetailsBaseSchema = z.object({
-    matricBoard: z.string().min(1, "Board name is required"),
-    matricBoardCode: z.string().min(1, "Board code is required"),
-    matricRollNo: z.string().min(1, "Roll number is required"),
-    matricRegNo: z.string().min(1, "Registration number is required"),
-    matricPassingYear: z.string().min(4, "Passing year is required").max(4),
-    medium: z.enum(["hindi", "english"], { required_error: "Please select a medium." }),
-});
-
-const class11SubjectSchema = subjectDetailsBaseSchema.extend({
-    compulsoryGroup1: z.string({ required_error: "Please select a subject from Group 1." }),
-    compulsoryGroup2: z.string({ required_error: "Please select a subject from Group 2." }),
-    electives: z.array(z.string()).min(3, "Please select exactly 3 elective subjects.").max(3, "Please select exactly 3 elective subjects."),
+const subjectDetailsSchema = z.object({
+    // Class 11 Fields
+    matricBoard: z.string().optional(),
+    matricBoardCode: z.string().optional(),
+    matricRollNo: z.string().optional(),
+    matricRegNo: z.string().optional(),
+    matricPassingYear: z.string().optional(),
+    medium: z.enum(["hindi", "english"]).optional(),
+    compulsoryGroup1: z.string().optional(),
+    compulsoryGroup2: z.string().optional(),
+    electives: z.array(z.string()).optional(),
     optionalSubject: z.string().optional(),
-    studentSignatureEn: fileSchema,
-    studentSignatureHi: fileSchema,
-    parentSignature: fileSchema,
+    studentSignatureEn: fileSchema.optional().nullable(),
+    studentSignatureHi: fileSchema.optional().nullable(),
+    parentSignature: fileSchema.optional().nullable(),
+    // Class 9 Fields
+    mil: z.enum(["hindi", "urdu"]).optional(),
 });
 
 
@@ -102,7 +102,7 @@ export const formSchema = z.object({
     bankDetails: bankDetailsSchema,
     otherDetails: otherDetailsSchema,
     prevSchoolDetails: prevSchoolDetailsSchema,
-    subjectDetails: class11SubjectSchema.partial().optional(),
+    subjectDetails: subjectDetailsSchema.optional(),
 }).superRefine((data, ctx) => {
     if (data.studentDetails.isDifferentlyAbled && !data.studentDetails.disabilityDetails) {
         ctx.addIssue({
@@ -111,23 +111,50 @@ export const formSchema = z.object({
             path: ["studentDetails.disabilityDetails"],
         });
     }
+
     if (data.admissionDetails.classSelection === "11-arts") {
-        const subjectValidationResult = class11SubjectSchema.safeParse(data.subjectDetails);
-        if (!subjectValidationResult.success) {
-            subjectValidationResult.error.issues.forEach((issue) => {
+        const class11Schema = z.object({
+            matricBoard: z.string().min(1, "Board name is required"),
+            matricBoardCode: z.string().min(1, "Board code is required"),
+            matricRollNo: z.string().min(1, "Roll number is required"),
+            matricRegNo: z.string().min(1, "Registration number is required"),
+            matricPassingYear: z.string().min(4, "Passing year is required").max(4),
+            medium: z.enum(["hindi", "english"], { required_error: "Please select a medium." }),
+            compulsoryGroup1: z.string({ required_error: "Please select a subject from Group 1." }),
+            compulsoryGroup2: z.string({ required_error: "Please select a subject from Group 2." }),
+            electives: z.array(z.string()).min(3, "Please select exactly 3 elective subjects.").max(3, "Please select exactly 3 elective subjects."),
+            optionalSubject: z.string().optional(),
+            studentSignatureEn: fileSchema,
+            studentSignatureHi: fileSchema,
+            parentSignature: fileSchema,
+        });
+
+        const validationResult = class11Schema.safeParse(data.subjectDetails);
+        if (!validationResult.success) {
+            validationResult.error.issues.forEach((issue) => {
                 ctx.addIssue({
                     ...issue,
                     path: ["subjectDetails", ...issue.path],
                 });
             });
         } else {
-             if (subjectValidationResult.data.compulsoryGroup1 && subjectValidationResult.data.compulsoryGroup1 === subjectValidationResult.data.compulsoryGroup2) {
+             if (validationResult.data.compulsoryGroup1 && validationResult.data.compulsoryGroup1 === validationResult.data.compulsoryGroup2) {
                 ctx.addIssue({
                     code: "custom",
                     message: "Group 2 subject must be different from Group 1.",
                     path: ["subjectDetails.compulsoryGroup2"],
                 });
             }
+        }
+    } else if (data.admissionDetails.classSelection === "9") {
+        const class9Schema = z.object({
+            mil: z.enum(["hindi", "urdu"], { required_error: "Please select MIL." }),
+        });
+        const validationResult = class9Schema.safeParse(data.subjectDetails);
+        if (!validationResult.success) {
+            validationResult.error.issues.forEach((issue) => {
+                ctx.addIssue({ ...issue, path: ["subjectDetails", ...issue.path] });
+            });
         }
     }
 });
