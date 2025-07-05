@@ -3,11 +3,12 @@
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Pencil, Printer } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 
 const classOptions = [
@@ -58,9 +59,17 @@ function StudentsListContent() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
-        <p className="text-muted-foreground">View, edit, and manage student records.</p>
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
+          <p className="text-muted-foreground">View, edit, and manage student records.</p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/dashboard">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Link>
+        </Button>
       </header>
 
       <Card>
