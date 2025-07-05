@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { FormValues } from '@/lib/form-schema';
 
 const classVariantMap: { [key: string]: "default" | "secondary" | "destructive" | "outline" | null | undefined } = {
     '11-science': 'default',
@@ -38,12 +39,20 @@ export default function RecentAdmissions() {
 
     useEffect(() => {
         const loadAdmissions = () => {
-            const storedAdmissions = localStorage.getItem('admissions');
-            if (storedAdmissions) {
+            const storedData = localStorage.getItem('fullAdmissionsData');
+            if (storedData) {
                 try {
-                    const parsedData = JSON.parse(storedAdmissions);
+                    const parsedData: FormValues[] = JSON.parse(storedData);
                     if (Array.isArray(parsedData)) {
-                        setAdmissions(parsedData);
+                        const summaryData: Admission[] = parsedData.map(student => ({
+                            name: student.studentDetails.nameEn,
+                            admissionNumber: student.admissionDetails.admissionNumber,
+                            class: student.admissionDetails.classSelection,
+                            date: student.admissionDetails.admissionDate as unknown as string,
+                        }));
+                        setAdmissions(summaryData);
+                    } else {
+                         setAdmissions([]);
                     }
                 } catch (error) {
                     console.error("Failed to parse recent admissions data from localStorage", error);

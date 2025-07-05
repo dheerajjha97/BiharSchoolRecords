@@ -132,12 +132,38 @@ function AdmissionWizardContent() {
 
 
   useEffect(() => {
-    // Simulate fetching last admission number and roll counters from a database
-    const lastAdmissionId = parseInt(localStorage.getItem('lastAdmissionId') || '0', 10);
+    // Determine the next admission number based on existing data
+    let lastAdmissionId = 0;
+    const storedData = localStorage.getItem('fullAdmissionsData');
+    if (storedData) {
+      try {
+        const students = JSON.parse(storedData);
+        if (Array.isArray(students) && students.length > 0) {
+          // Find the highest admission number
+          const highestId = students.reduce((maxId, student) => {
+            if (student?.admissionDetails?.admissionNumber) {
+              const parts = student.admissionDetails.admissionNumber.split('/');
+              if (parts.length === 3) {
+                const id = parseInt(parts[2], 10);
+                if (!isNaN(id) && id > maxId) {
+                  return id;
+                }
+              }
+            }
+            return maxId;
+          }, 0);
+          lastAdmissionId = highestId;
+        }
+      } catch (error) {
+        console.error("Failed to parse student data to determine admission number", error);
+      }
+    }
+    
     const year = new Date().getFullYear().toString().slice(-2);
     const nextId = (lastAdmissionId + 1).toString().padStart(3, '0');
     setAdmissionNumber(`ADM/${year}/${nextId}`);
     
+    // Load roll number counters
     const storedCounters = localStorage.getItem('rollNumberCounters');
     if (storedCounters) {
       setRollNumberCounters(JSON.parse(storedCounters));
@@ -172,28 +198,7 @@ function AdmissionWizardContent() {
     setRollNumberCounters(newCounters);
     localStorage.setItem('rollNumberCounters', JSON.stringify(newCounters));
 
-    // 2. Update and save last admission ID
-    const newAdmissionId = parseInt(data.admissionDetails.admissionNumber.split('/')[2], 10);
-    localStorage.setItem('lastAdmissionId', String(newAdmissionId));
-
-    // 3. Save student summary data for recent admissions list
-    let existingAdmissions = [];
-    try {
-        const storedAdmissions = localStorage.getItem('admissions');
-        const parsed = storedAdmissions ? JSON.parse(storedAdmissions) : [];
-        if(Array.isArray(parsed)) existingAdmissions = parsed;
-    } catch (e) { 
-        console.error("Could not parse existing admissions, starting fresh.", e);
-    }
-    const newAdmissionData = {
-        name: data.studentDetails.nameEn,
-        admissionNumber: data.admissionDetails.admissionNumber,
-        class: data.admissionDetails.classSelection,
-        date: new Date().toISOString().split('T')[0], // "YYYY-MM-DD"
-    };
-    localStorage.setItem('admissions', JSON.stringify([newAdmissionData, ...existingAdmissions]));
-
-    // 4. Save full student data for student list and printing
+    // 2. Save full student data for student list and printing
     let existingFullData = [];
     try {
         const storedFullData = localStorage.getItem('fullAdmissionsData');
@@ -215,7 +220,7 @@ function AdmissionWizardContent() {
     setStep(1);
 
     // This is needed to regenerate a new admission number for the next form
-    const lastId = parseInt(localStorage.getItem('lastAdmissionId') || '0', 10);
+    const lastId = parseInt(data.admissionDetails.admissionNumber.split('/')[2], 10);
     const year = new Date().getFullYear().toString().slice(-2);
     const nextId = (lastId + 1).toString().padStart(3, '0');
     setAdmissionNumber(`ADM/${year}/${nextId}`);
