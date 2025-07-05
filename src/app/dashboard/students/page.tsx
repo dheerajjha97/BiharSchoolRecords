@@ -61,8 +61,23 @@ function StudentsListContent() {
   }, [students, classFilter]);
   
   const handlePrint = (admissionNumber: string) => {
-    const url = `/print/${encodeURIComponent(admissionNumber)}`;
-    window.open(url, '_blank');
+    const studentToPrint = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
+
+    if (studentToPrint) {
+      try {
+        // Temporarily store just the data for the student being printed.
+        // This is a more robust way to pass data to the new tab.
+        localStorage.setItem('studentToPrint', JSON.stringify(studentToPrint));
+        const url = `/print/${encodeURIComponent(admissionNumber)}`;
+        window.open(url, '_blank');
+      } catch (e) {
+          console.error("Failed to store student data for printing.", e);
+          alert("An error occurred while preparing the data for printing.");
+      }
+    } else {
+      console.error(`Could not find student with admission number ${admissionNumber} to print.`);
+      alert("Could not find the student's data to print.");
+    }
   };
 
   return (

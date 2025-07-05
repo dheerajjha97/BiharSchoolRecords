@@ -130,23 +130,15 @@ const PrintableForm = ({ formData }: { formData: FormValues }) => {
 
 export default function PrintAdmissionPage() {
   const params = useParams();
-  const admissionNumber = params.admissionNumber as string;
+  const admissionNumber = params ? (params.admissionNumber as string) : '';
   
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // We need to check for window because this is a client component
-    // and localStorage is a browser feature.
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !admissionNumber) {
       return;
-    }
-
-    // admissionNumber comes from useParams, it might not be ready on first render.
-    if (!admissionNumber) {
-        setIsLoading(true);
-        return;
     }
 
     const loadStudentData = () => {
@@ -154,41 +146,53 @@ export default function PrintAdmissionPage() {
       setError(null);
       
       try {
+        let studentRaw: FormValues | undefined;
         const admissionNumberToFind = decodeURIComponent(admissionNumber);
-        
-        // Step 1: Try to get data from localStorage
-        const storedData = localStorage.getItem('fullAdmissionsData');
 
-        if (!storedData) {
-          setError('No admission data found in your browser\'s storage. This can happen if you are in a private/incognito window, or if data was cleared. Please try again from the student list page.');
-          setIsLoading(false);
-          return;
+        // Step 1: Try to get data from the specific 'studentToPrint' temporary key
+        const printSpecificData = localStorage.getItem('studentToPrint');
+        
+        if (printSpecificData) {
+          try {
+            studentRaw = JSON.parse(printSpecificData);
+            // It's temporary, so we remove it immediately after reading.
+            localStorage.removeItem('studentToPrint');
+
+            // Verification step: ensure the data is for the correct student
+            if (studentRaw?.admissionDetails?.admissionNumber !== admissionNumberToFind) {
+              console.warn("Mismatched student data in 'studentToPrint'. Falling back to full list.");
+              studentRaw = undefined; // Unset to trigger fallback
+            }
+          } catch (e) {
+            console.error("Failed to parse 'studentToPrint' data, falling back.", e);
+            localStorage.removeItem('studentToPrint'); // Clean up corrupted data just in case
+            studentRaw = undefined;
+          }
         }
         
-        // Step 2: Try to parse the data
-        let allStudents: FormValues[] = [];
-        try {
-            allStudents = JSON.parse(storedData);
-        } catch (parseError) {
-            console.error("Failed to parse student data from localStorage", parseError);
-            setError('The stored admission data seems to be corrupted. Please try clearing your site data and submitting a new form.');
+        // Step 2: Fallback to searching the full list if specific data not found or mismatched
+        if (!studentRaw) {
+          const storedData = localStorage.getItem('fullAdmissionsData');
+          if (!storedData) {
+            setError('No admission data found in your browser\'s storage. This can happen if you are in a private/incognito window, or if data was cleared. Please try again from the student list page.');
             setIsLoading(false);
             return;
+          }
+          
+          const allStudents: FormValues[] = JSON.parse(storedData);
+          if (!Array.isArray(allStudents)) {
+            setError('Stored data is in an invalid format. Please try clearing your site data and submitting a new form.');
+            setIsLoading(false);
+            return;
+          }
+          
+          studentRaw = allStudents.find(
+            (s) => s.admissionDetails.admissionNumber === admissionNumberToFind
+          );
         }
-
-        if (!Array.isArray(allStudents)) {
-          setError('Stored data is in an invalid format. Please try clearing your site data and submitting a new form.');
-          setIsLoading(false);
-          return;
-        }
-        
-        // Step 3: Find the specific student
-        const studentRaw = allStudents.find(
-          (s) => s.admissionDetails.admissionNumber === admissionNumberToFind
-        );
 
         if (studentRaw) {
-          // Step 4: Process and set the found student data
+          // Step 3: Process and set the found student data
           const studentParsed: FormValues = {
             ...studentRaw,
             admissionDetails: {
@@ -208,7 +212,6 @@ export default function PrintAdmissionPage() {
           };
           setStudentData(studentParsed);
         } else {
-          // Student with the given admission number was not found in the stored list
           setError(`Student with admission number "${admissionNumberToFind}" was not found. Please check the number and try again.`);
         }
       } catch (e) {
