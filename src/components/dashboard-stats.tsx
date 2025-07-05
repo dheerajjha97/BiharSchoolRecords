@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,18 +19,24 @@ export default function DashboardStats() {
   useEffect(() => {
     const calculateStats = () => {
       const storedData = localStorage.getItem('fullAdmissionsData');
+      let students: FormValues[] = [];
       if (storedData) {
-        const students: FormValues[] = JSON.parse(storedData);
-        setStats({
-          total: students.length,
-          class9: students.filter(s => s.admissionDetails.classSelection === '9').length,
-          arts: students.filter(s => s.admissionDetails.classSelection === '11-arts').length,
-          science: students.filter(s => s.admissionDetails.classSelection === '11-science').length,
-          commerce: students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
-        });
-      } else {
-        setStats({ total: 0, class9: 0, arts: 0, science: 0, commerce: 0 });
+        try {
+          const parsedData = JSON.parse(storedData);
+          if (Array.isArray(parsedData)) {
+            students = parsedData;
+          }
+        } catch (error) {
+          console.error("Failed to parse stats data from localStorage", error);
+        }
       }
+      setStats({
+        total: students.length,
+        class9: students.filter(s => s.admissionDetails.classSelection === '9').length,
+        arts: students.filter(s => s.admissionDetails.classSelection === '11-arts').length,
+        science: students.filter(s => s.admissionDetails.classSelection === '11-science').length,
+        commerce: students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
+      });
     };
 
     calculateStats(); // Initial calculation

@@ -41,7 +41,15 @@ function StudentsListContent() {
   useEffect(() => {
     const storedData = localStorage.getItem('fullAdmissionsData');
     if (storedData) {
-      setStudents(JSON.parse(storedData));
+      try {
+        const parsedData = JSON.parse(storedData);
+        if (Array.isArray(parsedData)) {
+          setStudents(parsedData);
+        }
+      } catch (error) {
+        console.error("Failed to parse student data from localStorage", error);
+        setStudents([]); // Reset to empty array on error
+      }
     }
   }, []);
 

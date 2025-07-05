@@ -177,7 +177,14 @@ function AdmissionWizardContent() {
     localStorage.setItem('lastAdmissionId', String(newAdmissionId));
 
     // 3. Save student summary data for recent admissions list
-    const existingAdmissions = JSON.parse(localStorage.getItem('admissions') || '[]');
+    let existingAdmissions = [];
+    try {
+        const storedAdmissions = localStorage.getItem('admissions');
+        const parsed = storedAdmissions ? JSON.parse(storedAdmissions) : [];
+        if(Array.isArray(parsed)) existingAdmissions = parsed;
+    } catch (e) { 
+        console.error("Could not parse existing admissions, starting fresh.", e);
+    }
     const newAdmissionData = {
         name: data.studentDetails.nameEn,
         admissionNumber: data.admissionDetails.admissionNumber,
@@ -187,8 +194,16 @@ function AdmissionWizardContent() {
     localStorage.setItem('admissions', JSON.stringify([newAdmissionData, ...existingAdmissions]));
 
     // 4. Save full student data for student list and printing
-    const existingFullData = JSON.parse(localStorage.getItem('fullAdmissionsData') || '[]');
+    let existingFullData = [];
+    try {
+        const storedFullData = localStorage.getItem('fullAdmissionsData');
+        const parsed = storedFullData ? JSON.parse(storedFullData) : [];
+        if(Array.isArray(parsed)) existingFullData = parsed;
+    } catch (e) { 
+        console.error("Could not parse existing full data, starting fresh.", e);
+    }
     localStorage.setItem('fullAdmissionsData', JSON.stringify([data, ...existingFullData]));
+
 
     toast({
       title: "Form Submitted!",

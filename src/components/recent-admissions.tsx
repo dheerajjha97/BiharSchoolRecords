@@ -40,7 +40,15 @@ export default function RecentAdmissions() {
         const loadAdmissions = () => {
             const storedAdmissions = localStorage.getItem('admissions');
             if (storedAdmissions) {
-                setAdmissions(JSON.parse(storedAdmissions));
+                try {
+                    const parsedData = JSON.parse(storedAdmissions);
+                    if (Array.isArray(parsedData)) {
+                        setAdmissions(parsedData);
+                    }
+                } catch (error) {
+                    console.error("Failed to parse recent admissions data from localStorage", error);
+                    setAdmissions([]);
+                }
             } else {
                 setAdmissions([]);
             }

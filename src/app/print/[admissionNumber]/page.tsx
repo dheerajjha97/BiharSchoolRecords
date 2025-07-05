@@ -137,7 +137,12 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
         const admissionNumber = decodeURIComponent(params.admissionNumber);
         const allData = localStorage.getItem('fullAdmissionsData');
         if (allData) {
-          const students: FormValues[] = JSON.parse(allData);
+          const parsedData = JSON.parse(allData);
+          if (!Array.isArray(parsedData)) {
+              console.error("Stored data is not an array.");
+              throw new Error("Stored data is not an array");
+          }
+          const students: FormValues[] = parsedData;
           // When parsing from JSON, date strings need to be converted back to Date objects
           const studentRaw = students.find(s => s.admissionDetails.admissionNumber === admissionNumber);
           if (studentRaw) {
