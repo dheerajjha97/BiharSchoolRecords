@@ -134,9 +134,6 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                     <ReviewItem label="Compulsory Group 2" value={subjectDetails.compulsoryGroup2} />
                     <ReviewItem label="Elective Subjects" value={subjectDetails.electives} />
                     <ReviewItem label="Optional Subject" value={subjectDetails.optionalSubject} />
-                    <ReviewItem label="Student Signature (EN)" value={subjectDetails.studentSignatureEn?.name} />
-                    <ReviewItem label="Student Signature (HI)" value={subjectDetails.studentSignatureHi?.name} />
-                    <ReviewItem label="Parent Signature" value={subjectDetails.parentSignature?.name} />
                 </Section>
             )}
 

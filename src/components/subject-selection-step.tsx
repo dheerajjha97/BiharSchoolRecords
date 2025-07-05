@@ -75,7 +75,7 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
 
   return (
     <div className="space-y-6">
-      <FormSection title="Matriculation Details">
+      <FormSection title="Matriculation Details (Optional)">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="subjectDetails.matricBoard" render={({ field }) => (<FormItem><FormLabel>Matric Board Name</FormLabel><FormControl><Input placeholder="e.g., BSEB, CBSE" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
           <FormField control={form.control} name="subjectDetails.matricBoardCode" render={({ field }) => (<FormItem><FormLabel>Board Code</FormLabel><FormControl><Input placeholder="Board Code" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
@@ -186,14 +186,6 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
             </FormItem>
           )}
         />
-      </FormSection>
-
-      <FormSection title="Signatures" description="Please upload scanned images of the required signatures.">
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField control={form.control} name="subjectDetails.studentSignatureEn" render={({ field }) => (<FormItem><FormLabel>Student (English)</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="subjectDetails.studentSignatureHi" render={({ field }) => (<FormItem><FormLabel>Student (Hindi)</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="subjectDetails.parentSignature" render={({ field }) => (<FormItem><FormLabel>Parent/Guardian</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} /></FormControl><FormMessage /></FormItem>)} />
-         </div>
       </FormSection>
     </div>
   );

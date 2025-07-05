@@ -86,9 +86,6 @@ const subjectDetailsSchema = z.object({
     compulsoryGroup2: z.string().optional(),
     electives: z.array(z.string()).optional(),
     optionalSubject: z.string().optional(),
-    studentSignatureEn: fileSchema.optional().nullable(),
-    studentSignatureHi: fileSchema.optional().nullable(),
-    parentSignature: fileSchema.optional().nullable(),
     // Class 9 Fields
     mil: z.enum(["hindi", "urdu"]).optional(),
 });
@@ -114,19 +111,16 @@ export const formSchema = z.object({
 
     if (data.admissionDetails.classSelection?.startsWith("11-")) {
         const class11Schema = z.object({
-            matricBoard: z.string().min(1, "Board name is required"),
-            matricBoardCode: z.string().min(1, "Board code is required"),
-            matricRollNo: z.string().min(1, "Roll number is required"),
-            matricRegNo: z.string().min(1, "Registration number is required"),
-            matricPassingYear: z.string().min(4, "Passing year is required").max(4),
+            matricBoard: z.string().optional(),
+            matricBoardCode: z.string().optional(),
+            matricRollNo: z.string().optional(),
+            matricRegNo: z.string().optional(),
+            matricPassingYear: z.string().optional(),
             medium: z.enum(["hindi", "english"], { required_error: "Please select a medium." }),
             compulsoryGroup1: z.string({ required_error: "Please select a subject from Group 1." }),
             compulsoryGroup2: z.string({ required_error: "Please select a subject from Group 2." }),
             electives: z.array(z.string()).min(3, "Please select exactly 3 elective subjects.").max(3, "Please select exactly 3 elective subjects."),
             optionalSubject: z.string().optional(),
-            studentSignatureEn: fileSchema.refine((file) => file, "Student's English signature is required."),
-            studentSignatureHi: fileSchema.refine((file) => file, "Student's Hindi signature is required."),
-            parentSignature: fileSchema.refine((file) => file, "Parent's signature is required."),
         });
 
         const validationResult = class11Schema.safeParse(data.subjectDetails);
