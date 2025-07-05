@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,10 +25,17 @@ const classDisplayNameMap: { [key: string]: string } = {
     '11-commerce': 'Class 11 - Commerce',
 };
 
-
-export default function StudentsListPage() {
+function StudentsListContent() {
   const [students, setStudents] = useState<FormValues[]>([]);
   const [classFilter, setClassFilter] = useState('all');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const classFromQuery = searchParams.get('class');
+    if (classFromQuery && classOptions.some(opt => opt.value === classFromQuery)) {
+      setClassFilter(classFromQuery);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const storedData = localStorage.getItem('fullAdmissionsData');
@@ -120,4 +128,12 @@ export default function StudentsListPage() {
       </Card>
     </div>
   );
+}
+
+export default function StudentsListPage() {
+  return (
+    <Suspense fallback={<div>Loading students...</div>}>
+      <StudentsListContent />
+    </Suspense>
+  )
 }
