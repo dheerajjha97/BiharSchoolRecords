@@ -39,7 +39,7 @@ export default function GenerateQrCode() {
 
   useEffect(() => {
     if (selectedClass && baseUrl) {
-      setQrUrl(`${baseUrl}/admission/new?class=${selectedClass}`);
+      setQrUrl(`${baseUrl}/?class=${selectedClass}`);
     } else {
       setQrUrl('');
     }

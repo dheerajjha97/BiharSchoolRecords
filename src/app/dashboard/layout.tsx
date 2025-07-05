@@ -54,10 +54,10 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === '/admission/new'}
+                isActive={pathname === '/'}
                 tooltip="New Admission"
               >
-                <Link href="/admission/new">
+                <Link href="/">
                   <PlusCircle />
                   <span>New Admission</span>
                 </Link>
