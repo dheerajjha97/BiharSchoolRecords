@@ -366,37 +366,35 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
         </div>
       </FormSection>
 
-      <FormSection title="Contact Information">
+      <FormSection title="Contact & Address Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="contactDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input placeholder="9876543210" type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="contactDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><FormControl><Input placeholder="student@example.com" type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="contactDetails.aadharNumber" render={({ field }) => (<FormItem><FormLabel>Aadhar Number</FormLabel><FormControl><Input placeholder="12-digit Aadhar number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="contactDetails.aadharNumber" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Aadhar Number</FormLabel><FormControl><Input placeholder="12-digit Aadhar number" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-             <FormField control={form.control} name="addressDetails.village" render={({ field }) => (<FormItem><FormLabel>Village / Town</FormLabel><FormControl><Input placeholder="Village" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.post" render={({ field }) => (<FormItem><FormLabel>Post Office</FormLabel><FormControl><Input placeholder="Post Office" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.block" render={({ field }) => (<FormItem><FormLabel>Block</FormLabel><FormControl><Input placeholder="Block" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.district" render={({ field }) => (<FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="District" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.ps" render={({ field }) => (<FormItem><FormLabel>Police Station</FormLabel><FormControl><Input placeholder="P.S." {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
-             <FormField control={form.control} name="addressDetails.pin" render={({ field }) => (<FormItem><FormLabel>PIN Code</FormLabel><FormControl><Input placeholder="PIN Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <FormField
-            control={form.control}
-            name="addressDetails.area"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Area</FormLabel>
-                <FormControl>
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4 pt-2">
-                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="rural" /></FormControl><FormLabel className="font-normal">Rural</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="urban" /></FormControl><FormLabel className="font-normal">Urban</FormLabel></FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="addressDetails.area"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Area</FormLabel>
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4 pt-2">
+                      <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="rural" /></FormControl><FormLabel className="font-normal">Rural</FormLabel></FormItem>
+                      <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="urban" /></FormControl><FormLabel className="font-normal">Urban</FormLabel></FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField control={form.control} name="addressDetails.district" render={({ field }) => (<FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="District" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="addressDetails.village" render={({ field }) => (<FormItem><FormLabel>Village / Town</FormLabel><FormControl><Input placeholder="Village" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="addressDetails.post" render={({ field }) => (<FormItem><FormLabel>Post Office</FormLabel><FormControl><Input placeholder="Post Office" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="addressDetails.block" render={({ field }) => (<FormItem><FormLabel>Block</FormLabel><FormControl><Input placeholder="Block" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="addressDetails.ps" render={({ field }) => (<FormItem><FormLabel>Police Station</FormLabel><FormControl><Input placeholder="P.S." {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="addressDetails.pin" render={({ field }) => (<FormItem><FormLabel>PIN Code</FormLabel><FormControl><Input placeholder="PIN Code" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>
       </FormSection>
 
