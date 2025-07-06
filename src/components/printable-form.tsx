@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -74,6 +73,8 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
   const displayStream = streamDisplayNames[admissionDetails.classSelection || ''] || admissionDetails.classSelection;
 
   const addressString = `${addressDetails.village}, ${addressDetails.post}, ${addressDetails.ps}, ${addressDetails.block}, ${addressDetails.district} - ${addressDetails.pin}`;
+  
+  const silSubject = subjectDetails?.mil === 'hindi' ? 'Sanskrit' : (subjectDetails?.mil === 'urdu' ? 'Hindi' : 'N/A');
 
   return (
     <div className="a4-container bg-white text-black font-body shadow-lg text-xs">
@@ -160,28 +161,35 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             <p className="font-semibold">Admission Form - Page 2</p>
         </header>
 
-        {(isClass9 || isClass11) && (
+        {isClass9 && subjectDetails && (
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Subject Selection Details" />
-                    {isClass9 && subjectDetails && (
-                        <>
-                            <PrintTableDoubleRow label1="MIL" value1={subjectDetails.mil} label2="SIL" value2={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
-                            <PrintTableRow label="Other Subjects" value="Mathematics, Social Science, English" />
-                        </>
-                    )}
-                    {isClass11 && subjectDetails && (
-                        <>
-                            <PrintTableDoubleRow label1="Matric Board" value1={subjectDetails.matricBoard} label2="Board Code" value2={subjectDetails.matricBoardCode} />
-                            <PrintTableDoubleRow label1="Matric Roll No." value1={subjectDetails.matricRollNo} label2="Passing Year" value2={subjectDetails.matricPassingYear} />
-                            <PrintTableRow label="Registration No." value={subjectDetails.matricRegNo} />
-                            <PrintTableDoubleRow label1="Medium" value1={subjectDetails.medium} label2="Compulsory Group 1" value2={subjectDetails.compulsoryGroup1} />
-                            <PrintTableDoubleRow label1="Compulsory Group 2" value1={subjectDetails.compulsoryGroup2} label2="Optional Subject" value2={subjectDetails.optionalSubject} />
-                            <PrintTableRow label="Elective Subjects" value={subjectDetails.electives} />
-                        </>
-                    )}
+                    <PrintTableDoubleRow label1="MIL" value1={subjectDetails.mil} label2="SIL" value2={silSubject} />
+                    <PrintTableRow label="Other Subjects" value="Mathematics, Social Science, English" />
                 </tbody>
             </table>
+        )}
+        
+        {isClass11 && subjectDetails && (
+          <>
+            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
+                <tbody>
+                    <SectionTitle title="6. Matriculation Details" />
+                    <PrintTableDoubleRow label1="Matric Board" value1={subjectDetails.matricBoard} label2="Board Code" value2={subjectDetails.matricBoardCode} />
+                    <PrintTableDoubleRow label1="Matric Roll No." value1={subjectDetails.matricRollNo} label2="Passing Year" value2={subjectDetails.matricPassingYear} />
+                    <PrintTableRow label="Registration No." value={subjectDetails.matricRegNo} />
+                </tbody>
+            </table>
+            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
+                <tbody>
+                    <SectionTitle title="7. Subject Selection Details" />
+                    <PrintTableDoubleRow label1="Medium" value1={subjectDetails.medium} label2="Compulsory Group 1" value2={subjectDetails.compulsoryGroup1} />
+                    <PrintTableDoubleRow label1="Compulsory Group 2" value1={subjectDetails.compulsoryGroup2} label2="Optional Subject" value2={subjectDetails.optionalSubject} />
+                    <PrintTableRow label="Elective Subjects" value={subjectDetails.electives} />
+                </tbody>
+            </table>
+          </>
         )}
 
         <div className="mt-4 p-2 border border-black break-inside-avoid">
