@@ -44,6 +44,7 @@ export function DatePicker({ date, setDate, className }: DatePickerProps) {
           captionLayout="dropdown-buttons"
           fromYear={1980}
           toYear={new Date().getFullYear()}
+          disabled={{ after: new Date() }}
         />
       </PopoverContent>
     </Popover>
