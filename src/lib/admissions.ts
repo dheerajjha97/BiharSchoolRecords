@@ -35,10 +35,7 @@ const sanitizeDataForFirestore = (data: any): any => {
     const sanitizedData: { [key: string]: any } = {};
     for (const key in data) {
         if (Object.prototype.hasOwnProperty.call(data, key)) {
-            const value = data[key];
-            if (value !== undefined) {
-                sanitizedData[key] = sanitizeDataForFirestore(value);
-            }
+            sanitizedData[key] = sanitizeDataForFirestore(data[key]);
         }
     }
     return sanitizedData;
