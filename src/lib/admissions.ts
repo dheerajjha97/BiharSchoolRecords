@@ -1,3 +1,4 @@
+
 import { db, firebaseError } from './firebase';
 import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where, onSnapshot, type Unsubscribe, doc, getDoc, Timestamp } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
@@ -34,7 +35,10 @@ const sanitizeDataForFirestore = (data: any): any => {
     const sanitizedData: { [key: string]: any } = {};
     for (const key in data) {
         if (Object.prototype.hasOwnProperty.call(data, key)) {
-            sanitizedData[key] = sanitizeDataForFirestore(data[key]);
+            const value = data[key];
+            if (value !== undefined) {
+                sanitizedData[key] = sanitizeDataForFirestore(value);
+            }
         }
     }
     return sanitizedData;
