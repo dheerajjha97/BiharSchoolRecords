@@ -18,39 +18,47 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
   const { admissionNumber } = params;
 
   useEffect(() => {
-    // This effect runs on the client. We can access localStorage here.
-    try {
-      const schoolDataString = localStorage.getItem('school_data');
-      if (schoolDataString) {
-        setSchoolData(JSON.parse(schoolDataString));
-      } else {
-        // If school data isn't in local storage, that's a problem.
-        setError("Could not find school configuration data. Please log in to the dashboard again.");
+    const loadPrintData = async () => {
+      setLoading(true);
+      setError(null);
+
+      // 1. Check for Firebase config errors
+      if (firebaseError) {
+        setError(firebaseError);
+        setLoading(false);
+        return;
       }
-    } catch (e) {
-      console.error("Failed to parse school data for print page", e);
-      setError("Could not read school configuration data.");
-    }
 
-    if (firebaseError) {
-      setError(firebaseError);
-      setLoading(false);
-      return;
-    }
+      // 2. Check for admission ID
+      if (!admissionNumber) {
+        setError('No admission ID provided.');
+        setLoading(false);
+        return;
+      }
 
-    if (!admissionNumber) {
-      setError('No admission ID provided.');
-      setLoading(false);
-      return;
-    }
-
-    const fetchStudentData = async () => {
+      // 3. Get school data from local storage
+      let schoolInfo: School;
       try {
-        setLoading(true);
-        const data = await getAdmissionById(admissionNumber);
+        const schoolDataString = localStorage.getItem('school_data');
+        if (!schoolDataString) {
+          setError("Could not find school configuration data. Please log in again.");
+          setLoading(false);
+          return;
+        }
+        schoolInfo = JSON.parse(schoolDataString);
+        setSchoolData(schoolInfo);
+      } catch (e) {
+        console.error("Failed to parse school data for print page", e);
+        setError("Could not read school configuration data.");
+        setLoading(false);
+        return;
+      }
 
-        if (data) {
-          setStudentData(data);
+      // 4. Get student data from Firestore
+      try {
+        const studentInfo = await getAdmissionById(admissionNumber);
+        if (studentInfo) {
+          setStudentData(studentInfo);
         } else {
           setError(`No admission record found for ID: ${admissionNumber}`);
         }
@@ -62,8 +70,9 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
       }
     };
 
-    fetchStudentData();
+    loadPrintData();
   }, [admissionNumber]);
+
 
   if (loading) {
     return (
