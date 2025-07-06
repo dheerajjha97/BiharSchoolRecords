@@ -81,13 +81,23 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
     <div className="a4-container bg-white text-black font-body shadow-lg text-xs">
       {/* --- PAGE 1 --- */}
       <div className="page">
-        <header className="text-center w-full mb-2 break-inside-avoid">
-            <h1 className="text-2xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
-            <p className="text-sm font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
-            <p className="text-lg font-bold mt-1">ADMISSION FORM</p>
-            <p className="text-xs">(Session 2024-2025)</p>
+        <header className="flex items-center w-full mb-4 break-inside-avoid gap-4">
+            <div className="flex-shrink-0">
+                <img
+                    src="https://placehold.co/80x80.png"
+                    alt="Bihar Government Logo"
+                    data-ai-hint="Bihar government logo"
+                    className="h-20 w-20"
+                />
+            </div>
+            <div className="text-center flex-grow">
+                <h1 className="text-3xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
+                <p className="text-base font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
+                <p className="text-xl font-bold mt-1">ADMISSION FORM</p>
+                <p className="text-sm">(Session 2024-2025)</p>
+            </div>
         </header>
-        
+
         <div className="flex justify-between items-start gap-4 mb-2 break-inside-avoid">
             <div className="flex-grow">
                 <table className="w-full border-collapse border border-black text-xs">
@@ -186,7 +196,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="7. Subject Selection Details" />
-                    <PrintTableRow label="Medium" value={subjectDetails.medium} />
+                     <PrintTableRow label="Medium" value={subjectDetails.medium} />
                     <PrintTableDoubleRow 
                         label1="Compulsory Group 1" value1={subjectDetails.compulsoryGroup1} 
                         label2="Compulsory Group 2" value2={subjectDetails.compulsoryGroup2} 
@@ -233,5 +243,3 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
     </div>
   );
 };
-
-    
