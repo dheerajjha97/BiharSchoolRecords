@@ -10,14 +10,29 @@ const requiredEnvVars = [
   'NEXT_PUBLIC_FIREBASE_APP_ID',
 ];
 
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+const placeholderValues = [
+  'your-api-key',
+  'your-auth-domain',
+  'your-project-id',
+  'your-storage-bucket',
+  'your-messaging-sender-id',
+  'your-app-id',
+];
+
+// This check runs on the server AND the client.
+const missingOrPlaceholderVars = requiredEnvVars.filter(envVar => {
+    const value = process.env[envVar];
+    return !value || placeholderValues.includes(value);
+});
+
 
 let app;
 let dbInstance = null;
 let firebaseError: string | null = null;
 
-if (missingEnvVars.length > 0) {
-  firebaseError = `Firebase configuration is missing. Please ensure all required environment variables are set in your .env.local file. Missing: ${missingEnvVars.join(', ')}. After adding them, please restart the development server.`;
+if (missingOrPlaceholderVars.length > 0) {
+  // This is the error message that gets displayed in the UI.
+  firebaseError = `Firebase configuration is incomplete. Please ensure all required environment variables are set in your .env.local file and are not placeholders. Missing or invalid: ${missingOrPlaceholderVars.join(', ')}. After updating, please restart the development server.`;
 } else {
     const firebaseConfig = {
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
