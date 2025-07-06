@@ -16,14 +16,37 @@ export const convertTimestamps = (data: any): any => {
   return data;
 };
 
+// Helper to recursively remove undefined values from an object, as Firestore doesn't support them.
+// This preserves Date objects, unlike JSON.parse(JSON.stringify(obj)).
+const removeUndefinedValues = (obj: any): any => {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefinedValues).filter(v => v !== undefined);
+  }
+
+  const newObj: {[key: string]: any} = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = obj[key];
+      if (value !== undefined) {
+        newObj[key] = removeUndefinedValues(value);
+      }
+    }
+  }
+  return newObj;
+}
+
 
 export const addAdmission = async (data: FormValues) => {
   if (!db) {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    // Firestore does not support 'undefined' values. We can remove them by serializing and deserializing.
-    const cleanData = JSON.parse(JSON.stringify(data));
+    // Firestore does not support 'undefined' values.
+    const cleanData = removeUndefinedValues(data);
     const docRef = await addDoc(collection(db, 'admissions'), cleanData);
     return docRef.id;
   } catch (e) {
