@@ -156,7 +156,8 @@ function AdmissionWizardContent() {
       router.push('/dashboard');
 
     } catch (error) {
-       let description = "There was an error saving the form. Please try again.";
+       console.error("Submission failed:", error); // Log the full error
+       let description = "An unexpected error occurred. Please check the console for details and try again.";
        if (error instanceof Error) {
         description = error.message;
        }
@@ -171,6 +172,7 @@ function AdmissionWizardContent() {
   };
 
   const onFormError = (errors: FieldErrors<FormValues>) => {
+    console.error("Form validation errors:", errors); // Log validation errors
     let targetStep = 1;
     // If there's an error in any of the first step details, go to step 1
     if (errors.admissionDetails || errors.studentDetails || errors.contactDetails || errors.addressDetails || errors.bankDetails || errors.otherDetails || errors.prevSchoolDetails) {
@@ -184,7 +186,7 @@ function AdmissionWizardContent() {
     
     toast({
         title: "Validation Error",
-        description: `Please correct the errors on Step ${targetStep} before submitting.`,
+        description: `Please correct the errors on Step ${targetStep}. Check the console for more details.`,
         variant: "destructive",
     });
   };
