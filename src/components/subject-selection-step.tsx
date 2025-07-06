@@ -95,14 +95,14 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
               <FormLabel>Medium of Instruction</FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
-                  <FormItem className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="hindi" id="medium-hindi" />
                     <Label htmlFor="medium-hindi" className="font-normal">Hindi</Label>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2">
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="english" id="medium-english" />
                     <Label htmlFor="medium-english" className="font-normal">English</Label>
-                  </FormItem>
+                  </div>
                 </RadioGroup>
               </FormControl>
               <FormMessage />
@@ -118,10 +118,10 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4 pt-2">
                   {compulsoryGroup1Subjects.map((subject) => (
-                    <FormItem key={subject.id} className="flex items-center space-x-2">
+                    <div key={subject.id} className="flex items-center space-x-2">
                       <RadioGroupItem value={subject.id} id={`comp1-${subject.id}`} />
                       <Label htmlFor={`comp1-${subject.id}`} className="font-normal">{subject.label}</Label>
-                    </FormItem>
+                    </div>
                   ))}
                 </RadioGroup>
               </FormControl>
@@ -139,10 +139,10 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
                <FormControl>
                   <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4 pt-2">
                     {compulsoryGroup2Subjects.map((subject) => (
-                      <FormItem key={subject.id} className="flex items-center space-x-2">
+                      <div key={subject.id} className="flex items-center space-x-2">
                         <RadioGroupItem value={subject.id} id={`comp2-${subject.id}`} disabled={subject.id === compGroup1Selection} />
                         <Label htmlFor={`comp2-${subject.id}`} className="font-normal" >{subject.label}</Label>
-                      </FormItem>
+                      </div>
                     ))}
                   </RadioGroup>
                 </FormControl>
@@ -194,10 +194,10 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
                   {allOptionalSubjects.map((subject) => (
-                    <FormItem key={subject.id} className="flex items-center space-x-2">
+                    <div key={subject.id} className="flex items-center space-x-2">
                       <RadioGroupItem value={subject.id} id={`opt-${subject.id}`} />
                       <Label htmlFor={`opt-${subject.id}`} className="font-normal">{subject.label}</Label>
-                    </FormItem>
+                    </div>
                   ))}
                 </RadioGroup>
               </FormControl>
@@ -229,14 +229,14 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
                 <FormLabel>1. MIL - Modern Indian Language (Choose One)</FormLabel>
                 <FormControl>
                   <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4">
-                    <FormItem className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="hindi" id="mil-hindi" />
                       <Label htmlFor="mil-hindi" className="font-normal">Hindi</Label>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
+                    </div>
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="urdu" id="mil-urdu" />
                       <Label htmlFor="mil-urdu" className="font-normal">Urdu</Label>
-                    </FormItem>
+                    </div>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
