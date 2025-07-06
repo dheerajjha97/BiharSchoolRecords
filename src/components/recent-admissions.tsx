@@ -46,7 +46,7 @@ export default function RecentAdmissions() {
     }, []);
 
     return (
-        <Card className="h-full">
+        <Card className="h-full shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                     <CardTitle>Recent Admissions</CardTitle>

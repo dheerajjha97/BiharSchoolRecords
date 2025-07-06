@@ -46,7 +46,7 @@ export default function GenerateQrCode() {
   }, [selectedClass, baseUrl]);
 
   return (
-    <Card>
+    <Card className="shadow-md hover:shadow-lg transition-shadow">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCode className="h-5 w-5" />
