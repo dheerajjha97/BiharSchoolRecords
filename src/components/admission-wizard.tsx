@@ -145,7 +145,17 @@ function AdmissionWizardContent() {
     }
     setIsLoading(true);
     try {
-      const newAdmissionId = await addAdmission(data);
+      // Create a timeout promise
+      const timeoutPromise = new Promise<string>((_, reject) =>
+        setTimeout(() => reject(new Error("Submission timed out. Please check your internet connection and try again.")), 20000) // 20 seconds
+      );
+
+      // Race addAdmission against the timeout
+      const newAdmissionId = await Promise.race([
+        addAdmission(data),
+        timeoutPromise
+      ]);
+
       toast({
         title: "Form Submitted!",
         description: `The admission form for ${data.studentDetails.nameEn} has been successfully submitted.`,
@@ -173,8 +183,12 @@ function AdmissionWizardContent() {
 
   const onFormError = (errors: FieldErrors<FormValues>) => {
     let targetStep = 1;
+    // If there's an error in any of the first step details, go to step 1
+    if (errors.admissionDetails || errors.studentDetails || errors.contactDetails || errors.addressDetails || errors.bankDetails || errors.otherDetails || errors.prevSchoolDetails) {
+        targetStep = 1;
+    } 
     // If there's an error in subjectDetails, it must be on step 2
-    if (errors.subjectDetails) {
+    else if (errors.subjectDetails) {
         targetStep = 2;
     }
     setStep(targetStep);
