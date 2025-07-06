@@ -1,6 +1,10 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
+let app;
+let dbInstance = null;
+let firebaseError: string | null = null;
+
 const requiredEnvVars = [
   'NEXT_PUBLIC_FIREBASE_API_KEY',
   'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
@@ -10,11 +14,12 @@ const requiredEnvVars = [
   'NEXT_PUBLIC_FIREBASE_APP_ID',
 ];
 
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+// Check for missing or placeholder values.
+const missingEnvVars = requiredEnvVars.filter(envVar => {
+  const value = process.env[envVar];
+  return !value || value.startsWith('your-');
+});
 
-let app;
-let dbInstance = null;
-let firebaseError: string | null = null;
 
 if (missingEnvVars.length > 0) {
   firebaseError = `Firebase configuration is incomplete. Please ensure all required environment variables are set in your .env.local file. Missing: ${missingEnvVars.join(', ')}. After updating, please restart the development server.`;
