@@ -4,35 +4,39 @@ import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer,
 import type { FormValues } from './form-schema';
 
 /**
- * Recursively sanitizes an object to be Firestore-compatible.
- * It converts all `undefined` values to `null`.
+ * Recursively removes properties with `undefined` values from an object,
+ * as Firestore does not support them.
  * @param data The object or value to sanitize.
- * @returns The sanitized object or value.
+ * @returns The sanitized object or value, with `undefined` properties removed.
  */
 const sanitizeForFirestore = (data: any): any => {
-  if (data === undefined) {
-    return null;
+  // Primitives, null, and Firestore-native types are returned directly.
+  if (data === null || typeof data !== 'object' || data instanceof Date || data instanceof Timestamp) {
+    return data;
   }
-  if (data === null || typeof data !== 'object') {
-    return data; // Primitives are unchanged
-  }
-  if (data instanceof Date || data instanceof Timestamp) {
-    return data; // Firestore handles these types
-  }
+
+  // For arrays, recursively sanitize each item. Firestore supports arrays.
   if (Array.isArray(data)) {
-    return data.map(item => sanitizeForFirestore(item)); // Recurse into arrays
+    return data.map(item => sanitizeForFirestore(item));
   }
   
-  // It's a plain object, so recurse into its properties
+  // It's a plain object. Create a new object, copying only non-undefined values.
   const sanitizedObject: { [key: string]: any } = {};
   for (const key in data) {
+    // Ensure it's an own property.
     if (Object.prototype.hasOwnProperty.call(data, key)) {
-      // Sanitize each value before assigning it to the new object.
-      sanitizedObject[key] = sanitizeForFirestore(data[key]);
+      const value = data[key];
+      // If the value is not undefined, process it.
+      if (value !== undefined) {
+        // Recurse on the value before adding it to the new object.
+        sanitizedObject[key] = sanitizeForFirestore(value);
+      }
+      // If value is undefined, it is simply skipped, effectively removing it.
     }
   }
   return sanitizedObject;
 };
+
 
 // Helper to convert Firestore Timestamps to JS Dates in nested objects
 export const convertTimestamps = (data: any): any => {
@@ -52,12 +56,14 @@ export const addAdmission = async (data: FormValues) => {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    // Sanitize the data before sending it to Firestore to ensure no 'undefined' values are present.
+    // Sanitize the data to remove any 'undefined' values, which Firestore doesn't support.
     const sanitizedData = sanitizeForFirestore(data);
     const docRef = await addDoc(collection(db, 'admissions'), sanitizedData);
     return docRef.id;
   } catch (e) {
     console.error("Error adding document: ", e);
+    // Log the sanitized data that was sent to Firestore for easier debugging
+    console.error("Data that failed submission:", JSON.stringify(sanitizeForFirestore(data), null, 2));
     let errorMessage = "Failed to save admission to the database.";
     if (e instanceof Error) {
         errorMessage += ` Reason: ${e.message}`;
