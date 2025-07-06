@@ -199,9 +199,11 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
         )}
 
         <div className="mt-4 p-2 border border-black break-inside-avoid">
-            <h3 className="font-bold text-center">Declaration by the Applicant</h3>
+            <h3 className="font-bold text-center">आवेदक द्वारा घोषणा</h3>
             <p className="text-xs mt-2">
-                I, {studentDetails.nameEn}, hereby declare that all the information furnished by me in this application form is true, complete, and correct to the best of my knowledge and belief. I understand that in the event of any information being found false, incomplete, or incorrect, my candidature/admission is liable to be cancelled/terminated. I agree to abide by the rules and regulations of the institution.
+                मैं, {studentDetails.nameEn}, घोषणा करता/करती हूँ कि इस आवेदन पत्र में मेरे द्वारा दी गई सभी जानकारी मेरी सर्वोत्तम जानकारी और विश्वास के अनुसार सत्य, पूर्ण और सही है। मैं यह समझता/समझती हूँ कि किसी भी जानकारी के गलत या असत्य पाए जाने पर मेरा प्रवेश रद्द किया जा सकता है।
+                <br/>
+                मैं यह भी वचन देता/देती हूँ कि मैं विद्यालय के सभी नियमों का पालन करूँगा/करूँगी, प्रतिदिन निर्धारित यूनिफॉर्म में विद्यालय आऊँगा/आऊँगी, पूर्ण अनुशासन बनाए रखूँगा/रखूँगी और अपनी न्यूनतम 75% उपस्थिति सुनिश्चित करूँगा/करूँगी।
             </p>
             <div className="mt-8 grid grid-cols-3 gap-8 text-sm text-center">
                 <div className="border-t-2 border-black pt-1 font-semibold">
@@ -231,3 +233,5 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
     </div>
   );
 };
+
+    
