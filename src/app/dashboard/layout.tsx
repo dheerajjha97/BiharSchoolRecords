@@ -29,7 +29,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const { school, loading } = useSchoolData();
 
-  const handleChangeSchool = () => {
+  const handleLogout = () => {
     localStorage.removeItem('udise_code');
     localStorage.removeItem('school_data');
     router.push('/');
@@ -100,9 +100,9 @@ export default function DashboardLayout({
         <SidebarFooter className="p-2 mt-auto">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleChangeSchool} tooltip="Change School">
+              <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
                 <LogOut />
-                <span>Change School</span>
+                <span>Logout</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
