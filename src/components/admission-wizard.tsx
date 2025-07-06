@@ -4,7 +4,7 @@
 import { useState, useEffect, Suspense, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
 import { addAdmission, getAdmissionCount, getClassAdmissionCount } from "@/lib/admissions";
@@ -48,6 +48,7 @@ function AdmissionWizardContent() {
   
   const { toast } = useToast();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -90,7 +91,7 @@ function AdmissionWizardContent() {
   const generateAdmissionNumber = useCallback(async () => {
     if (firebaseError) {
         const year = new Date().getFullYear().toString().slice(-2);
-        form.setValue('admissionDetails.admissionNumber', `ADM/${year}/0000`);
+        form.setValue('admissionDetails.admissionNumber', `ADM/${year}/0001`);
         return;
     }
     try {
@@ -152,10 +153,9 @@ function AdmissionWizardContent() {
 
       // Automatically open the print page for the new admission
       window.open(`/print/${newAdmissionId}`, '_blank');
+      
+      router.push('/dashboard');
 
-      form.reset();
-      setStep(1);
-      await generateAdmissionNumber(); // Generate new number for the next form
     } catch (error) {
        toast({
         title: "Submission Failed",
