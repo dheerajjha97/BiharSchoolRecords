@@ -16,38 +16,12 @@ export const convertTimestamps = (data: any): any => {
   return data;
 };
 
-/**
- * Recursively converts `undefined` values in an object to `null`.
- * Firestore does not support `undefined` values.
- * @param data The object to sanitize.
- * @returns The sanitized object.
- */
-const sanitizeDataForFirestore = (data: any): any => {
-    if (data === undefined) {
-        return null;
-    }
-    if (data === null || typeof data !== 'object' || data instanceof Date || data instanceof Timestamp) {
-        return data;
-    }
-    if (Array.isArray(data)) {
-        return data.map(item => sanitizeDataForFirestore(item));
-    }
-    const sanitizedData: { [key: string]: any } = {};
-    for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-            sanitizedData[key] = sanitizeDataForFirestore(data[key]);
-        }
-    }
-    return sanitizedData;
-};
-
-
 export const addAdmission = async (data: FormValues) => {
   if (!db) {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    const sanitizedData = sanitizeDataForFirestore(data);
+    const sanitizedData = JSON.parse(JSON.stringify(data));
     const docRef = await addDoc(collection(db, 'admissions'), sanitizedData);
     return docRef.id;
   } catch (e) {

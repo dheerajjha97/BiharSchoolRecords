@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
@@ -142,16 +143,7 @@ function AdmissionWizardContent() {
     }
     setIsLoading(true);
     try {
-      // Create a timeout promise
-      const timeoutPromise = new Promise<string>((_, reject) =>
-        setTimeout(() => reject(new Error("Submission timed out. Please check your internet connection and try again.")), 20000) // 20 seconds
-      );
-
-      // Race addAdmission against the timeout
-      const newAdmissionId = await Promise.race([
-        addAdmission(data),
-        timeoutPromise
-      ]);
+      const newAdmissionId = await addAdmission(data);
 
       toast({
         title: "Form Submitted!",
