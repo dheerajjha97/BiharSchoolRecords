@@ -4,20 +4,23 @@ import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer,
 import type { FormValues } from './form-schema';
 
 /**
- * Recursively removes properties with `undefined` values from an object,
- * as Firestore does not support them.
+ * Recursively sanitizes an object to be Firestore-compatible.
+ * - Removes properties with `undefined` values from objects.
+ * - Converts `undefined` values inside arrays to `null`.
+ * This is necessary because Firestore does not support `undefined`.
  * @param data The object or value to sanitize.
- * @returns The sanitized object or value, with `undefined` properties removed.
+ * @returns The sanitized object or value.
  */
 const sanitizeForFirestore = (data: any): any => {
-  // Primitives, null, and Firestore-native types are returned directly.
+  // For primitives, null, and Firestore-native types, return them directly.
   if (data === null || typeof data !== 'object' || data instanceof Date || data instanceof Timestamp) {
     return data;
   }
 
-  // For arrays, recursively sanitize each item. Firestore supports arrays.
+  // For arrays, recursively sanitize each item.
+  // Crucially, if an item is undefined, it must be mapped to null.
   if (Array.isArray(data)) {
-    return data.map(item => sanitizeForFirestore(item));
+    return data.map(item => (item === undefined ? null : sanitizeForFirestore(item)));
   }
   
   // It's a plain object. Create a new object, copying only non-undefined values.
@@ -26,9 +29,8 @@ const sanitizeForFirestore = (data: any): any => {
     // Ensure it's an own property.
     if (Object.prototype.hasOwnProperty.call(data, key)) {
       const value = data[key];
-      // If the value is not undefined, process it.
+      // If the value is not undefined, process it recursively.
       if (value !== undefined) {
-        // Recurse on the value before adding it to the new object.
         sanitizedObject[key] = sanitizeForFirestore(value);
       }
       // If value is undefined, it is simply skipped, effectively removing it.
