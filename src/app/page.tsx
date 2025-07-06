@@ -4,10 +4,12 @@ import { Lock, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { firebaseError } from '@/lib/firebase';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { DebugEnvVars } from '@/components/debug-env-vars';
 
 export default function RootPage() {
   return (
     <main className="min-h-screen p-4 sm:p-6 md:p-8 relative">
+      <DebugEnvVars />
       <div className="max-w-5xl mx-auto pb-16">
         {firebaseError && (
           <Alert variant="destructive" className="mb-8">
