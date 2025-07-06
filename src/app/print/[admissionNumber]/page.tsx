@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,79 +8,55 @@ import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
-import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
+import { useSchoolData } from '@/hooks/use-school-data';
 
 export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
-  const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const { admissionNumber } = params;
+  const { school, loading: schoolLoading } = useSchoolData();
 
   useEffect(() => {
-    const loadPrintData = async () => {
+    const loadData = async () => {
+      if (schoolLoading) {
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
-      // 1. Check for Firebase config errors
       if (firebaseError) {
         setError(firebaseError);
         setLoading(false);
         return;
       }
-
-      // 2. Check for admission ID
-      if (!admissionNumber) {
-        setError('No admission ID provided.');
+      
+      if (!school) {
+        setError("School data not found. Please log in or configure a school first.");
         setLoading(false);
         return;
       }
 
-      try {
-        // 3. Get student data from Firestore first
-        const studentInfo = await getAdmissionById(admissionNumber);
-        if (!studentInfo) {
-          setError(`No admission record found for ID: ${admissionNumber}`);
-          setLoading(false);
-          return;
-        }
-        setStudentData(studentInfo);
+      const admissionInfo = await getAdmissionById(params.admissionNumber);
 
-        // 4. Get UDISE from student record
-        const udise = studentInfo.admissionDetails.udise;
-        if (!udise) {
-          setError("This admission record is not associated with any school.");
-          setLoading(false);
-          return;
-        }
-
-        // 5. Get school data using the UDISE. This is reliable because we hardcoded the main school.
-        const schoolInfo = await lookupSchoolByUdise({ udise });
-        if (schoolInfo?.found && schoolInfo.name && schoolInfo.address) {
-          setSchoolData({
-            udise: udise,
-            name: schoolInfo.name,
-            address: schoolInfo.address,
-          });
+      if (admissionInfo) {
+        if (admissionInfo.admissionDetails.udise !== school.udise) {
+          setError("This admission record does not belong to the currently configured school.");
         } else {
-          setError(`Could not find school details for UDISE: ${udise}`);
+          setStudentData(admissionInfo);
         }
-
-      } catch (e) {
-        console.error("Error loading print data:", e);
-        const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-        setError(`Failed to load print data. ${errorMessage}`);
-      } finally {
-        setLoading(false);
+      } else {
+        setError(`No admission record found for ID: ${params.admissionNumber}`);
       }
+
+      setLoading(false);
     };
 
-    loadPrintData();
-  }, [admissionNumber]);
+    loadData();
+  }, [params.admissionNumber, school, schoolLoading]);
 
-
-  if (loading) {
+  if (loading || schoolLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -99,12 +74,12 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     );
   }
 
-  if (!studentData || !schoolData) {
+  if (!studentData || !school) {
     return (
-         <div className="flex items-center justify-center min-h-screen text-destructive p-4 text-center">
-            <AlertTriangle className="h-8 w-8 mr-2" />
-            <p>Could not load student or school data to print.</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen text-destructive p-4 text-center">
+        <AlertTriangle className="h-8 w-8 mr-2" />
+        <p>Could not load student or school data to print.</p>
+      </div>
     );
   }
 
@@ -119,7 +94,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
             </Button>
         </header>
         <main>
-          <PrintableForm formData={studentData} schoolData={schoolData} />
+          <PrintableForm formData={studentData} schoolData={school} />
         </main>
       </div>
     </div>
