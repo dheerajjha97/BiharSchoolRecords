@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -49,7 +48,8 @@ export default function RootPage() {
 
     try {
       const schoolData = await getSchoolByUdise(trimmedUdise);
-      if (schoolData) {
+      // More robust check to ensure schoolData is a valid object
+      if (schoolData && typeof schoolData === 'object' && schoolData.udise) {
         proceedToDashboard(schoolData);
       } else {
         // UDISE not found, open the dialog to add a new school
