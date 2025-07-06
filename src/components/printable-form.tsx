@@ -108,7 +108,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
         </div>
         
         {/* Personal Details Table */}
-        <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+        <table className="w-full border-collapse border border-black text-sm break-inside-avoid">
             <tbody>
                 <SectionTitle title="1. Personal Details" />
                 <PrintTableDoubleRow label1="Student's Name (EN)" value1={studentDetails.nameEn} label2="Student's Name (HI)" value2={studentDetails.nameHi} />
@@ -135,9 +135,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
         {/* Previous School & Other Details Table */}
         <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
             <tbody>
-                <SectionTitle title="3. Previous School & Other Details" />
-                <PrintTableDoubleRow label1="Prev. School" value1={prevSchoolDetails.schoolName} label2="SLC No." value2={prevSchoolDetails.slcNo} />
-                <PrintTableDoubleRow label1="SLC Issue Date" value1={prevSchoolDetails.certIssueDate} label2="Last Class" value2={prevSchoolDetails.lastClassStudied} />
+                <SectionTitle title="3. Other Details" />
                 <PrintTableDoubleRow label1="Identification Mark 1" value1={otherDetails.identificationMark1} label2="Identification Mark 2" value2={otherDetails.identificationMark2} />
             </tbody>
         </table>
@@ -149,10 +147,19 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             <p className="font-semibold">Admission Form - Page 2</p>
         </header>
 
+        {/* Previous School Table */}
+        <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+            <tbody>
+                <SectionTitle title="4. Previous School Details" />
+                <PrintTableDoubleRow label1="Prev. School" value1={prevSchoolDetails.schoolName} label2="SLC No." value2={prevSchoolDetails.slcNo} />
+                <PrintTableDoubleRow label1="SLC Issue Date" value1={prevSchoolDetails.certIssueDate} label2="Last Class" value2={prevSchoolDetails.lastClassStudied} />
+            </tbody>
+        </table>
+        
         {/* Bank Details Table */}
         <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
             <tbody>
-                <SectionTitle title="4. Bank Account Details" />
+                <SectionTitle title="5. Bank Account Details" />
                 <PrintTableDoubleRow label1="Bank Name" value1={bankDetails.bankName} label2="Branch" value2={bankDetails.branch} />
                 <PrintTableDoubleRow label1="Account No." value1={bankDetails.accountNo} label2="IFSC Code" value2={bankDetails.ifsc} />
             </tbody>
@@ -162,7 +169,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
         {(isClass9 || isClass11) && (
             <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
                 <tbody>
-                    <SectionTitle title="5. Subject Selection Details" />
+                    <SectionTitle title="6. Subject Selection Details" />
                     {isClass9 && subjectDetails && (
                         <>
                             <PrintTableDoubleRow label1="MIL" value1={subjectDetails.mil} label2="SIL" value2={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
