@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,22 +17,11 @@ export default function RootPage() {
   const [udiseInput, setUdiseInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isAddSchoolDialogOpen, setAddSchoolDialogOpen] = useState(false);
   const [udiseForNewSchool, setUdiseForNewSchool] = useState('');
   const [schoolToConfirm, setSchoolToConfirm] = useState<School | null>(null);
   const [initialDataForDialog, setInitialDataForDialog] = useState<School | undefined>(undefined);
 
-  useEffect(() => {
-    // Check if UDISE code already exists in local storage
-    const storedUdise = localStorage.getItem('udise_code');
-    if (storedUdise) {
-      router.replace('/dashboard');
-    } else {
-      setIsLoading(false);
-    }
-  }, [router]);
-  
   const proceedToDashboard = (schoolData: School) => {
     localStorage.setItem('udise_code', schoolData.udise);
     localStorage.setItem('school_data', JSON.stringify(schoolData));
@@ -92,14 +81,6 @@ export default function RootPage() {
     setSchoolToConfirm(null);
     setUdiseInput('');
     setError(null);
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-secondary/40">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
   }
 
   return (
