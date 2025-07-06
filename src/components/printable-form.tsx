@@ -5,6 +5,7 @@ import * as React from 'react';
 import type { FormValues } from '@/lib/form-schema';
 
 // Helper component for a full-width row in a table
+// Reduced padding for compactness
 const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
   if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
     return null;
@@ -21,8 +22,8 @@ const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
 
   return (
     <tr className="break-inside-avoid">
-      <td className="w-1/3 border border-black p-2 font-semibold text-gray-700 bg-gray-50">{label}</td>
-      <td colSpan={3} className="border border-black p-2 capitalize">
+      <td className="w-1/3 border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50">{label}</td>
+      <td colSpan={3} className="border border-black py-1 px-2 capitalize">
         {String(displayValue)}
       </td>
     </tr>
@@ -30,6 +31,7 @@ const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
 };
 
 // Helper component for a two-column row
+// Reduced padding for compactness
 const PrintTableDoubleRow = ({ label1, value1, label2, value2 }: { label1: string; value1: any; label2: string; value2: any; }) => {
   const formatValue = (value: any) => {
     if (value === undefined || value === null || value === '') return '';
@@ -39,10 +41,10 @@ const PrintTableDoubleRow = ({ label1, value1, label2, value2 }: { label1: strin
 
   return (
     <tr className="break-inside-avoid">
-      <td className="w-[20%] border border-black p-2 font-semibold text-gray-700 bg-gray-50">{label1}</td>
-      <td className="w-[30%] border border-black p-2 capitalize">{formatValue(value1)}</td>
-      <td className="w-[20%] border border-black p-2 font-semibold text-gray-700 bg-gray-50">{label2}</td>
-      <td className="w-[30%] border border-black p-2 capitalize">{formatValue(value2)}</td>
+      <td className="w-[20%] border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50">{label1}</td>
+      <td className="w-[30%] border border-black py-1 px-2 capitalize">{formatValue(value1)}</td>
+      <td className="w-[20%] border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50">{label2}</td>
+      <td className="w-[30%] border border-black py-1 px-2 capitalize">{formatValue(value2)}</td>
     </tr>
   );
 };
@@ -51,7 +53,7 @@ const PrintTableDoubleRow = ({ label1, value1, label2, value2 }: { label1: strin
 // Helper component for section titles
 const SectionTitle = ({ title }: { title: string }) => (
     <tr className="break-inside-avoid">
-        <td colSpan={4} className="text-lg font-bold text-center bg-gray-100 py-1 border-y-2 border-black">
+        <td colSpan={4} className="text-base font-bold text-center bg-gray-100 py-1 border-y-2 border-black">
             {title}
         </td>
     </tr>
@@ -74,20 +76,19 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
   const addressString = `${addressDetails.village}, ${addressDetails.post}, ${addressDetails.ps}, ${addressDetails.block}, ${addressDetails.district} - ${addressDetails.pin}`;
 
   return (
-    <div className="a4-container bg-white text-black font-body shadow-lg">
+    <div className="a4-container bg-white text-black font-body shadow-lg text-xs">
       {/* --- PAGE 1 --- */}
       <div className="page">
-        <header className="text-center w-full mb-4 break-inside-avoid">
+        <header className="text-center w-full mb-2 break-inside-avoid">
             <h1 className="text-2xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
             <p className="text-sm font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
-            <p className="text-lg font-bold mt-2">ADMISSION FORM</p>
-            <p className="text-sm">(Session 2024-2025)</p>
+            <p className="text-lg font-bold mt-1">ADMISSION FORM</p>
+            <p className="text-xs">(Session 2024-2025)</p>
         </header>
         
-        <div className="flex justify-between items-end gap-4 mb-4 break-inside-avoid">
-            {/* Admission Details Table on the left */}
+        <div className="flex justify-between items-start gap-4 mb-2 break-inside-avoid">
             <div className="flex-grow">
-                <table className="w-full border-collapse border border-black text-sm">
+                <table className="w-full border-collapse border border-black text-xs">
                     <tbody>
                         <PrintTableDoubleRow 
                             label1="Admission No." value1={admissionDetails.admissionNumber} 
@@ -101,14 +102,12 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
                 </table>
             </div>
             
-            {/* Photo box on the right */}
-            <div className="w-36 h-36 border-2 border-black flex-shrink-0 flex items-center justify-center text-center p-2 text-sm">
+            <div className="w-32 h-[140px] border-2 border-black flex-shrink-0 flex items-center justify-center text-center p-1 text-xs">
                 Affix recent passport size photograph
             </div>
         </div>
         
-        {/* Personal Details Table */}
-        <table className="w-full border-collapse border border-black text-sm break-inside-avoid">
+        <table className="w-full border-collapse border border-black text-xs break-inside-avoid">
             <tbody>
                 <SectionTitle title="1. Personal Details" />
                 <PrintTableDoubleRow label1="Student's Name (EN)" value1={studentDetails.nameEn} label2="Student's Name (HI)" value2={studentDetails.nameHi} />
@@ -121,8 +120,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             </tbody>
         </table>
 
-        {/* Contact & Address Table */}
-        <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+        <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
             <tbody>
                 <SectionTitle title="2. Contact & Address Details" />
                 <PrintTableDoubleRow label1="Mobile Number" value1={contactDetails.mobileNumber} label2="Email ID" value2={contactDetails.emailId} />
@@ -132,23 +130,14 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             </tbody>
         </table>
         
-        {/* Previous School & Other Details Table */}
-        <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+        <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
             <tbody>
                 <SectionTitle title="3. Other Details" />
                 <PrintTableDoubleRow label1="Identification Mark 1" value1={otherDetails.identificationMark1} label2="Identification Mark 2" value2={otherDetails.identificationMark2} />
             </tbody>
         </table>
-      </div>
 
-      {/* --- PAGE 2 --- */}
-      <div className="page page-break">
-        <header className="text-center py-2 border-b-2 border-black break-inside-avoid">
-            <p className="font-semibold">Admission Form - Page 2</p>
-        </header>
-
-        {/* Previous School Table */}
-        <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+        <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
             <tbody>
                 <SectionTitle title="4. Previous School Details" />
                 <PrintTableDoubleRow label1="Prev. School" value1={prevSchoolDetails.schoolName} label2="SLC No." value2={prevSchoolDetails.slcNo} />
@@ -156,18 +145,23 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             </tbody>
         </table>
         
-        {/* Bank Details Table */}
-        <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+        <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
             <tbody>
                 <SectionTitle title="5. Bank Account Details" />
                 <PrintTableDoubleRow label1="Bank Name" value1={bankDetails.bankName} label2="Branch" value2={bankDetails.branch} />
                 <PrintTableDoubleRow label1="Account No." value1={bankDetails.accountNo} label2="IFSC Code" value2={bankDetails.ifsc} />
             </tbody>
         </table>
+      </div>
 
-        {/* Subject Selection Table */}
+      {/* --- PAGE 2 --- */}
+      <div className="page page-break">
+        <header className="text-center py-1 border-b-2 border-black break-inside-avoid">
+            <p className="font-semibold">Admission Form - Page 2</p>
+        </header>
+
         {(isClass9 || isClass11) && (
-            <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Subject Selection Details" />
                     {isClass9 && subjectDetails && (
@@ -190,30 +184,28 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             </table>
         )}
 
-        {/* Declaration Box */}
-        <div className="mt-8 p-4 border border-black break-inside-avoid">
+        <div className="mt-4 p-2 border border-black break-inside-avoid">
             <h3 className="font-bold text-center">Declaration by the Applicant</h3>
-            <p className="text-xs mt-4">
+            <p className="text-xs mt-2">
                 I, {studentDetails.nameEn}, hereby declare that all the information furnished by me in this application form is true, complete, and correct to the best of my knowledge and belief. I understand that in the event of any information being found false, incomplete, or incorrect, my candidature/admission is liable to be cancelled/terminated. I agree to abide by the rules and regulations of the institution.
             </p>
-            <div className="mt-16 grid grid-cols-2 gap-16 text-sm">
-                <div className="border-t-2 border-black pt-2 font-semibold">
+            <div className="mt-8 grid grid-cols-2 gap-16 text-sm">
+                <div className="border-t-2 border-black pt-1 font-semibold">
                     Signature of Guardian
                 </div>
-                <div className="border-t-2 border-black pt-2 font-semibold">
+                <div className="border-t-2 border-black pt-1 font-semibold">
                     Signature of Applicant
                 </div>
             </div>
         </div>
         
-        {/* Office Use Box */}
-        <div className="mt-8 p-4 border-2 border-dashed border-black break-inside-avoid">
+        <div className="mt-4 p-2 border-2 border-dashed border-black break-inside-avoid">
             <h3 className="font-bold text-center">For Office Use Only</h3>
             <div className="mt-12 grid grid-cols-2 gap-16 text-sm">
-                <div className="border-t-2 border-black pt-2 font-semibold">
+                <div className="border-t-2 border-black pt-1 font-semibold">
                     Checked by
                 </div>
-                <div className="border-t-2 border-black pt-2 font-semibold">
+                <div className="border-t-2 border-black pt-1 font-semibold">
                     Signature of Principal
                 </div>
             </div>
