@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -184,9 +185,13 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="7. Subject Selection Details" />
-                    <PrintTableDoubleRow label1="Medium" value1={subjectDetails.medium} label2="Compulsory Group 1" value2={subjectDetails.compulsoryGroup1} />
-                    <PrintTableDoubleRow label1="Compulsory Group 2" value1={subjectDetails.compulsoryGroup2} label2="Optional Subject" value2={subjectDetails.optionalSubject} />
+                    <PrintTableRow label="Medium" value={subjectDetails.medium} />
+                    <PrintTableDoubleRow 
+                        label1="Compulsory Group 1" value1={subjectDetails.compulsoryGroup1} 
+                        label2="Compulsory Group 2" value2={subjectDetails.compulsoryGroup2} 
+                    />
                     <PrintTableRow label="Elective Subjects" value={subjectDetails.electives} />
+                    <PrintTableRow label="Optional Subject" value={subjectDetails.optionalSubject} />
                 </tbody>
             </table>
           </>
