@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
@@ -293,14 +294,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     value={field.value}
                     className="flex items-center space-x-4 pt-2"
                   >
-                    <FormItem className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="male" id="gender-male"/>
                       <Label htmlFor="gender-male" className="font-normal">Male</Label>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
+                    </div>
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="female" id="gender-female" />
                       <Label htmlFor="gender-female" className="font-normal">Female</Label>
-                    </FormItem>
+                    </div>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -374,14 +375,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     value={String(field.value)}
                     className="flex items-center space-x-4 pt-2"
                   >
-                    <FormItem className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="true" id="abled-yes" />
                       <Label htmlFor="abled-yes" className="font-normal">Yes</Label>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
+                    </div>
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="false" id="abled-no" />
                       <Label htmlFor="abled-no" className="font-normal">No</Label>
-                    </FormItem>
+                    </div>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -428,14 +429,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormLabel>Marital Status</FormLabel>
                  <FormControl>
                   <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
-                    <FormItem className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                         <RadioGroupItem value="unmarried" id="marital-unmarried" />
                         <Label htmlFor="marital-unmarried" className="font-normal">Unmarried</Label>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2">
+                    </div>
+                    <div className="flex items-center space-x-2">
                         <RadioGroupItem value="married" id="marital-married" />
                         <Label htmlFor="marital-married" className="font-normal">Married</Label>
-                    </FormItem>
+                    </div>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -485,14 +486,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                   <FormLabel>Area</FormLabel>
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
-                      <FormItem className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="rural" id="area-rural" />
                         <Label htmlFor="area-rural" className="font-normal">Rural</Label>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2">
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="urban" id="area-urban" />
                         <Label htmlFor="area-urban" className="font-normal">Urban</Label>
-                      </FormItem>
+                      </div>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
