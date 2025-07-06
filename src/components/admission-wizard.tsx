@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -167,10 +167,17 @@ function AdmissionWizardContent() {
     }
   };
 
-  const onFormError = () => {
+  const onFormError = (errors: FieldErrors<FormValues>) => {
+    let targetStep = 1;
+    // If there's an error in subjectDetails, it must be on step 2
+    if (errors.subjectDetails) {
+        targetStep = 2;
+    }
+    setStep(targetStep);
+    
     toast({
         title: "Validation Error",
-        description: "Please review all steps for errors. Some required information might be missing or invalid.",
+        description: `Please correct the errors on Step ${targetStep} before submitting.`,
         variant: "destructive",
     });
   };
