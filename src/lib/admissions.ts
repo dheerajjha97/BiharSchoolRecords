@@ -22,7 +22,9 @@ export const addAdmission = async (data: FormValues) => {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    const docRef = await addDoc(collection(db, 'admissions'), data);
+    // Firestore does not support 'undefined' values. We can remove them by serializing and deserializing.
+    const cleanData = JSON.parse(JSON.stringify(data));
+    const docRef = await addDoc(collection(db, 'admissions'), cleanData);
     return docRef.id;
   } catch (e) {
     console.error("Error adding document: ", e);
