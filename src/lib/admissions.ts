@@ -17,9 +17,14 @@ export const convertTimestamps = (data: any): any => {
 };
 
 // Helper to recursively remove undefined values from an object, as Firestore doesn't support them.
-// This preserves Date objects, unlike JSON.parse(JSON.stringify(obj)).
+// This preserves Date objects.
 const removeUndefinedValues = (obj: any): any => {
   if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  // Handle Date objects explicitly to prevent them from being converted to {}
+  if (obj instanceof Date) {
     return obj;
   }
 
