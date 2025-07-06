@@ -20,6 +20,8 @@ export default function RootPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddSchoolDialogOpen, setAddSchoolDialogOpen] = useState(false);
   const [udiseForNewSchool, setUdiseForNewSchool] = useState('');
+  const [schoolToConfirm, setSchoolToConfirm] = useState<School | null>(null);
+  const [initialDataForDialog, setInitialDataForDialog] = useState<School | undefined>(undefined);
 
   useEffect(() => {
     // Check if UDISE code already exists in local storage
@@ -46,21 +48,23 @@ export default function RootPage() {
     
     setIsVerifying(true);
     setError(null);
+    setSchoolToConfirm(null);
 
     try {
       const response = await lookupSchoolByUdise({ udise: trimmedUdise });
       
       if (response?.found && response.name && response.address) {
-        // School found by AI
+        // School found by AI, show confirmation screen
         const schoolData: School = {
           udise: trimmedUdise,
           name: response.name,
           address: response.address,
         };
-        proceedToDashboard(schoolData);
+        setSchoolToConfirm(schoolData);
       } else {
-        // School not found by AI, open the dialog to add a new school manually
+        // School not found by AI, open dialog to add manually
         setUdiseForNewSchool(trimmedUdise);
+        setInitialDataForDialog(undefined); // No initial data
         setAddSchoolDialogOpen(true);
       }
     } catch (err) {
@@ -68,11 +72,27 @@ export default function RootPage() {
       // Fallback to manual entry on AI error
       setError("The automatic lookup failed. Please add the school details manually.");
       setUdiseForNewSchool(trimmedUdise);
+      setInitialDataForDialog(undefined);
       setAddSchoolDialogOpen(true);
     } finally {
       setIsVerifying(false);
     }
   };
+
+  const handleEdit = () => {
+    if (schoolToConfirm) {
+      setUdiseForNewSchool(schoolToConfirm.udise);
+      setInitialDataForDialog(schoolToConfirm);
+      setAddSchoolDialogOpen(true);
+      setSchoolToConfirm(null);
+    }
+  };
+
+  const handleBackToSearch = () => {
+    setSchoolToConfirm(null);
+    setUdiseInput('');
+    setError(null);
+  }
 
   if (isLoading) {
     return (
@@ -97,41 +117,62 @@ export default function RootPage() {
         </div>
         <Card className="w-full max-w-md shadow-2xl">
           <CardHeader>
-            <CardTitle>Initial Setup</CardTitle>
+            <CardTitle>{schoolToConfirm ? 'Confirm Your School' : 'Initial Setup'}</CardTitle>
             <CardDescription>
-              Please enter your school's UDISE code to configure the application.
+              {schoolToConfirm
+                ? 'We found the following school details. Please confirm they are correct.'
+                : "Please enter your school's UDISE code to configure the application."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="udise">UDISE Code</Label>
-                <Input
-                  id="udise"
-                  placeholder="Enter 11-digit UDISE code"
-                  value={udiseInput}
-                  onChange={(e) => setUdiseInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
-                  disabled={isVerifying}
-                />
+            {schoolToConfirm ? (
+              <div className="space-y-4">
+                <div className="space-y-2 rounded-md border bg-muted/50 p-4">
+                  <p className="text-lg font-semibold">{schoolToConfirm.name}</p>
+                  <p className="text-sm text-muted-foreground">{schoolToConfirm.address}</p>
+                  <p className="text-xs text-muted-foreground pt-1">UDISE: {schoolToConfirm.udise}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                   <Button variant="outline" onClick={handleEdit}>
+                    Edit Details
+                  </Button>
+                  <Button onClick={() => proceedToDashboard(schoolToConfirm)}>
+                    Yes, Continue
+                  </Button>
+                </div>
+                <Button variant="link" className="w-full" onClick={handleBackToSearch}>Search for another school</Button>
               </div>
-              {error && (
-                <Alert variant="destructive">
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <Button onClick={handleVerify} disabled={isVerifying} className="w-full">
-                {isVerifying ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  'Configure School'
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="udise">UDISE Code</Label>
+                  <Input
+                    id="udise"
+                    placeholder="Enter 11-digit UDISE code"
+                    value={udiseInput}
+                    onChange={(e) => setUdiseInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
+                    disabled={isVerifying}
+                  />
+                </div>
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
-              </Button>
-            </div>
+                <Button onClick={handleVerify} disabled={isVerifying || !udiseInput} className="w-full">
+                  {isVerifying ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Configure School'
+                  )}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
@@ -140,6 +181,7 @@ export default function RootPage() {
         onOpenChange={setAddSchoolDialogOpen}
         udise={udiseForNewSchool}
         onSave={proceedToDashboard}
+        initialData={initialDataForDialog}
       />
     </>
   );

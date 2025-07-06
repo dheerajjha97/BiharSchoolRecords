@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,28 +19,29 @@ interface AddSchoolDialogProps {
   onOpenChange: (open: boolean) => void;
   udise: string;
   onSave: (school: School) => void;
+  initialData?: Partial<School>;
 }
 
-export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchoolDialogProps) {
+export function AddSchoolDialog({ open, onOpenChange, udise, onSave, initialData }: AddSchoolDialogProps) {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    // When the dialog opens, pre-fill the form with initial data if it exists.
+    if (open) {
+        setName(initialData?.name || '');
+        setAddress(initialData?.address || '');
+    }
+  }, [open, initialData]);
 
   const handleSave = () => {
     if (name.trim() && address.trim()) {
       onSave({ udise, name: name.trim(), address: address.trim() });
-      // Reset fields for next time
-      setName('');
-      setAddress('');
       onOpenChange(false); // Close dialog on save
     }
   };
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-        // Reset fields when closing
-        setName('');
-        setAddress('');
-    }
     onOpenChange(isOpen);
   };
 
@@ -48,10 +49,12 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchool
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New School</DialogTitle>
+          <DialogTitle>{initialData ? 'Edit School Details' : 'Add New School'}</DialogTitle>
           <DialogDescription>
-            The UDISE code <span className="font-semibold font-mono">{udise}</span> was not found in the database. 
-            Please add the school details below to proceed.
+            {initialData 
+              ? `Please correct the school details for UDISE code ${udise}.`
+              : `The UDISE code ${udise} was not found. Please add the school details below.`
+            }
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -87,7 +90,7 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchool
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={handleSave} disabled={!name.trim() || !address.trim()}>Save and Continue</Button>
         </DialogFooter>
       </DialogContent>
