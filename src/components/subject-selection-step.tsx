@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
@@ -223,10 +224,33 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
         <FormSection title="Subject Selection (Class 9)">
           <FormField
             control={form.control}
+            name="subjectDetails.medium"
+            render={({ field }) => (
+              <FormItem className="mb-6">
+                <FormLabel>1. Medium of Instruction</FormLabel>
+                <FormControl>
+                  <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="hindi" id="medium-hindi-9" />
+                      <Label htmlFor="medium-hindi-9" className="font-normal">Hindi</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="english" id="medium-english-9" />
+                      <Label htmlFor="medium-english-9" className="font-normal">English</Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="subjectDetails.mil"
             render={({ field }) => (
               <FormItem className="mb-6 space-y-3">
-                <FormLabel>1. MIL - Modern Indian Language (Choose One)</FormLabel>
+                <FormLabel>2. MIL - Modern Indian Language (Choose One)</FormLabel>
                 <FormControl>
                   <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
@@ -245,14 +269,14 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
           />
 
           <FormItem className="mb-6">
-            <FormLabel>2. SIL - Second Indian Language</FormLabel>
+            <FormLabel>3. SIL - Second Indian Language</FormLabel>
             <p className="text-sm font-medium text-muted-foreground pt-2">
                 {milSelection ? `Your assigned SIL is ${silSubject}.` : 'Select your MIL to see your assigned SIL.'}
             </p>
           </FormItem>
 
           <FormItem>
-            <FormLabel>3. Compulsory Subjects</FormLabel>
+            <FormLabel>4. Compulsory Subjects</FormLabel>
             <p className="text-sm font-medium text-muted-foreground pt-2">
               Mathematics, Social Science, English
             </p>

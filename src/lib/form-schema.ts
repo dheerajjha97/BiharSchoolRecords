@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 const admissionDetailsSchema = z.object({
@@ -128,6 +129,7 @@ export const formSchema = z.object({
     } else if (data.admissionDetails.classSelection === "9") {
         const class9Schema = z.object({
             mil: z.enum(["hindi", "urdu"], { required_error: "Please select MIL." }),
+            medium: z.enum(["hindi", "english"], { required_error: "Please select a medium." }),
         });
         const validationResult = class9Schema.safeParse(data.subjectDetails);
         if (!validationResult.success) {
