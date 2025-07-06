@@ -1,8 +1,9 @@
-
 'use client';
 
 import * as React from 'react';
 import type { FormValues } from '@/lib/form-schema';
+import { useSchoolData } from '@/hooks/use-school-data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Helper component for a full-width row in a table
 // Reduced padding for compactness
@@ -67,6 +68,7 @@ const streamDisplayNames: { [key: string]: string } = {
 };
 
 export const PrintableForm = ({ formData }: { formData: FormValues }) => {
+  const { school, loading } = useSchoolData();
   const { admissionDetails, studentDetails, contactDetails, addressDetails, bankDetails, otherDetails, prevSchoolDetails, subjectDetails } = formData;
   
   const isClass11 = admissionDetails.classSelection?.startsWith('11');
@@ -90,8 +92,17 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
                 />
             </div>
             <div className="text-center flex-grow">
-                <h1 className="text-4xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
-                <p className="text-lg font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
+                 {loading ? (
+                    <div className="space-y-2">
+                        <Skeleton className="h-10 w-3/4 mx-auto" />
+                        <Skeleton className="h-6 w-full mx-auto" />
+                    </div>
+                ) : (
+                    <>
+                        <h1 className="text-4xl font-bold">{school?.name || 'School Name'}</h1>
+                        <p className="text-lg font-semibold">{school?.address || 'School Address'}</p>
+                    </>
+                )}
                 <p className="text-xl font-bold mt-1">ADMISSION FORM</p>
                 <p className="text-sm">(Session 2025-2026)</p>
             </div>
