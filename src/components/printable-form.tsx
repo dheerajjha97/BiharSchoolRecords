@@ -4,7 +4,7 @@
 import * as React from 'react';
 import type { FormValues } from '@/lib/form-schema';
 
-// Helper component for a row in a table
+// Helper component for a full-width row in a table
 const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
   if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
     return null;
@@ -22,18 +22,39 @@ const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
   return (
     <tr className="break-inside-avoid">
       <td className="w-1/3 border border-black p-2 font-semibold text-gray-700 bg-gray-50">{label}</td>
-      <td className="border border-black p-2 capitalize">
+      <td colSpan={3} className="border border-black p-2 capitalize">
         {String(displayValue)}
       </td>
     </tr>
   );
 };
 
+// Helper component for a two-column row
+const PrintTableDoubleRow = ({ label1, value1, label2, value2 }: { label1: string; value1: any; label2: string; value2: any; }) => {
+  const formatValue = (value: any) => {
+    if (value === undefined || value === null || value === '') return '';
+    if (value instanceof Date) return value.toLocaleDateString('en-GB');
+    return String(value);
+  };
+
+  return (
+    <tr className="break-inside-avoid">
+      <td className="w-[20%] border border-black p-2 font-semibold text-gray-700 bg-gray-50">{label1}</td>
+      <td className="w-[30%] border border-black p-2 capitalize">{formatValue(value1)}</td>
+      <td className="w-[20%] border border-black p-2 font-semibold text-gray-700 bg-gray-50">{label2}</td>
+      <td className="w-[30%] border border-black p-2 capitalize">{formatValue(value2)}</td>
+    </tr>
+  );
+};
+
+
 // Helper component for section titles
-const SectionTitle = ({ number, title }: { number: number, title: string }) => (
-    <h2 className="text-lg font-bold mt-6 mb-2 text-center bg-gray-100 py-1 border-y-2 border-black break-after-avoid">
-        {number}. {title}
-    </h2>
+const SectionTitle = ({ title }: { title: string }) => (
+    <tr className="break-inside-avoid">
+        <td colSpan={4} className="text-lg font-bold text-center bg-gray-100 py-1 border-y-2 border-black">
+            {title}
+        </td>
+    </tr>
 );
 
 const streamDisplayNames: { [key: string]: string } = {
@@ -56,7 +77,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
     <div className="a4-container bg-white text-black font-body shadow-lg">
       {/* Page 1 */}
       <div className="page">
-        <header className="flex items-start justify-between border-b-4 border-black pb-2">
+        <header className="flex items-start justify-between border-b-4 border-black pb-2 break-inside-avoid">
             <div>
                 <h1 className="text-3xl font-bold tracking-wider">EDUASSIST</h1>
                 <p className="text-lg font-semibold">ADMISSION FORM</p>
@@ -69,110 +90,67 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
         
         <table className="w-full mt-4 border-collapse border border-black text-sm">
             <tbody>
-                <PrintTableRow label="Admission No." value={admissionDetails.admissionNumber} />
-                <PrintTableRow label="Admission Date" value={admissionDetails.admissionDate} />
-                <PrintTableRow label="Class / Stream" value={displayStream} />
-                <PrintTableRow label="Roll Number" value={admissionDetails.rollNumber} />
-            </tbody>
-        </table>
+                <PrintTableDoubleRow 
+                    label1="Admission No." value1={admissionDetails.admissionNumber} 
+                    label2="Admission Date" value2={admissionDetails.admissionDate} 
+                />
+                <PrintTableDoubleRow 
+                    label1="Class / Stream" value1={displayStream}
+                    label2="Roll Number" value2={admissionDetails.rollNumber} 
+                />
+                <SectionTitle title="1. Personal Details" />
+                <PrintTableDoubleRow label1="Student's Name (EN)" value1={studentDetails.nameEn} label2="Student's Name (HI)" value2={studentDetails.nameHi} />
+                <PrintTableDoubleRow label1="Father's Name (EN)" value1={studentDetails.fatherNameEn} label2="Father's Name (HI)" value2={studentDetails.fatherNameHi} />
+                <PrintTableDoubleRow label1="Mother's Name (EN)" value1={studentDetails.motherNameEn} label2="Mother's Name (HI)" value2={studentDetails.motherNameHi} />
+                <PrintTableDoubleRow label1="Date of Birth" value1={studentDetails.dob} label2="Gender" value2={studentDetails.gender} />
+                <PrintTableDoubleRow label1="Caste" value1={studentDetails.caste} label2="Religion" value2={studentDetails.religion} />
+                <PrintTableDoubleRow label1="Nationality" value1={studentDetails.nationality} label2="Marital Status" value2={studentDetails.maritalStatus} />
+                <PrintTableDoubleRow label1="Differently Abled" value1={studentDetails.isDifferentlyAbled} label2="Disability Details" value2={studentDetails.isDifferentlyAbled ? studentDetails.disabilityDetails : 'N/A'} />
 
-        <SectionTitle number={1} title="Personal Details" />
-        <table className="w-full border-collapse border border-black text-sm">
-            <tbody>
-                <PrintTableRow label="Student's Name (English)" value={studentDetails.nameEn} />
-                <PrintTableRow label="Student's Name (Hindi)" value={studentDetails.nameHi} />
-                <PrintTableRow label="Father's Name (English)" value={studentDetails.fatherNameEn} />
-                <PrintTableRow label="Father's Name (Hindi)" value={studentDetails.fatherNameHi} />
-                <PrintTableRow label="Mother's Name (English)" value={studentDetails.motherNameEn} />
-                <PrintTableRow label="Mother's Name (Hindi)" value={studentDetails.motherNameHi} />
-                <PrintTableRow label="Date of Birth" value={studentDetails.dob} />
-                <PrintTableRow label="Gender" value={studentDetails.gender} />
-                <PrintTableRow label="Caste" value={studentDetails.caste} />
-                <PrintTableRow label="Religion" value={studentDetails.religion} />
-                <PrintTableRow label="Nationality" value={studentDetails.nationality} />
-                <PrintTableRow label="Marital Status" value={studentDetails.maritalStatus} />
-                <PrintTableRow label="Differently Abled" value={studentDetails.isDifferentlyAbled} />
-                {studentDetails.isDifferentlyAbled && <PrintTableRow label="Disability Details" value={studentDetails.disabilityDetails} />}
-            </tbody>
-        </table>
-
-        <SectionTitle number={2} title="Contact & Address Details" />
-        <table className="w-full border-collapse border border-black text-sm">
-            <tbody>
-                <PrintTableRow label="Mobile Number" value={contactDetails.mobileNumber} />
-                <PrintTableRow label="Email ID" value={contactDetails.emailId} />
+                <SectionTitle title="2. Contact & Address Details" />
+                <PrintTableDoubleRow label1="Mobile Number" value1={contactDetails.mobileNumber} label2="Email ID" value2={contactDetails.emailId} />
                 <PrintTableRow label="Aadhar Number" value={contactDetails.aadharNumber} />
                 <PrintTableRow label="Full Address" value={addressString} />
                 <PrintTableRow label="Area Type" value={addressDetails.area} />
-            </tbody>
-        </table>
 
-        <SectionTitle number={3} title="Other Information" />
-        <table className="w-full border-collapse border border-black text-sm">
-            <tbody>
-                <PrintTableRow label="Identification Mark 1" value={otherDetails.identificationMark1} />
-                <PrintTableRow label="Identification Mark 2" value={otherDetails.identificationMark2} />
-            </tbody>
-        </table>
-        
-        <SectionTitle number={4} title="Previous School Details" />
-        <table className="w-full border-collapse border border-black text-sm">
-             <tbody>
-                <PrintTableRow label="School Name" value={prevSchoolDetails.schoolName} />
-                <PrintTableRow label="SLC No." value={prevSchoolDetails.slcNo} />
-                <PrintTableRow label="Certificate Issue Date" value={prevSchoolDetails.certIssueDate} />
-                <PrintTableRow label="Last Class Studied" value={prevSchoolDetails.lastClassStudied} />
-             </tbody>
-        </table>
-
-        <SectionTitle number={5} title="Bank Account Details" />
-        <table className="w-full border-collapse border border-black text-sm">
-            <tbody>
-                <PrintTableRow label="Account No." value={bankDetails.accountNo} />
-                <PrintTableRow label="IFSC Code" value={bankDetails.ifsc} />
-                <PrintTableRow label="Bank Name" value={bankDetails.bankName} />
-                <PrintTableRow label="Branch" value={bankDetails.branch} />
+                <SectionTitle title="3. Bank, School & Other Details" />
+                <PrintTableDoubleRow label1="Bank Name" value1={bankDetails.bankName} label2="Branch" value2={bankDetails.branch} />
+                <PrintTableDoubleRow label1="Account No." value1={bankDetails.accountNo} label2="IFSC Code" value2={bankDetails.ifsc} />
+                <PrintTableDoubleRow label1="Prev. School" value1={prevSchoolDetails.schoolName} label2="SLC No." value2={prevSchoolDetails.slcNo} />
+                <PrintTableDoubleRow label1="SLC Issue Date" value1={prevSchoolDetails.certIssueDate} label2="Last Class" value2={prevSchoolDetails.lastClassStudied} />
+                <PrintTableDoubleRow label1="Identification Mark 1" value1={otherDetails.identificationMark1} label2="Identification Mark 2" value2={otherDetails.identificationMark2} />
             </tbody>
         </table>
       </div>
 
       {/* Page 2 */}
       <div className="page page-break">
-        <header className="text-center py-2 border-b-2 border-black">
+        <header className="text-center py-2 border-b-2 border-black break-inside-avoid">
             <p className="font-semibold">Admission Form - Page 2</p>
         </header>
 
-        {isClass9 && subjectDetails && (
-          <>
-            <SectionTitle number={6} title="Subject Selection (Class 9)" />
-            <table className="w-full border-collapse border border-black text-sm">
+        {(isClass9 || isClass11) && (
+            <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
                 <tbody>
-                    <PrintTableRow label="MIL" value={subjectDetails.mil} />
-                    <PrintTableRow label="SIL" value={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
-                    <PrintTableRow label="Other Subjects" value="Mathematics, Social Science, English" />
+                    <SectionTitle title="4. Subject Selection Details" />
+                    {isClass9 && subjectDetails && (
+                        <>
+                            <PrintTableDoubleRow label1="MIL" value1={subjectDetails.mil} label2="SIL" value2={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
+                            <PrintTableRow label="Other Subjects" value="Mathematics, Social Science, English" />
+                        </>
+                    )}
+                    {isClass11 && subjectDetails && (
+                        <>
+                            <PrintTableDoubleRow label1="Matric Board" value1={subjectDetails.matricBoard} label2="Board Code" value2={subjectDetails.matricBoardCode} />
+                            <PrintTableDoubleRow label1="Matric Roll No." value1={subjectDetails.matricRollNo} label2="Passing Year" value2={subjectDetails.matricPassingYear} />
+                            <PrintTableRow label="Registration No." value={subjectDetails.matricRegNo} />
+                            <PrintTableDoubleRow label1="Medium" value1={subjectDetails.medium} label2="Compulsory Group 1" value2={subjectDetails.compulsoryGroup1} />
+                            <PrintTableDoubleRow label1="Compulsory Group 2" value1={subjectDetails.compulsoryGroup2} label2="Optional Subject" value2={subjectDetails.optionalSubject} />
+                            <PrintTableRow label="Elective Subjects" value={subjectDetails.electives} />
+                        </>
+                    )}
                 </tbody>
             </table>
-          </>
-        )}
-
-        {isClass11 && subjectDetails && (
-          <>
-            <SectionTitle number={6} title="Subject Selection (Class 11)" />
-            <table className="w-full border-collapse border border-black text-sm">
-                <tbody>
-                    <PrintTableRow label="Matric Board Name" value={subjectDetails.matricBoard} />
-                    <PrintTableRow label="Board Code" value={subjectDetails.matricBoardCode} />
-                    <PrintTableRow label="Roll No." value={subjectDetails.matricRollNo} />
-                    <PrintTableRow label="Registration No." value={subjectDetails.matricRegNo} />
-                    <PrintTableRow label="Passing Year" value={subjectDetails.matricPassingYear} />
-                    <PrintTableRow label="Medium" value={subjectDetails.medium} />
-                    <PrintTableRow label="Compulsory Group 1" value={subjectDetails.compulsoryGroup1} />
-                    <PrintTableRow label="Compulsory Group 2" value={subjectDetails.compulsoryGroup2} />
-                    <PrintTableRow label="Elective Subjects" value={subjectDetails.electives} />
-                    <PrintTableRow label="Optional Subject" value={subjectDetails.optionalSubject} />
-                </tbody>
-            </table>
-          </>
         )}
 
         <div className="mt-8 p-4 border border-black break-inside-avoid">
