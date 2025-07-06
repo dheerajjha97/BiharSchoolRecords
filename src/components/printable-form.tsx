@@ -84,15 +84,14 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
         <header className="flex items-center w-full mb-4 break-inside-avoid gap-4">
             <div className="flex-shrink-0">
                 <img
-                    src="https://placehold.co/80x80.png"
+                    src="https://storage.googleapis.com/project-os-frontend-prod.appspot.com/1722424888803_bihar_govt_logo.jpg"
                     alt="Bihar Government Logo"
-                    data-ai-hint="Bihar government logo"
                     className="h-20 w-20"
                 />
             </div>
             <div className="text-center flex-grow">
-                <h1 className="text-3xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
-                <p className="text-base font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
+                <h1 className="text-4xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
+                <p className="text-lg font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
                 <p className="text-xl font-bold mt-1">ADMISSION FORM</p>
                 <p className="text-sm">(Session 2024-2025)</p>
             </div>
@@ -119,7 +118,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             </div>
         </div>
         
-        <table className="w-full border-collapse border border-black text-xs break-inside-avoid">
+        <table className="w-full border-collapse border border-black text-xs break-inside-avoid mt-2">
             <tbody>
                 <SectionTitle title="1. Personal Details" />
                 <PrintTableDoubleRow label1="Student's Name (EN)" value1={studentDetails.nameEn} label2="Student's Name (HI)" value2={studentDetails.nameHi} />
@@ -215,7 +214,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
                 <br/>
                 मैं यह भी वचन देता/देती हूँ कि मैं विद्यालय के सभी नियमों का पालन करूँगा/करूँगी, प्रतिदिन निर्धारित यूनिफॉर्म में विद्यालय आऊँगा/आऊँगी, पूर्ण अनुशासन बनाए रखूँगा/रखूँगी और अपनी न्यूनतम 75% उपस्थिति सुनिश्चित करूँगा/करूँगी।
             </p>
-            <div className="mt-8 grid grid-cols-3 gap-8 text-sm text-center">
+            <div className="mt-12 grid grid-cols-3 gap-8 text-sm text-center">
                 <div className="border-t-2 border-black pt-1 font-semibold">
                     Signature of Guardian
                 </div>
