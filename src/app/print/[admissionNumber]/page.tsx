@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import type { FormValues } from '@/lib/form-schema';
 import { PrintableForm } from '@/components/printable-form';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,13 @@ import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 
-export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
-  const { admissionNumber } = params;
+export default function PrintAdmissionPage({ params }: { params: Promise<{ admissionNumber: string }> }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const resolvedParams = use(params);
+  const { admissionNumber } = resolvedParams;
 
   useEffect(() => {
     if (firebaseError) {
@@ -76,8 +78,8 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4 sm:p-8 print-bg-white">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-gray-200 min-h-screen p-4 sm:p-8 print-bg-white">
+      <div className="mx-auto">
         <header className="flex justify-end gap-4 mb-4 print-hide">
             <Button variant="outline" onClick={() => window.close()}>Cancel</Button>
             <Button onClick={() => window.print()}>
