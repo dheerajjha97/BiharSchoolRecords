@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Pencil, Printer, AlertTriangle } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
+import { useSchoolData } from '@/hooks/use-school-data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { firebaseError } from '@/lib/firebase';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,7 +34,7 @@ function StudentsListContent() {
   const [students, setStudents] = useState<(FormValues & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [classFilter, setClassFilter] = useState('all');
-
+  const { school, loading: schoolLoading } = useSchoolData();
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -45,18 +45,23 @@ function StudentsListContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (firebaseError) {
-      setLoading(false);
+    if (firebaseError || schoolLoading) {
+      setLoading(schoolLoading);
       return;
     }
+    if (!school?.udise) {
+        setStudents([]);
+        setLoading(false);
+        return;
+    }
     setLoading(true);
-    const unsubscribe = listenToAdmissions((allStudents) => {
+    const unsubscribe = listenToAdmissions(school.udise, (allStudents) => {
       setStudents(allStudents);
       setLoading(false);
     });
 
     return () => unsubscribe(); // Cleanup listener
-  }, []);
+  }, [school, schoolLoading]);
 
   const filteredStudents = useMemo(() => {
     if (classFilter === 'all') {
@@ -91,7 +96,7 @@ function StudentsListContent() {
         <Card>
           <CardHeader>
             <CardTitle>All Students</CardTitle>
-            <CardDescription>A complete list of all student admissions.</CardDescription>
+            <CardDescription>A complete list of all student admissions for {school?.name || 'this school'}.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="mb-4 flex justify-end">
@@ -152,7 +157,7 @@ function StudentsListContent() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="h-24 text-center">
-                        {firebaseError ? "Could not load data due to configuration error." : "No students found."}
+                        {firebaseError ? "Could not load data due to configuration error." : "No students found for this school."}
                       </TableCell>
                     </TableRow>
                   )}

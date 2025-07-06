@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 const admissionDetailsSchema = z.object({
@@ -6,6 +5,7 @@ const admissionDetailsSchema = z.object({
   admissionDate: z.date({ required_error: "Admission date is required." }),
   classSelection: z.enum(["9", "11-arts", "11-science", "11-commerce"], { required_error: "Please select a class/stream." }),
   rollNumber: z.string().min(1, "Roll number is required."),
+  udise: z.string().optional(),
 });
 
 const studentDetailsSchema = z.object({

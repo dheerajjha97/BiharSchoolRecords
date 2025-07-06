@@ -1,4 +1,3 @@
-
 import { db, firebaseError } from './firebase';
 import {
   collection,
@@ -14,6 +13,7 @@ import {
   doc,
   getDoc,
   Timestamp,
+  QueryConstraint,
 } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 
@@ -82,7 +82,7 @@ const convertTimestamps = (data: any): any => {
 
 /**
  * Adds a new admission record to the Firestore database.
- * @param data The form data for the new admission.
+ * @param data The form data for the new admission. The UDISE code MUST be present in data.admissionDetails.udise
  * @returns The ID of the newly created document.
  */
 export const addAdmission = async (data: FormValues): Promise<string> => {
@@ -90,6 +90,9 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
     throw new Error(firebaseError || "Database not available. Submission failed.");
   }
   try {
+    if (!data.admissionDetails?.udise) {
+        throw new Error("UDISE code is missing from the admission data.");
+    }
     const sanitizedData = sanitizeForFirestore(data);
     const docRef = await addDoc(collection(db, 'admissions'), sanitizedData);
     return docRef.id;
@@ -105,19 +108,27 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
 };
 
 /**
- * Retrieves a list of admissions, ordered by date.
+ * Retrieves a list of admissions for a specific school, ordered by date.
+ * @param udise The UDISE code of the school.
  * @param count Optional limit for the number of records to fetch.
  * @returns A promise that resolves to an array of admission documents.
  */
-export const getAdmissions = async (count?: number): Promise<(FormValues & { id: string })[]> => {
-  if (!db) {
-    console.warn(firebaseError || "Database not available. Cannot fetch admissions.");
+export const getAdmissions = async (udise: string, count?: number): Promise<(FormValues & { id: string })[]> => {
+  if (!db || !udise) {
+    console.warn(firebaseError || "Database not available or UDISE not provided. Cannot fetch admissions.");
     return [];
   }
-  const admissionsCollection = collection(db, 'admissions');
-  const q = count
-    ? query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'), limit(count))
-    : query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'));
+  
+  const queryConstraints: QueryConstraint[] = [
+    where('admissionDetails.udise', '==', udise),
+    orderBy('admissionDetails.admissionDate', 'desc')
+  ];
+
+  if (count) {
+    queryConstraints.push(limit(count));
+  }
+  
+  const q = query(collection(db, 'admissions'), ...queryConstraints);
 
   const querySnapshot = await getDocs(q);
   const admissions: (FormValues & { id: string })[] = [];
@@ -128,21 +139,29 @@ export const getAdmissions = async (count?: number): Promise<(FormValues & { id:
 };
 
 /**
- * Listens for real-time updates to the admissions collection.
+ * Listens for real-time updates to the admissions collection for a specific school.
+ * @param udise The UDISE code of the school.
  * @param callback The function to call with the updated admissions list.
  * @param count Optional limit for the number of records to listen to.
  * @returns An Unsubscribe function to stop listening for updates.
  */
-export const listenToAdmissions = (callback: (admissions: (FormValues & { id: string })[]) => void, count?: number): Unsubscribe => {
-    if (!db) {
-        console.warn(firebaseError || "Database not available. Cannot listen to admissions.");
+export const listenToAdmissions = (udise: string | undefined, callback: (admissions: (FormValues & { id: string })[]) => void, count?: number): Unsubscribe => {
+    if (!db || !udise) {
+        console.warn(firebaseError || "Database not available or UDISE not provided. Cannot listen to admissions.");
         callback([]);
         return () => {}; // Return a no-op unsubscribe function
     }
-    const admissionsCollection = collection(db, 'admissions');
-    const q = count
-        ? query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'), limit(count))
-        : query(admissionsCollection, orderBy('admissionDetails.admissionDate', 'desc'));
+
+    const queryConstraints: QueryConstraint[] = [
+        where('admissionDetails.udise', '==', udise),
+        orderBy('admissionDetails.admissionDate', 'desc')
+    ];
+
+    if (count) {
+        queryConstraints.push(limit(count));
+    }
+
+    const q = query(collection(db, 'admissions'), ...queryConstraints);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const admissions: (FormValues & { id: string })[] = [];
@@ -159,17 +178,18 @@ export const listenToAdmissions = (callback: (admissions: (FormValues & { id: st
 };
 
 /**
- * Gets the total count of all admission documents.
+ * Gets the total count of all admission documents for a specific school.
+ * @param udise The UDISE code of the school.
  * @returns A promise that resolves to the total number of admissions.
  */
-export const getAdmissionCount = async (): Promise<number> => {
-    if (!db) {
-        console.warn(firebaseError || "Database not available. Cannot get admission count.");
+export const getAdmissionCount = async (udise: string): Promise<number> => {
+    if (!db || !udise) {
+        console.warn(firebaseError || "Database not available or UDISE not provided. Cannot get admission count.");
         return 0;
     }
     try {
-        const admissionsCollection = collection(db, 'admissions');
-        const snapshot = await getCountFromServer(admissionsCollection);
+        const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
+        const snapshot = await getCountFromServer(q);
         return snapshot.data().count;
     } catch (e) {
         console.error("Error getting admission count:", e);
@@ -178,18 +198,20 @@ export const getAdmissionCount = async (): Promise<number> => {
 }
 
 /**
- * Gets the count of admissions for a specific class.
+ * Gets the count of admissions for a specific class in a specific school.
+ * @param udise The UDISE code of the school.
  * @param classSelection The class to filter by (e.g., '9', '11-arts').
  * @returns A promise that resolves to the number of admissions in that class.
  */
-export const getClassAdmissionCount = async (classSelection: string): Promise<number> => {
-    if (!db) {
-        console.warn(firebaseError || "Database not available. Cannot get class admission count.");
+export const getClassAdmissionCount = async (udise: string, classSelection: string): Promise<number> => {
+    if (!db || !udise) {
+        console.warn(firebaseError || "Database not available or UDISE not provided. Cannot get class admission count.");
         return 0;
     }
     try {
-        const admissionsCollection = collection(db, 'admissions');
-        const q = query(admissionsCollection, where('admissionDetails.classSelection', '==', classSelection));
+        const q = query(collection(db, 'admissions'), 
+            where('admissionDetails.udise', '==', udise),
+            where('admissionDetails.classSelection', '==', classSelection));
         const snapshot = await getCountFromServer(q);
         return snapshot.data().count;
     } catch(e) {

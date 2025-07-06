@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from "react";
@@ -15,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from "@/lib/admissions";
+import { useSchoolData } from "@/hooks/use-school-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -34,16 +34,28 @@ const classDisplayNameMap: { [key: string]: string } = {
 export default function RecentAdmissions() {
     const [admissions, setAdmissions] = useState<(FormValues & {id: string})[]>([]);
     const [loading, setLoading] = useState(true);
+    const { school, loading: schoolLoading } = useSchoolData();
 
     useEffect(() => {
+        if (schoolLoading) {
+            setLoading(true);
+            return;
+        }
+
+        if (!school?.udise) {
+            setAdmissions([]);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
-        const unsubscribe = listenToAdmissions((recentAdmissions) => {
+        const unsubscribe = listenToAdmissions(school.udise, (recentAdmissions) => {
             setAdmissions(recentAdmissions);
             setLoading(false);
         }, 5); // Fetch top 5 recent
 
         return () => unsubscribe();
-    }, []);
+    }, [school, schoolLoading]);
 
     return (
         <Card className="h-full shadow-md hover:shadow-lg transition-shadow">
@@ -89,7 +101,7 @@ export default function RecentAdmissions() {
                             </TableRow>
                         )) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">No admissions yet.</TableCell>
+                                <TableCell colSpan={4} className="h-24 text-center">No admissions yet for this school.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>

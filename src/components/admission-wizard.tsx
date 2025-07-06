@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
@@ -11,6 +10,7 @@ import { addAdmission, getAdmissionCount, getClassAdmissionCount } from "@/lib/a
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useSchoolData } from "@/hooks/use-school-data";
 import { AdmissionFormStep } from "@/components/admission-form-step";
 import { SubjectSelectionStep } from "@/components/subject-selection-step";
 import { FormReviewStep } from "@/components/form-review-step";
@@ -49,6 +49,7 @@ function AdmissionWizardContent() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { school } = useSchoolData();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -58,6 +59,7 @@ function AdmissionWizardContent() {
         rollNumber: "",
         admissionDate: new Date(),
         classSelection: undefined,
+        udise: undefined,
       },
       studentDetails: {
         nameEn: "", nameHi: "",
@@ -87,18 +89,18 @@ function AdmissionWizardContent() {
 
     form.setValue('admissionDetails.classSelection', value as any, { shouldValidate: true });
 
-    if (firebaseError) {
+    if (firebaseError || !school?.udise) {
       form.setValue('admissionDetails.rollNumber', '1');
       return;
     }
     try {
-        const count = await getClassAdmissionCount(value);
+        const count = await getClassAdmissionCount(school.udise, value);
         form.setValue('admissionDetails.rollNumber', String(count + 1), { shouldValidate: true });
     } catch(e) {
         console.error("Could not generate roll number.", e);
         form.setValue('admissionDetails.rollNumber', '1', { shouldValidate: true });
     }
-  }, [form]);
+  }, [form, school]);
 
   // Set class from URL query parameter
   useEffect(() => {
@@ -109,27 +111,30 @@ function AdmissionWizardContent() {
   }, [searchParams, handleClassChange]);
 
   const generateAdmissionNumber = useCallback(async () => {
-    if (firebaseError) {
+    if (firebaseError || !school?.udise) {
         const year = new Date().getFullYear().toString().slice(-2);
-        form.setValue('admissionDetails.admissionNumber', `ADM/${year}/0001`);
+        form.setValue('admissionDetails.admissionNumber', `ADM/----/${year}/0001`);
         return;
     }
     try {
-      const count = await getAdmissionCount();
+      const count = await getAdmissionCount(school.udise);
       const year = new Date().getFullYear().toString().slice(-2);
       const nextId = (count + 1).toString().padStart(4, '0');
-      form.setValue('admissionDetails.admissionNumber', `ADM/${year}/${nextId}`);
+      const schoolIdPart = school.udise.slice(-4);
+      form.setValue('admissionDetails.admissionNumber', `ADM/${schoolIdPart}/${year}/${nextId}`);
     } catch (error) {
       console.error("Could not generate admission number.", error);
       const year = new Date().getFullYear().toString().slice(-2);
-      form.setValue('admissionDetails.admissionNumber', `ADM/${year}/FALLBACK`);
+      form.setValue('admissionDetails.admissionNumber', `ADM/${school?.udise.slice(-4)}/${year}/FALLBACK`);
     }
-  }, [form]);
+  }, [form, school]);
 
-  // Generate a new admission number on component mount
+  // Generate a new admission number on component mount if school is available
   useEffect(() => {
-    generateAdmissionNumber();
-  }, [generateAdmissionNumber]);
+    if (school) {
+        generateAdmissionNumber();
+    }
+  }, [generateAdmissionNumber, school]);
 
 
   const processForm = async (data: FormValues) => {
@@ -141,9 +146,25 @@ function AdmissionWizardContent() {
       });
       return;
     }
+    if (!school?.udise) {
+        toast({
+            title: "School Not Configured",
+            description: "Cannot submit form without a configured school.",
+            variant: "destructive",
+        });
+        return;
+    }
     setIsLoading(true);
     try {
-      const newAdmissionId = await addAdmission(data);
+      const dataWithUdise: FormValues = {
+        ...data,
+        admissionDetails: {
+          ...data.admissionDetails,
+          udise: school.udise,
+        },
+      };
+
+      const newAdmissionId = await addAdmission(dataWithUdise);
 
       toast({
         title: "Form Submitted!",

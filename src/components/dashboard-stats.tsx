@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,6 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, Palette, FlaskConical, Landmark, ArrowRight } from "lucide-react";
 import { listenToAdmissions } from '@/lib/admissions';
+import { useSchoolData } from '@/hooks/use-school-data';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardStats() {
@@ -17,10 +17,22 @@ export default function DashboardStats() {
     commerce: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { school, loading: schoolLoading } = useSchoolData();
 
   useEffect(() => {
+    if (schoolLoading) {
+        setLoading(true);
+        return;
+    }
+
+    if (!school?.udise) {
+        setStats({ total: 0, class9: 0, arts: 0, science: 0, commerce: 0 });
+        setLoading(false);
+        return;
+    }
+    
     setLoading(true);
-    const unsubscribe = listenToAdmissions((students) => {
+    const unsubscribe = listenToAdmissions(school.udise, (students) => {
       setStats({
         total: students.length,
         class9: students.filter(s => s.admissionDetails.classSelection === '9').length,
@@ -32,7 +44,7 @@ export default function DashboardStats() {
     });
 
     return () => unsubscribe(); // Cleanup listener on unmount
-  }, []);
+  }, [school, schoolLoading]);
 
   const statsData = [
     { title: "Total Admissions", value: stats.total.toLocaleString(), icon: Users, classId: "all", bgClass: "bg-blue-500", },
