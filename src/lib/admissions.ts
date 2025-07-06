@@ -15,37 +15,16 @@ export const convertTimestamps = (data: any): any => {
   return data;
 };
 
-// Helper to prepare data for writing to Firestore.
-// It recursively traverses the data and converts any `undefined` values to `null`,
-// as Firestore does not support `undefined`.
-const cleanDataForFirestore = (data: any): any => {
-  if (data instanceof Date || data instanceof Timestamp) {
-    return data;
-  }
-  if (data === undefined) {
-    return null;
-  }
-  if (data === null || typeof data !== 'object') {
-    return data;
-  }
-  if (Array.isArray(data)) {
-    return data.map(item => cleanDataForFirestore(item));
-  }
-  const cleanedData: { [key: string]: any } = {};
-  for (const key of Object.keys(data)) {
-    cleanedData[key] = cleanDataForFirestore(data[key]);
-  }
-  return cleanedData;
-};
-
 
 export const addAdmission = async (data: FormValues) => {
   if (!db) {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    const cleanData = cleanDataForFirestore(data);
-    const docRef = await addDoc(collection(db, 'admissions'), cleanData);
+    // Directly passing data to Firestore.
+    // Firestore's SDK is designed to handle this. It will automatically convert Date objects to Timestamps
+    // and will omit any fields with `undefined` values, which is safe and prevents errors.
+    const docRef = await addDoc(collection(db, 'admissions'), data);
     return docRef.id;
   } catch (e) {
     console.error("Error adding document: ", e);
