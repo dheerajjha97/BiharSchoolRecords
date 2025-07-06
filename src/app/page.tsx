@@ -22,10 +22,10 @@ export default function RootPage() {
             <School className="h-10 w-10 text-primary" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tighter">
-            Welcome to EduAssist
+            उच्च माध्यमिक विद्यालय बेरुआ
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            The simple and modern way to manage admissions for Class 9 & 11 (Arts, Science & Commerce).
+            ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर
           </p>
         </header>
         <AdmissionWizard />
