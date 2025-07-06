@@ -5,48 +5,36 @@ let app;
 let dbInstance = null;
 let firebaseError: string | null = null;
 
-const requiredEnvVars = [
-  'NEXT_PUBLIC_FIREBASE_API_KEY',
-  'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-  'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-  'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-  'NEXT_PUBLIC_FIREBASE_APP_ID',
-];
+try {
+  const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  };
 
-// Check for missing or placeholder values.
-const missingEnvVars = requiredEnvVars.filter(envVar => {
-  const value = process.env[envVar];
-  return !value || value.startsWith('your-');
-});
+  // Basic check if any of the required env vars are missing.
+  // The Firebase SDK will throw a more specific error if the config is invalid.
+  const allVarsPresent = Object.values(firebaseConfig).every(Boolean);
 
-
-if (missingEnvVars.length > 0) {
-  firebaseError = `Firebase configuration is incomplete. Please ensure all required environment variables are set in your .env.local file. Missing: ${missingEnvVars.join(', ')}. After updating, please restart the development server.`;
-} else {
-    const firebaseConfig = {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    };
-    
-    // Initialize Firebase
+  if (allVarsPresent) {
     if (!getApps().length) {
       app = initializeApp(firebaseConfig);
     } else {
       app = getApp();
     }
+    dbInstance = getFirestore(app);
+  } else {
+    throw new Error("One or more Firebase environment variables are missing from .env.local.");
+  }
 
-    try {
-      dbInstance = getFirestore(app);
-    } catch(e) {
-      console.error(e);
-      firebaseError = "Firebase configuration seems incorrect. Please verify the values in your .env.local file."
-    }
+} catch (e: any) {
+  console.error("Firebase initialization failed:", e.message);
+  firebaseError = `There is an issue with your Firebase configuration. Please check your .env.local file. The server must be restarted after any changes. Error details: ${e.message}`;
 }
+
 
 export const db = dbInstance;
 export { firebaseError };
