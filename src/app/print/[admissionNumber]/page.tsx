@@ -8,21 +8,16 @@ import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
-import { useSchoolData } from '@/hooks/use-school-data';
+import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
 
 export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
+  const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const { school, loading: schoolLoading } = useSchoolData();
 
   useEffect(() => {
     const loadData = async () => {
-      if (schoolLoading) {
-        return;
-      }
-
       setLoading(true);
       setError(null);
 
@@ -32,31 +27,49 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
         return;
       }
       
-      if (!school) {
-        setError("School data not found. Please log in or configure a school first.");
+      // 1. Fetch student data by its ID from the URL
+      const admissionInfo = await getAdmissionById(params.admissionNumber);
+
+      if (!admissionInfo) {
+        setError(`No admission record found for ID: ${params.admissionNumber}`);
+        setLoading(false);
+        return;
+      }
+      
+      setStudentData(admissionInfo);
+      
+      // 2. Fetch school data using the UDISE code from the student's record
+      const udise = admissionInfo.admissionDetails.udise;
+      if (!udise) {
+        setError(`The admission record is missing a UDISE code. Cannot fetch school details.`);
         setLoading(false);
         return;
       }
 
-      const admissionInfo = await getAdmissionById(params.admissionNumber);
-
-      if (admissionInfo) {
-        if (admissionInfo.admissionDetails.udise !== school.udise) {
-          setError("This admission record does not belong to the currently configured school.");
+      try {
+        const schoolLookupResult = await lookupSchoolByUdise({ udise });
+        if (schoolLookupResult.found && schoolLookupResult.name && schoolLookupResult.address) {
+            const school: School = {
+                udise: udise,
+                name: schoolLookupResult.name,
+                address: schoolLookupResult.address,
+            };
+            setSchoolData(school);
         } else {
-          setStudentData(admissionInfo);
+            setError(`Could not find school details for UDISE code: ${udise}`);
         }
-      } else {
-        setError(`No admission record found for ID: ${params.admissionNumber}`);
+      } catch (e) {
+          console.error("School lookup failed:", e);
+          setError("Failed to retrieve school details. The lookup service may be down.");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     loadData();
-  }, [params.admissionNumber, school, schoolLoading]);
+  }, [params.admissionNumber]);
 
-  if (loading || schoolLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -74,7 +87,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     );
   }
 
-  if (!studentData || !school) {
+  if (!studentData || !schoolData) {
     return (
       <div className="flex items-center justify-center min-h-screen text-destructive p-4 text-center">
         <AlertTriangle className="h-8 w-8 mr-2" />
@@ -94,7 +107,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
             </Button>
         </header>
         <main>
-          <PrintableForm formData={studentData} schoolData={school} />
+          <PrintableForm formData={studentData} schoolData={schoolData} />
         </main>
       </div>
     </div>
