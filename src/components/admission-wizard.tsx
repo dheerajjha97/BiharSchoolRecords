@@ -88,18 +88,20 @@ function AdmissionWizardContent() {
   }, [searchParams, form]);
 
   const generateAdmissionNumber = useCallback(async () => {
+    if (firebaseError) {
+        const year = new Date().getFullYear().toString().slice(-2);
+        form.setValue('admissionDetails.admissionNumber', `ADM/${year}/0000`);
+        return;
+    }
     try {
-      // This will use a count of 0 if firebase is not configured, which is fine.
-      // The error will be caught on submission.
       const count = await getAdmissionCount();
       const year = new Date().getFullYear().toString().slice(-2);
       const nextId = (count + 1).toString().padStart(4, '0');
       form.setValue('admissionDetails.admissionNumber', `ADM/${year}/${nextId}`);
     } catch (error) {
-      console.error("Could not generate admission number, possibly due to config issues.", error);
+      console.error("Could not generate admission number.", error);
       const year = new Date().getFullYear().toString().slice(-2);
-      // Fallback number
-      form.setValue('admissionDetails.admissionNumber', `ADM/${year}/0000`);
+      form.setValue('admissionDetails.admissionNumber', `ADM/${year}/FALLBACK`);
     }
   }, [form]);
 
@@ -112,12 +114,15 @@ function AdmissionWizardContent() {
   useEffect(() => {
     const updateRollNumber = async () => {
       if (selectedClass) {
+        if (firebaseError) {
+          form.setValue('admissionDetails.rollNumber', '1');
+          return;
+        }
         try {
             const count = await getClassAdmissionCount(selectedClass);
             form.setValue('admissionDetails.rollNumber', String(count + 1), { shouldValidate: true });
         } catch(e) {
-            console.error("Could not generate roll number, possibly due to config issues.", e);
-            // Fallback roll number
+            console.error("Could not generate roll number.", e);
             form.setValue('admissionDetails.rollNumber', '1', { shouldValidate: true });
         }
       } else {
@@ -284,7 +289,7 @@ function AdmissionWizardContent() {
                 </Button>
               )}
               {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isLoading || !!firebaseError}>
+                <Button type="submit" variant="default" disabled={isLoading}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                   {isLoading ? "Submitting..." : "Submit Form"}
                 </Button>
