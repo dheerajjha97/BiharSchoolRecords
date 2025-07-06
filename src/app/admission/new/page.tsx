@@ -2,6 +2,6 @@
 import { redirect } from 'next/navigation';
 
 export default function NewAdmissionPage() {
-  redirect('/');
+  redirect('/form');
   return null;
 }
