@@ -4,12 +4,13 @@ import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer,
 import type { FormValues } from './form-schema';
 
 /**
- * Recursively removes keys with `undefined` values from an object,
- * as Firestore does not support them. Preserves Date and Timestamp objects.
+ * Recursively converts keys with `undefined` values to `null` in an object.
+ * Firestore does not support `undefined` but supports `null`.
+ * This function ensures all data sent to Firestore is valid.
  * @param obj The object to sanitize.
- * @returns A new object with `undefined` values removed.
+ * @returns A new object with `undefined` values converted to `null`.
  */
-const sanitizeForFirebase = (obj: any): any => {
+const convertUndefinedToNull = (obj: any): any => {
     if (obj === null || typeof obj !== 'object') {
         return obj;
     }
@@ -21,7 +22,7 @@ const sanitizeForFirebase = (obj: any): any => {
 
     // Handle arrays recursively.
     if (Array.isArray(obj)) {
-        return obj.map(item => sanitizeForFirebase(item)).filter(item => item !== undefined);
+        return obj.map(item => convertUndefinedToNull(item));
     }
 
     // Handle plain objects.
@@ -29,11 +30,10 @@ const sanitizeForFirebase = (obj: any): any => {
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const value = obj[key];
-            if (value !== undefined) {
-                const sanitizedValue = sanitizeForFirebase(value);
-                 if (sanitizedValue !== undefined) {
-                    newObj[key] = sanitizedValue;
-                }
+            if (value === undefined) {
+                newObj[key] = null;
+            } else {
+                newObj[key] = convertUndefinedToNull(value);
             }
         }
     }
@@ -58,7 +58,8 @@ export const addAdmission = async (data: FormValues) => {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    const sanitizedData = sanitizeForFirebase(data);
+    // Sanitize the data before sending it to Firestore to ensure no 'undefined' values are present.
+    const sanitizedData = convertUndefinedToNull(data);
     const docRef = await addDoc(collection(db, 'admissions'), sanitizedData);
     return docRef.id;
   } catch (e) {
