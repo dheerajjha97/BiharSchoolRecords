@@ -8,8 +8,8 @@ export interface School {
 // In a real application, this would be an API call to a central database.
 // For this prototype, we'll use a hardcoded list of schools.
 const MOCK_SCHOOL_DATABASE: { [key: string]: School } = {
-    "10070100101": {
-        udise: "10070100101",
+    "10141201505": {
+        udise: "10141201505",
         name: "उच्च माध्यमिक विद्यालय बेरुआ",
         address: "ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर",
     },
@@ -18,8 +18,8 @@ const MOCK_SCHOOL_DATABASE: { [key: string]: School } = {
         name: "राजकीय आदर्श संस्कृति वरिष्ठ माध्यमिक विद्यालय",
         address: "मॉडल टाउन, अम्बाला शहर, हरियाणा"
     },
-    "10141201505": {
-        udise: "10141201505",
+    "10070100101": {
+        udise: "10070100101",
         name: "उत्क्रमित मध्य विद्यालय बेलहिया",
         address: "बेलहिया, कांटी, मुजफ्फरपुर, बिहार",
     }
