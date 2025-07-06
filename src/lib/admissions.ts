@@ -68,8 +68,8 @@ export const getAdmissions = async (count?: number) => {
   const admissions: (FormValues & { id: string })[] = [];
   querySnapshot.forEach((doc) => {
     const data = doc.data();
-    // Firestore returns Timestamps, we need to convert them back to JS Dates
-    const convertedData = convertTimestamps(JSON.parse(JSON.stringify(data)));
+    // Directly convert timestamps without stringifying
+    const convertedData = convertTimestamps(data);
     admissions.push({ id: doc.id, ...convertedData } as FormValues & { id: string });
   });
   return admissions;
@@ -89,7 +89,7 @@ export const listenToAdmissions = (callback: (admissions: (FormValues & { id: st
         const admissions: (FormValues & { id: string })[] = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const convertedData = convertTimestamps(JSON.parse(JSON.stringify(data)));
+            const convertedData = convertTimestamps(data);
             admissions.push({ id: doc.id, ...convertedData } as FormValues & { id: string });
         });
         callback(admissions);
@@ -141,7 +141,7 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      const convertedData = convertTimestamps(JSON.parse(JSON.stringify(data)));
+      const convertedData = convertTimestamps(data);
       return convertedData as FormValues;
     } else {
       return null;
