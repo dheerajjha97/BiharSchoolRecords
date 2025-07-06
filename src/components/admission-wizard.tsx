@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
@@ -78,15 +77,35 @@ function AdmissionWizardContent() {
     mode: "onChange",
   });
   
-  const selectedClass = form.watch("admissionDetails.classSelection");
+  const handleClassChange = useCallback(async (value: string | undefined) => {
+    if (!value || !['9', '11-arts', '11-science', '11-commerce'].includes(value)) {
+        form.setValue('admissionDetails.classSelection', undefined);
+        form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
+        return;
+    }
+
+    form.setValue('admissionDetails.classSelection', value as any, { shouldValidate: true });
+
+    if (firebaseError) {
+      form.setValue('admissionDetails.rollNumber', '1');
+      return;
+    }
+    try {
+        const count = await getClassAdmissionCount(value);
+        form.setValue('admissionDetails.rollNumber', String(count + 1), { shouldValidate: true });
+    } catch(e) {
+        console.error("Could not generate roll number.", e);
+        form.setValue('admissionDetails.rollNumber', '1', { shouldValidate: true });
+    }
+  }, [form]);
 
   // Set class from URL query parameter
   useEffect(() => {
     const classFromQuery = searchParams.get('class');
-    if (classFromQuery && ['9', '11-arts', '11-science', '11-commerce'].includes(classFromQuery)) {
-      form.setValue('admissionDetails.classSelection', classFromQuery as any, { shouldValidate: true });
+    if (classFromQuery) {
+      handleClassChange(classFromQuery);
     }
-  }, [searchParams, form]);
+  }, [searchParams, handleClassChange]);
 
   const generateAdmissionNumber = useCallback(async () => {
     if (firebaseError) {
@@ -110,28 +129,6 @@ function AdmissionWizardContent() {
   useEffect(() => {
     generateAdmissionNumber();
   }, [generateAdmissionNumber]);
-
-  // Update roll number when class selection changes
-  useEffect(() => {
-    const updateRollNumber = async () => {
-      if (selectedClass) {
-        if (firebaseError) {
-          form.setValue('admissionDetails.rollNumber', '1');
-          return;
-        }
-        try {
-            const count = await getClassAdmissionCount(selectedClass);
-            form.setValue('admissionDetails.rollNumber', String(count + 1), { shouldValidate: true });
-        } catch(e) {
-            console.error("Could not generate roll number.", e);
-            form.setValue('admissionDetails.rollNumber', '1', { shouldValidate: true });
-        }
-      } else {
-        form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
-      }
-    };
-    updateRollNumber();
-  }, [selectedClass, form]);
 
 
   const processForm = async (data: FormValues) => {
@@ -273,7 +270,7 @@ function AdmissionWizardContent() {
                           render={({ field }) => (
                           <FormItem>
                               <FormLabel>Class / Stream Selection</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <Select onValueChange={handleClassChange} value={field.value || ""}>
                                   <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
                                   <SelectContent>
                                       <SelectItem value="9">Class 9</SelectItem>
