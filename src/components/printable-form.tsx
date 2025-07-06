@@ -165,7 +165,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
         {isClass9 && subjectDetails && (
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
-                    <SectionTitle title="6. Subject Selection Details" />
+                    <SectionTitle title="6. Subject Selection Details (Class 9)" />
                     <PrintTableRow label="MIL (Modern Indian Language)" value={subjectDetails.mil} />
                     <PrintTableRow label="SIL (Second Indian Language)" value={silSubject} />
                     <PrintTableRow label="Compulsory Subjects" value="Mathematics, Social Science, English" />
@@ -203,12 +203,15 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             <p className="text-xs mt-2">
                 I, {studentDetails.nameEn}, hereby declare that all the information furnished by me in this application form is true, complete, and correct to the best of my knowledge and belief. I understand that in the event of any information being found false, incomplete, or incorrect, my candidature/admission is liable to be cancelled/terminated. I agree to abide by the rules and regulations of the institution.
             </p>
-            <div className="mt-8 grid grid-cols-2 gap-16 text-sm">
+            <div className="mt-8 grid grid-cols-3 gap-8 text-sm text-center">
                 <div className="border-t-2 border-black pt-1 font-semibold">
                     Signature of Guardian
                 </div>
                 <div className="border-t-2 border-black pt-1 font-semibold">
-                    Signature of Applicant
+                    Applicant Signature (English)
+                </div>
+                 <div className="border-t-2 border-black pt-1 font-semibold">
+                    आवेदक का हस्ताक्षर (हिन्दी)
                 </div>
             </div>
         </div>
