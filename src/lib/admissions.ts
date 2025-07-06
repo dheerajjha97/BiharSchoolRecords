@@ -83,9 +83,9 @@ export const getAdmissionCount = async (): Promise<number> => {
     try {
         const admissionsCollection = collection(db, 'admissions');
         const snapshot = await getCountFromServer(admissionsCollection);
-        return snapshot.data().count;
+        const count = snapshot.data().count;
+        return count >= 0 ? count : 0;
     } catch (e) {
-        console.error("Error getting admission count: ", e);
         return 0;
     }
 }
@@ -98,9 +98,9 @@ export const getClassAdmissionCount = async (classSelection: string): Promise<nu
         const admissionsCollection = collection(db, 'admissions');
         const q = query(admissionsCollection, where('admissionDetails.classSelection', '==', classSelection));
         const snapshot = await getCountFromServer(q);
-        return snapshot.data().count;
+        const count = snapshot.data().count;
+        return count >= 0 ? count : 0;
     } catch(e) {
-        console.error(`Error getting admission count for class ${classSelection}: `, e);
         return 0;
     }
 }
