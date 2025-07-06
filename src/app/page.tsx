@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,16 @@ export default function RootPage() {
   const [udiseForNewSchool, setUdiseForNewSchool] = useState('');
   const [schoolToConfirm, setSchoolToConfirm] = useState<School | null>(null);
   const [initialDataForDialog, setInitialDataForDialog] = useState<School | undefined>(undefined);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    // This effect runs only on the client side
+    if (localStorage.getItem('udise_code')) {
+      router.push('/dashboard');
+    } else {
+      setCheckingAuth(false);
+    }
+  }, [router]);
 
   const proceedToDashboard = (schoolData: School) => {
     localStorage.setItem('udise_code', schoolData.udise);
@@ -81,6 +91,14 @@ export default function RootPage() {
     setSchoolToConfirm(null);
     setUdiseInput('');
     setError(null);
+  }
+
+  if (checkingAuth) {
+    return (
+        <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-8">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </main>
+    )
   }
 
   return (
