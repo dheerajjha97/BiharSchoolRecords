@@ -19,7 +19,6 @@ export const convertTimestamps = (data: any): any => {
 
 export const addAdmission = async (data: FormValues) => {
   if (!db) {
-    console.error(firebaseError);
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
@@ -33,7 +32,6 @@ export const addAdmission = async (data: FormValues) => {
 
 export const getAdmissions = async (count?: number) => {
   if (!db) {
-    console.error(firebaseError || "Database not configured.");
     return [];
   }
   const admissionsCollection = collection(db, 'admissions');
@@ -54,7 +52,6 @@ export const getAdmissions = async (count?: number) => {
 
 export const listenToAdmissions = (callback: (admissions: (FormValues & { id: string })[]) => void, count?: number): Unsubscribe => {
     if (!db) {
-        console.error(firebaseError || "Database not configured.");
         callback([]);
         return () => {}; // Return a no-op unsubscribe function
     }
@@ -81,7 +78,6 @@ export const listenToAdmissions = (callback: (admissions: (FormValues & { id: st
 
 export const getAdmissionCount = async (): Promise<number> => {
     if (!db) {
-        console.error(firebaseError || "Database not configured.");
         return 0;
     }
     try {
@@ -96,7 +92,6 @@ export const getAdmissionCount = async (): Promise<number> => {
 
 export const getClassAdmissionCount = async (classSelection: string): Promise<number> => {
     if (!db) {
-        console.error(firebaseError || "Database not configured.");
         return 0;
     }
     try {
@@ -113,7 +108,6 @@ export const getClassAdmissionCount = async (classSelection: string): Promise<nu
 
 export const getAdmissionById = async (id: string): Promise<FormValues | null> => {
   if (!db) {
-    console.error(firebaseError || "Database not configured.");
     return null;
   }
   try {
