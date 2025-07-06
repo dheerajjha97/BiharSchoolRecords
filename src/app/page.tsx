@@ -4,6 +4,7 @@ import { Lock, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { firebaseError } from '@/lib/firebase';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { DebugEnvVars } from '@/components/debug-env-vars';
 
 export default function RootPage() {
   return (
@@ -21,6 +22,7 @@ export default function RootPage() {
           <p className="text-muted-foreground mt-2">Class 9 & 11 (Arts, Science & Commerce) Admission Portal</p>
         </header>
         <AdmissionWizard />
+        <DebugEnvVars />
       </div>
       <footer className="absolute bottom-4 right-4">
         <Button asChild variant="outline" size="sm">
