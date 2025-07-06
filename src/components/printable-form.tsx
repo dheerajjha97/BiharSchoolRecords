@@ -78,12 +78,13 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
       {/* --- PAGE 1 --- */}
       <div className="page">
         <header className="flex items-start justify-between border-b-4 border-black pb-2 break-inside-avoid">
-            <div>
-                <h1 className="text-3xl font-bold tracking-wider">EDUASSIST</h1>
-                <p className="text-lg font-semibold">ADMISSION FORM</p>
+            <div className="flex-grow text-center pr-4">
+                <h1 className="text-2xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
+                <p className="text-sm font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
+                <p className="text-lg font-bold mt-2">ADMISSION FORM</p>
                 <p className="text-sm">(Session 2024-2025)</p>
             </div>
-            <div className="w-36 h-44 border-2 border-black flex items-center justify-center text-center p-2 text-sm">
+            <div className="w-36 h-44 border-2 border-black flex-shrink-0 flex items-center justify-center text-center p-2 text-sm">
                 Affix recent passport size photograph
             </div>
         </header>
