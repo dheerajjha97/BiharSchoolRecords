@@ -16,27 +16,26 @@ export const convertTimestamps = (data: any): any => {
 };
 
 // Helper to prepare data for writing to Firestore.
-// Firestore does not support `undefined` values, so they are converted to `null`.
-// It also ensures Date objects are not recursively processed, letting the SDK handle them.
-const cleanDataForFirestore = (obj: any): any => {
-  if (obj === null || typeof obj !== 'object' || obj instanceof Date) {
-    return obj;
+// It recursively traverses the data and converts any `undefined` values to `null`,
+// as Firestore does not support `undefined`.
+const cleanDataForFirestore = (data: any): any => {
+  if (data instanceof Date || data instanceof Timestamp) {
+    return data;
   }
-  if (Array.isArray(obj)) {
-    return obj.map(item => cleanDataForFirestore(item));
+  if (data === undefined) {
+    return null;
   }
-  const newObj: {[key: string]: any} = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const value = obj[key];
-      if (value === undefined) {
-        newObj[key] = null; // Convert undefined to null
-      } else {
-        newObj[key] = cleanDataForFirestore(value);
-      }
-    }
+  if (data === null || typeof data !== 'object') {
+    return data;
   }
-  return newObj;
+  if (Array.isArray(data)) {
+    return data.map(item => cleanDataForFirestore(item));
+  }
+  const cleanedData: { [key: string]: any } = {};
+  for (const key of Object.keys(data)) {
+    cleanedData[key] = cleanDataForFirestore(data[key]);
+  }
+  return cleanedData;
 };
 
 
