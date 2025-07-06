@@ -16,33 +16,34 @@ export const convertTimestamps = (data: any): any => {
   return data;
 };
 
-// Helper to recursively remove undefined values from an object, as Firestore doesn't support them.
-// This preserves Date objects.
-const removeUndefinedValues = (obj: any): any => {
+// Helper to recursively replace undefined values with null, as Firestore doesn't support undefined.
+// This preserves Date objects and other data types.
+const replaceUndefinedWithNull = (obj: any): any => {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
-  // Handle Date objects explicitly to prevent them from being converted to {}
   if (obj instanceof Date) {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(removeUndefinedValues).filter(v => v !== undefined);
+    return obj.map(item => replaceUndefinedWithNull(item));
   }
 
   const newObj: {[key: string]: any} = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const value = obj[key];
-      if (value !== undefined) {
-        newObj[key] = removeUndefinedValues(value);
+      if (value === undefined) {
+        newObj[key] = null;
+      } else {
+        newObj[key] = replaceUndefinedWithNull(value);
       }
     }
   }
   return newObj;
-}
+};
 
 
 export const addAdmission = async (data: FormValues) => {
@@ -50,8 +51,8 @@ export const addAdmission = async (data: FormValues) => {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    // Firestore does not support 'undefined' values.
-    const cleanData = removeUndefinedValues(data);
+    // Firestore does not support 'undefined' values. Replace them with 'null'.
+    const cleanData = replaceUndefinedWithNull(data);
     const docRef = await addDoc(collection(db, 'admissions'), cleanData);
     return docRef.id;
   } catch (e) {
