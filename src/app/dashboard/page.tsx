@@ -19,9 +19,9 @@ export default function DashboardPage() {
         )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">उच्च माध्यमिक विद्यालय बेरुआ</h1>
           <p className="text-muted-foreground mt-1">
-            Here's a quick overview of your school's admissions.
+            ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर
           </p>
         </header>
         <Button asChild className="w-full sm:w-auto">
