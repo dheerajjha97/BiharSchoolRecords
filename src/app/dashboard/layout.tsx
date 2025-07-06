@@ -1,10 +1,9 @@
-
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, School, Users } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, LogOut, PlusCircle, School, Users } from 'lucide-react';
 import { useSchoolData } from '@/hooks/use-school-data';
 
 import {
@@ -15,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter,
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
@@ -26,7 +26,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { school, loading } = useSchoolData();
+
+  const handleChangeSchool = () => {
+    localStorage.removeItem('udise_code');
+    localStorage.removeItem('school_data');
+    router.push('/');
+  };
 
   return (
     <SidebarProvider>
@@ -90,6 +97,16 @@ export default function DashboardLayout({
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
+        <SidebarFooter className="p-2 mt-auto">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={handleChangeSchool} tooltip="Change School">
+                <LogOut />
+                <span>Change School</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <main className="min-h-screen p-4 sm:p-6 md:p-8 bg-secondary/40">
