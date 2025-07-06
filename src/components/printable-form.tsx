@@ -93,7 +93,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
                 <h1 className="text-4xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
                 <p className="text-lg font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
                 <p className="text-xl font-bold mt-1">ADMISSION FORM</p>
-                <p className="text-sm">(Session 2024-2025)</p>
+                <p className="text-sm">(Session 2025-2026)</p>
             </div>
         </header>
 
@@ -196,7 +196,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="7. Subject Selection Details" />
-                     <PrintTableRow label="Medium" value={subjectDetails.medium} />
+                    <PrintTableRow label="Medium" value={subjectDetails.medium} />
                     <PrintTableDoubleRow 
                         label1="Compulsory Group 1" value1={subjectDetails.compulsoryGroup1} 
                         label2="Compulsory Group 2" value2={subjectDetails.compulsoryGroup2} 
@@ -208,7 +208,7 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
           </>
         )}
 
-        <div className="mt-4 p-2 border border-black break-inside-avoid">
+        <div className="mt-12 p-2 border border-black break-inside-avoid">
             <h3 className="font-bold text-center">आवेदक द्वारा घोषणा</h3>
             <p className="text-xs mt-2">
                 मैं, {studentDetails.nameEn}, घोषणा करता/करती हूँ कि इस आवेदन पत्र में मेरे द्वारा दी गई सभी जानकारी मेरी सर्वोत्तम जानकारी और विश्वास के अनुसार सत्य, पूर्ण और सही है। मैं यह समझता/समझती हूँ कि किसी भी जानकारी के गलत या असत्य पाए जाने पर मेरा प्रवेश रद्द किया जा सकता है।
