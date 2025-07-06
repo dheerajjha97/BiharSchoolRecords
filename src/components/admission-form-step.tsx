@@ -24,6 +24,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { FormSection } from "@/components/form-section";
 import type { FormValues } from "@/lib/form-schema";
 import { transliterate } from "@/ai/flows/transliterate-flow";
+import { Label } from "@/components/ui/label";
 
 interface AdmissionFormStepProps {
   form: UseFormReturn<FormValues>;
@@ -293,16 +294,12 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     className="flex items-center space-x-4 pt-2"
                   >
                     <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <RadioGroupItem value="male" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Male</FormLabel>
+                      <RadioGroupItem value="male" id="gender-male"/>
+                      <Label htmlFor="gender-male" className="font-normal">Male</Label>
                     </FormItem>
                     <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <RadioGroupItem value="female" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Female</FormLabel>
+                      <RadioGroupItem value="female" id="gender-female" />
+                      <Label htmlFor="gender-female" className="font-normal">Female</Label>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -378,12 +375,12 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     className="flex items-center space-x-4 pt-2"
                   >
                     <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="true" /></FormControl>
-                      <FormLabel className="font-normal">Yes</FormLabel>
+                      <RadioGroupItem value="true" id="abled-yes" />
+                      <Label htmlFor="abled-yes" className="font-normal">Yes</Label>
                     </FormItem>
                     <FormItem className="flex items-center space-x-2">
-                      <FormControl><RadioGroupItem value="false" /></FormControl>
-                      <FormLabel className="font-normal">No</FormLabel>
+                      <RadioGroupItem value="false" id="abled-no" />
+                      <Label htmlFor="abled-no" className="font-normal">No</Label>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -431,8 +428,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                 <FormLabel>Marital Status</FormLabel>
                  <FormControl>
                   <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
-                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="unmarried" /></FormControl><FormLabel className="font-normal">Unmarried</FormLabel></FormItem>
-                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="married" /></FormControl><FormLabel className="font-normal">Married</FormLabel></FormItem>
+                    <FormItem className="flex items-center space-x-2">
+                        <RadioGroupItem value="unmarried" id="marital-unmarried" />
+                        <Label htmlFor="marital-unmarried" className="font-normal">Unmarried</Label>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2">
+                        <RadioGroupItem value="married" id="marital-married" />
+                        <Label htmlFor="marital-married" className="font-normal">Married</Label>
+                    </FormItem>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -482,8 +485,14 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                   <FormLabel>Area</FormLabel>
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4 pt-2">
-                      <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="rural" /></FormControl><FormLabel className="font-normal">Rural</FormLabel></FormItem>
-                      <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="urban" /></FormControl><FormLabel className="font-normal">Urban</FormLabel></FormItem>
+                      <FormItem className="flex items-center space-x-2">
+                        <RadioGroupItem value="rural" id="area-rural" />
+                        <Label htmlFor="area-rural" className="font-normal">Rural</Label>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2">
+                        <RadioGroupItem value="urban" id="area-urban" />
+                        <Label htmlFor="area-urban" className="font-normal">Urban</Label>
+                      </FormItem>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
