@@ -157,9 +157,13 @@ function AdmissionWizardContent() {
       router.push('/dashboard');
 
     } catch (error) {
+       let description = "There was an error saving the form. Please try again.";
+       if (error instanceof Error) {
+        description = error.message;
+       }
        toast({
         title: "Submission Failed",
-        description: "There was an error saving the form. Please try again.",
+        description: description,
         variant: "destructive",
       });
     } finally {

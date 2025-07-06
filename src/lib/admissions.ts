@@ -1,7 +1,6 @@
 import { db, firebaseError } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where, onSnapshot, type Unsubscribe, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where, onSnapshot, type Unsubscribe, doc, getDoc, Timestamp } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
-import { Timestamp } from 'firebase/firestore';
 
 // Helper to convert Firestore Timestamps to JS Dates in nested objects
 export const convertTimestamps = (data: any): any => {
@@ -16,21 +15,27 @@ export const convertTimestamps = (data: any): any => {
   return data;
 };
 
-// Helper to recursively replace undefined values with null, as Firestore doesn't support undefined.
-// This preserves Date objects and other data types.
-const replaceUndefinedWithNull = (obj: any): any => {
-  if (obj === null || typeof obj !== 'object') {
+// Helper to prepare data for writing to Firestore.
+// It converts JS Dates to Firestore Timestamps and replaces undefined with null.
+const prepareDataForFirestore = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  if (typeof obj !== 'object') {
     return obj;
   }
-
+  
+  // Convert Dates to Firestore Timestamps
   if (obj instanceof Date) {
-    return obj;
+    return Timestamp.fromDate(obj);
   }
 
+  // Recursively process arrays
   if (Array.isArray(obj)) {
-    return obj.map(item => replaceUndefinedWithNull(item));
+    return obj.map(item => prepareDataForFirestore(item));
   }
 
+  // Recursively process objects
   const newObj: {[key: string]: any} = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -38,7 +43,7 @@ const replaceUndefinedWithNull = (obj: any): any => {
       if (value === undefined) {
         newObj[key] = null;
       } else {
-        newObj[key] = replaceUndefinedWithNull(value);
+        newObj[key] = prepareDataForFirestore(value);
       }
     }
   }
@@ -51,13 +56,16 @@ export const addAdmission = async (data: FormValues) => {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    // Firestore does not support 'undefined' values. Replace them with 'null'.
-    const cleanData = replaceUndefinedWithNull(data);
+    const cleanData = prepareDataForFirestore(data);
     const docRef = await addDoc(collection(db, 'admissions'), cleanData);
     return docRef.id;
   } catch (e) {
     console.error("Error adding document: ", e);
-    throw new Error("Failed to save admission to the database.");
+    let errorMessage = "Failed to save admission to the database.";
+    if (e instanceof Error) {
+        errorMessage += ` Reason: ${e.message}`;
+    }
+    throw new Error(errorMessage);
   }
 };
 
