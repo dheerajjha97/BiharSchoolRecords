@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormValues } from '@/lib/form-schema';
 import { PrintableForm } from '@/components/printable-form';
 import { Button } from '@/components/ui/button';
@@ -9,14 +9,13 @@ import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
 
-export default function PrintAdmissionPage({ params }: { params: Promise<{ admissionNumber: string }> }) {
+export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const resolvedParams = use(params);
-  const { admissionNumber } = resolvedParams;
+  const { admissionNumber } = params;
 
   useEffect(() => {
     // This effect runs on the client. We can access localStorage here.
