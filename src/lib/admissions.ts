@@ -5,8 +5,6 @@ import {
   addDoc,
   getDocs,
   query,
-  orderBy,
-  limit,
   getCountFromServer,
   where,
   onSnapshot,
@@ -121,22 +119,21 @@ export const getAdmissions = async (udise: string, count?: number): Promise<(For
     return [];
   }
   
-  const queryConstraints: QueryConstraint[] = [
-    where('admissionDetails.udise', '==', udise),
-    orderBy('admissionDetails.admissionDate', 'desc')
-  ];
-
-  if (count) {
-    queryConstraints.push(limit(count));
-  }
-  
-  const q = query(collection(db, 'admissions'), ...queryConstraints);
+  const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
 
   const querySnapshot = await getDocs(q);
   const admissions: (FormValues & { id: string })[] = [];
   querySnapshot.forEach((doc) => {
     admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
   });
+
+  // Client-side sorting
+  admissions.sort((a, b) => new Date(b.admissionDetails.admissionDate).getTime() - new Date(a.admissionDetails.admissionDate).getTime());
+  
+  if (count) {
+    return admissions.slice(0, count);
+  }
+
   return admissions;
 };
 
@@ -154,23 +151,22 @@ export const listenToAdmissions = (udise: string | undefined, callback: (admissi
         return () => {}; // Return a no-op unsubscribe function
     }
 
-    const queryConstraints: QueryConstraint[] = [
-        where('admissionDetails.udise', '==', udise),
-        orderBy('admissionDetails.admissionDate', 'desc')
-    ];
-
-    if (count) {
-        queryConstraints.push(limit(count));
-    }
-
-    const q = query(collection(db, 'admissions'), ...queryConstraints);
+    const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const admissions: (FormValues & { id: string })[] = [];
         querySnapshot.forEach((doc) => {
             admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
         });
-        callback(admissions);
+        
+        // Client-side sorting
+        admissions.sort((a, b) => new Date(b.admissionDetails.admissionDate).getTime() - new Date(a.admissionDetails.admissionDate).getTime());
+
+        if (count) {
+            callback(admissions.slice(0, count));
+        } else {
+            callback(admissions);
+        }
     }, (error) => {
         console.error("Error listening to admissions:", error);
         callback([]); // Pass empty array on error
