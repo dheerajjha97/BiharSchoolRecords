@@ -3,6 +3,43 @@ import { db, firebaseError } from './firebase';
 import { collection, addDoc, getDocs, query, orderBy, limit, getCountFromServer, where, onSnapshot, type Unsubscribe, doc, getDoc, Timestamp } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 
+/**
+ * Recursively removes keys with `undefined` values from an object,
+ * as Firestore does not support them. Preserves Date and Timestamp objects.
+ * @param obj The object to sanitize.
+ * @returns A new object with `undefined` values removed.
+ */
+const sanitizeForFirebase = (obj: any): any => {
+    if (obj === null || typeof obj !== 'object') {
+        return obj;
+    }
+
+    // Preserve Date and Timestamp objects, which are object types.
+    if (obj instanceof Date || obj instanceof Timestamp) {
+        return obj;
+    }
+
+    // Handle arrays recursively.
+    if (Array.isArray(obj)) {
+        return obj.map(item => sanitizeForFirebase(item)).filter(item => item !== undefined);
+    }
+
+    // Handle plain objects.
+    const newObj: { [key: string]: any } = {};
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = obj[key];
+            if (value !== undefined) {
+                const sanitizedValue = sanitizeForFirebase(value);
+                 if (sanitizedValue !== undefined) {
+                    newObj[key] = sanitizedValue;
+                }
+            }
+        }
+    }
+    return newObj;
+}
+
 // Helper to convert Firestore Timestamps to JS Dates in nested objects
 export const convertTimestamps = (data: any): any => {
   if (!data) return data;
@@ -21,7 +58,7 @@ export const addAdmission = async (data: FormValues) => {
     throw new Error(firebaseError || "Failed to save admission: Database not available.");
   }
   try {
-    const sanitizedData = JSON.parse(JSON.stringify(data));
+    const sanitizedData = sanitizeForFirebase(data);
     const docRef = await addDoc(collection(db, 'admissions'), sanitizedData);
     return docRef.id;
   } catch (e) {
