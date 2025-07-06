@@ -95,13 +95,6 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
                 {studentDetails.isDifferentlyAbled && <PrintTableRow label="Disability Details" value={studentDetails.disabilityDetails} />}
             </tbody>
         </table>
-      </div>
-
-      {/* Page 2 */}
-      <div className="page page-break">
-        <header className="text-center py-2 border-b-2 border-black">
-            <p className="font-semibold">Admission Form - Page 2</p>
-        </header>
 
         <SectionTitle number={2} title="Contact & Address Details" />
         <table className="w-full border-collapse border border-black text-sm">
@@ -141,6 +134,13 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
                 <PrintTableRow label="Branch" value={bankDetails.branch} />
             </tbody>
         </table>
+      </div>
+
+      {/* Page 2 */}
+      <div className="page page-break">
+        <header className="text-center py-2 border-b-2 border-black">
+            <p className="font-semibold">Admission Form - Page 2</p>
+        </header>
 
         {isClass9 && subjectDetails && (
           <>
