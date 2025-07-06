@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,6 +9,7 @@ import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
+import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
 
 export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
@@ -36,35 +38,40 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
         return;
       }
 
-      // 3. Get school data from local storage
-      let schoolInfo: School;
       try {
-        const schoolDataString = localStorage.getItem('school_data');
-        if (!schoolDataString) {
-          setError("Could not find school configuration data. Please log in again.");
+        // 3. Get student data from Firestore first
+        const studentInfo = await getAdmissionById(admissionNumber);
+        if (!studentInfo) {
+          setError(`No admission record found for ID: ${admissionNumber}`);
           setLoading(false);
           return;
         }
-        schoolInfo = JSON.parse(schoolDataString);
-        setSchoolData(schoolInfo);
-      } catch (e) {
-        console.error("Failed to parse school data for print page", e);
-        setError("Could not read school configuration data.");
-        setLoading(false);
-        return;
-      }
+        setStudentData(studentInfo);
 
-      // 4. Get student data from Firestore
-      try {
-        const studentInfo = await getAdmissionById(admissionNumber);
-        if (studentInfo) {
-          setStudentData(studentInfo);
-        } else {
-          setError(`No admission record found for ID: ${admissionNumber}`);
+        // 4. Get UDISE from student record
+        const udise = studentInfo.admissionDetails.udise;
+        if (!udise) {
+          setError("This admission record is not associated with any school.");
+          setLoading(false);
+          return;
         }
+
+        // 5. Get school data using the UDISE. This is reliable because we hardcoded the main school.
+        const schoolInfo = await lookupSchoolByUdise({ udise });
+        if (schoolInfo?.found && schoolInfo.name && schoolInfo.address) {
+          setSchoolData({
+            udise: udise,
+            name: schoolInfo.name,
+            address: schoolInfo.address,
+          });
+        } else {
+          setError(`Could not find school details for UDISE: ${udise}`);
+        }
+
       } catch (e) {
-        console.error("Error fetching document:", e);
-        setError('Failed to fetch admission data from the database.');
+        console.error("Error loading print data:", e);
+        const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+        setError(`Failed to load print data. ${errorMessage}`);
       } finally {
         setLoading(false);
       }
