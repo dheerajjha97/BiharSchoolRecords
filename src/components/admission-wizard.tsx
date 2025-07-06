@@ -166,6 +166,14 @@ function AdmissionWizardContent() {
         setIsLoading(false);
     }
   };
+
+  const onFormError = () => {
+    toast({
+        title: "Validation Error",
+        description: "Please review all steps for errors. Some required information might be missing or invalid.",
+        variant: "destructive",
+    });
+  };
   
   const handleNext = async () => {
     let fieldsToValidate: (keyof FormValues)[] | any[];
@@ -205,7 +213,7 @@ function AdmissionWizardContent() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(processForm)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8">
             {step === 1 && (
               <>
                  <Card className="bg-muted/50">
