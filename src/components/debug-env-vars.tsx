@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export const DebugEnvVars = () => {
   if (process.env.NODE_ENV !== 'development') {
@@ -50,9 +51,13 @@ export const DebugEnvVars = () => {
         ) : (
              <p className="mt-4 text-red-600 font-medium">❌ Not all Firebase environment variables are set. The database is not connected.</p>
         )}
-        <p className="mt-4 text-xs text-muted-foreground">
-            <strong>Important:</strong> After creating or modifying the <code>.env.local</code> file, you must restart the development server for the changes to take effect.
-        </p>
+        <Alert className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Action Required</AlertTitle>
+            <AlertDescription>
+                After setting your environment variables in a <code>.env.local</code> file, you must **restart the development server** for the changes to take effect. If you have just added your keys, a server restart is necessary for the database connection to work.
+            </AlertDescription>
+        </Alert>
       </CardContent>
     </Card>
   );
