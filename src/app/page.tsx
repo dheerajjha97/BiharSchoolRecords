@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2, School as SchoolIcon } from 'lucide-react';
-import { getSchoolByUdise, type School } from '@/lib/school';
+import type { School } from '@/lib/school';
+import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AddSchoolDialog } from '@/components/add-school-dialog';
 
@@ -47,17 +48,27 @@ export default function RootPage() {
     setError(null);
 
     try {
-      const schoolData = await getSchoolByUdise(trimmedUdise);
-      // More robust check to ensure schoolData is a valid object
-      if (schoolData && typeof schoolData === 'object' && schoolData.udise) {
+      const response = await lookupSchoolByUdise({ udise: trimmedUdise });
+      
+      if (response?.found && response.name && response.address) {
+        // School found by AI
+        const schoolData: School = {
+          udise: trimmedUdise,
+          name: response.name,
+          address: response.address,
+        };
         proceedToDashboard(schoolData);
       } else {
-        // UDISE not found, open the dialog to add a new school
+        // School not found by AI, open the dialog to add a new school manually
         setUdiseForNewSchool(trimmedUdise);
         setAddSchoolDialogOpen(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+      console.error("AI School lookup failed:", err);
+      // Fallback to manual entry on AI error
+      setError("The automatic lookup failed. Please add the school details manually.");
+      setUdiseForNewSchool(trimmedUdise);
+      setAddSchoolDialogOpen(true);
     } finally {
       setIsVerifying(false);
     }
@@ -121,7 +132,6 @@ export default function RootPage() {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-center text-muted-foreground mt-4">You can test with UDISE code: <strong className="font-mono">10070100101</strong></p>
           </CardContent>
         </Card>
       </main>
