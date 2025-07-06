@@ -1,3 +1,4 @@
+
 import { db, firebaseError } from './firebase';
 import {
   collection,
@@ -14,6 +15,7 @@ import {
   getDoc,
   Timestamp,
   QueryConstraint,
+  writeBatch,
 } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 
@@ -243,5 +245,47 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
   } catch (e) {
     console.error(`Error fetching document with ID ${id}:`, e);
     return null;
+  }
+};
+
+/**
+ * Migrates old admission records that do not have a UDISE code by assigning them one.
+ * This is a one-time utility function. It reads the entire collection, which can be inefficient.
+ * @param udiseToAssign The UDISE code to assign to the old records.
+ * @returns The number of records that were updated.
+ */
+export const migrateOldAdmissions = async (udiseToAssign: string): Promise<number> => {
+  if (!db) {
+    throw new Error(firebaseError || "Database not available. Migration failed.");
+  }
+  try {
+    const admissionsCollection = collection(db, 'admissions');
+    const querySnapshot = await getDocs(admissionsCollection);
+    
+    const batch = writeBatch(db);
+    let recordsToUpdateCount = 0;
+
+    querySnapshot.forEach((document) => {
+      const data = document.data();
+      // Check if the udise field is missing inside admissionDetails
+      if (!data.admissionDetails?.udise) {
+        const docRef = doc(db, 'admissions', document.id);
+        batch.update(docRef, { 'admissionDetails.udise': udiseToAssign });
+        recordsToUpdateCount++;
+      }
+    });
+
+    if (recordsToUpdateCount > 0) {
+      await batch.commit();
+    }
+
+    return recordsToUpdateCount;
+  } catch (e) {
+    console.error("Error migrating old admissions:", e);
+    let errorMessage = "Failed to migrate old data.";
+    if (e instanceof Error) {
+        errorMessage += ` Reason: ${e.message}`;
+    }
+    throw new Error(errorMessage);
   }
 };
