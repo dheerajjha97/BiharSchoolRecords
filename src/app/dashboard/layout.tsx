@@ -5,6 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, PlusCircle, School, Users } from 'lucide-react';
+import { useSchoolData } from '@/hooks/use-school-data';
 
 import {
   SidebarProvider,
@@ -17,6 +18,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLayout({
   children,
@@ -24,6 +26,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { school, loading } = useSchoolData();
 
   return (
     <SidebarProvider>
@@ -35,7 +38,15 @@ export default function DashboardLayout({
               <div className="p-2 bg-primary/10 rounded-lg">
                 <School className="h-6 w-6" />
               </div>
-              <span className="group-data-[collapsible=icon]:hidden">EduAssist</span>
+              <div className="group-data-[collapsible=icon]:hidden">
+                {loading ? (
+                    <div className="space-y-1">
+                        <Skeleton className="h-5 w-32" />
+                    </div>
+                ) : (
+                    <span>{school?.name || 'EduAssist'}</span>
+                )}
+              </div>
             </Link>
           </div>
         </SidebarHeader>

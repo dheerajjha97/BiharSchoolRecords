@@ -1,3 +1,4 @@
+
 import AdmissionWizard from '@/components/admission-wizard';
 import { Button } from '@/components/ui/button';
 import { Lock, AlertTriangle } from 'lucide-react';

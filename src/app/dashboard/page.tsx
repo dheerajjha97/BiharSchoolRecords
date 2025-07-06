@@ -1,3 +1,6 @@
+
+'use client';
+
 import DashboardStats from '@/components/dashboard-stats';
 import RecentAdmissions from '@/components/recent-admissions';
 import { Button } from '@/components/ui/button';
@@ -6,8 +9,12 @@ import Link from 'next/link';
 import GenerateQrCode from '@/components/generate-qr-code';
 import { firebaseError } from '@/lib/firebase';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useSchoolData } from '@/hooks/use-school-data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
+  const { school, loading } = useSchoolData();
+
   return (
     <div className="flex flex-col gap-8">
       {firebaseError && (
@@ -19,10 +26,17 @@ export default function DashboardPage() {
         )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight">उच्च माध्यमिक विद्यालय बेरुआ</h1>
-          <p className="text-muted-foreground mt-1">
-            ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर
-          </p>
+          {loading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-72" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold tracking-tight">{school?.name}</h1>
+              <p className="text-muted-foreground mt-1">{school?.address}</p>
+            </>
+          )}
         </header>
         <Button asChild className="w-full sm:w-auto">
             <Link href="/form">
