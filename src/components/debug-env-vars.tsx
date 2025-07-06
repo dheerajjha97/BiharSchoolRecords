@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,21 +17,26 @@ export const DebugEnvVars = () => {
     { name: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', value: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET },
     { name: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID', value: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID },
     { name: 'NEXT_PUBLIC_FIREBASE_APP_ID', value: process.env.NEXT_PUBLIC_FIREBASE_APP_ID },
+    { name: 'NEXT_PUBLIC_BASE_URL', value: process.env.NEXT_PUBLIC_BASE_URL },
   ];
 
-  const allSet = envVars.every(v => v.value);
+  const firebaseVars = envVars.slice(0, 6);
+  const otherVars = envVars.slice(6);
+  
+  const allFirebaseSet = firebaseVars.every(v => v.value);
 
   return (
     <Card className="mt-8 border-dashed">
       <CardHeader>
-        <CardTitle>Firebase Connection Status</CardTitle>
+        <CardTitle>Environment Variables Status</CardTitle>
         <CardDescription>
-          This panel is visible only in development. For the app to connect to your Firebase project, you must set the following environment variables in a <code>.env.local</code> file at the root of your project.
+          This panel is visible only in development. For the app to function correctly, you must set the following environment variables in a <code>.env.local</code> file at the root of your project.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <h3 className="text-lg font-semibold mb-2">Firebase Connection</h3>
         <ul className="space-y-2 text-sm">
-          {envVars.map(envVar => (
+          {firebaseVars.map(envVar => (
             <li key={envVar.name} className="flex items-center gap-3">
               {envVar.value ? (
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -46,12 +52,35 @@ export const DebugEnvVars = () => {
             </li>
           ))}
         </ul>
-        {allSet ? (
+        {allFirebaseSet ? (
              <p className="mt-4 text-green-600 font-medium">✅ All Firebase environment variables are set. The application should be connected to the database.</p>
         ) : (
              <p className="mt-4 text-red-600 font-medium">❌ Not all Firebase environment variables are set. The database is not connected.</p>
         )}
-        <Alert className="mt-4">
+        
+        <h3 className="text-lg font-semibold mb-2 mt-6">Other Variables</h3>
+         <ul className="space-y-2 text-sm">
+          {otherVars.map(envVar => (
+            <li key={envVar.name} className="flex items-start gap-3">
+              {envVar.value ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-orange-500" />
+              )}
+              <div>
+                <span className="font-mono bg-muted px-2 py-1 rounded-md">{envVar.name}</span>
+                 {envVar.value ? (
+                    <span className="text-muted-foreground"> is set.</span>
+                  ) : (
+                    <span className="font-semibold text-orange-600"> is not set (optional for local, required for QR codes).</span>
+                  )}
+                 <p className="text-xs text-muted-foreground mt-1">The public URL of your deployed application. Required for QR codes to work externally.</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <Alert className="mt-6">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Action Required</AlertTitle>
             <AlertDescription>

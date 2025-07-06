@@ -18,7 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { QrCode } from 'lucide-react';
+import { QrCode, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 const classOptions = [
   { value: '9', label: 'Class 9' },
@@ -31,15 +33,30 @@ export default function GenerateQrCode() {
   const [selectedClass, setSelectedClass] = useState('');
   const [qrUrl, setQrUrl] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
+  const [showPublicUrlWarning, setShowPublicUrlWarning] = useState(false);
 
   useEffect(() => {
-    // This ensures window is available
-    setBaseUrl(window.location.origin);
+    const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (publicUrl && publicUrl.startsWith('http')) {
+      setBaseUrl(publicUrl);
+      setShowPublicUrlWarning(false);
+    } else {
+      setBaseUrl(window.location.origin);
+      // Only show the warning if not on a typical localhost domain,
+      // as cloud dev environments are the main issue.
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+         setShowPublicUrlWarning(true);
+      }
+    }
   }, []);
+
 
   useEffect(() => {
     if (selectedClass && baseUrl) {
-      setQrUrl(`${baseUrl}/form?class=${selectedClass}`);
+      const url = new URL(baseUrl);
+      url.pathname = '/form';
+      url.searchParams.set('class', selectedClass);
+      setQrUrl(url.toString());
     } else {
       setQrUrl('');
     }
@@ -84,6 +101,15 @@ export default function GenerateQrCode() {
               .
             </p>
           </div>
+        )}
+        {showPublicUrlWarning && (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Action Required: Set Public URL</AlertTitle>
+                <AlertDescription>
+                    Your QR code may not work on other devices because it points to a private development URL. To fix this, create a <code>.env.local</code> file, add the line <code>NEXT_PUBLIC_BASE_URL=https://your-app-public-url.com</code>, and restart your server.
+                </AlertDescription>
+            </Alert>
         )}
       </CardContent>
     </Card>
