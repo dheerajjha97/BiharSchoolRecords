@@ -9,6 +9,7 @@ import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 
 export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
+  const { admissionNumber } = params;
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
       return;
     }
 
-    if (!params.admissionNumber) {
+    if (!admissionNumber) {
       setError('No admission ID provided.');
       setLoading(false);
       return;
@@ -29,12 +30,12 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     const fetchStudentData = async () => {
       try {
         setLoading(true);
-        const data = await getAdmissionById(params.admissionNumber);
+        const data = await getAdmissionById(admissionNumber);
 
         if (data) {
           setStudentData(data);
         } else {
-          setError(`No admission record found for ID: ${params.admissionNumber}`);
+          setError(`No admission record found for ID: ${admissionNumber}`);
         }
       } catch (e) {
         console.error("Error fetching document:", e);
@@ -45,7 +46,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     };
 
     fetchStudentData();
-  }, [params.admissionNumber]);
+  }, [admissionNumber]);
 
   if (loading) {
     return (
