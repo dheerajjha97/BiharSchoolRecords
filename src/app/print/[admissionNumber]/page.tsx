@@ -15,6 +15,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
   const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { admissionNumber } = params;
 
   useEffect(() => {
     const loadData = async () => {
@@ -28,10 +29,10 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
       }
       
       // 1. Fetch student data by its ID from the URL
-      const admissionInfo = await getAdmissionById(params.admissionNumber);
+      const admissionInfo = await getAdmissionById(admissionNumber);
 
       if (!admissionInfo) {
-        setError(`No admission record found for ID: ${params.admissionNumber}`);
+        setError(`No admission record found for ID: ${admissionNumber}`);
         setLoading(false);
         return;
       }
@@ -66,8 +67,10 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
       }
     };
 
-    loadData();
-  }, [params.admissionNumber]);
+    if (admissionNumber) {
+      loadData();
+    }
+  }, [admissionNumber]);
 
   if (loading) {
     return (
