@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {firebaseError && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
@@ -17,10 +17,10 @@ export default function DashboardPage() {
             <AlertDescription>{firebaseError}</AlertDescription>
           </Alert>
         )}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <header>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Here's a quick overview of your school's admissions.
           </p>
         </header>
@@ -34,7 +34,7 @@ export default function DashboardPage() {
 
       <DashboardStats />
       
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <RecentAdmissions />
         </div>

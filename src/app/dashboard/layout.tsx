@@ -31,13 +31,15 @@ export default function DashboardLayout({
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <SidebarTrigger className="size-8 lg:hidden" />
-            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-primary">
-              <School className="h-6 w-6" />
+            <Link href="/dashboard" className="flex items-center gap-3 font-bold text-xl text-primary p-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <School className="h-6 w-6" />
+              </div>
               <span className="group-data-[collapsible=icon]:hidden">EduAssist</span>
             </Link>
           </div>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="p-2">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -79,7 +81,7 @@ export default function DashboardLayout({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <main className="min-h-screen p-4 sm:p-6 md:p-8">
+        <main className="min-h-screen p-4 sm:p-6 md:p-8 bg-secondary/40">
             {children}
         </main>
       </SidebarInset>

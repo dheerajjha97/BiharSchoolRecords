@@ -223,8 +223,15 @@ function AdmissionWizardContent() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>New Admission Form</CardTitle>
-        <CardDescription>Step {step} of {STEPS.length}: {STEPS[step-1].name}</CardDescription>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <CardTitle>New Admission Form</CardTitle>
+                <CardDescription>Step {step} of {STEPS.length}: {STEPS[step-1].name}</CardDescription>
+            </div>
+            <p className="text-sm font-medium text-muted-foreground mt-2 sm:mt-0">
+                Progress: {Math.round(progressValue)}%
+            </p>
+        </div>
         <Progress value={progressValue} className="mt-4" />
       </CardHeader>
       <CardContent>
@@ -232,7 +239,7 @@ function AdmissionWizardContent() {
           <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8">
             {step === 1 && (
               <>
-                 <Card className="bg-muted/50">
+                 <Card className="bg-muted/50 border-dashed">
                   <CardContent className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                       <FormField
                         control={form.control}
@@ -263,7 +270,7 @@ function AdmissionWizardContent() {
                           name="admissionDetails.classSelection"
                           render={({ field }) => (
                           <FormItem>
-                              <FormLabel>Class / Stream Selection</FormLabel>
+                              <FormLabel>Class / Stream</FormLabel>
                               <Select onValueChange={handleClassChange} value={field.value || ""}>
                                   <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
                                   <SelectContent>

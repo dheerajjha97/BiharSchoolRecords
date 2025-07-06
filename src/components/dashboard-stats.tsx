@@ -64,7 +64,7 @@ export default function DashboardStats() {
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
       {statsData.map((stat) => (
         <Link href={`/dashboard/students?class=${stat.classId}`} key={stat.title} className="group">
-          <Card className={`shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between ${stat.bgClass} text-white relative overflow-hidden`}>
+          <Card className={`shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between ${stat.bgClass} text-white relative overflow-hidden rounded-xl`}>
             
             <div className="p-5 z-10">
               <CardTitle className="text-base font-bold">{stat.title}</CardTitle>
