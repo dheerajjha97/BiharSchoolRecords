@@ -3,10 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BookOpen, Palette, FlaskConical, Landmark } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, BookOpen, Palette, FlaskConical, Landmark, ArrowRight } from "lucide-react";
 import { listenToAdmissions } from '@/lib/admissions';
-import type { FormValues } from '@/lib/form-schema';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardStats() {
   const [stats, setStats] = useState({
@@ -44,7 +44,7 @@ export default function DashboardStats() {
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {statsData.map((stat) => (
            <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -52,8 +52,11 @@ export default function DashboardStats() {
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">...</div>
+              <Skeleton className="h-8 w-16" />
             </CardContent>
+             <CardFooter>
+                <Skeleton className="h-4 w-24" />
+             </CardFooter>
           </Card>
         ))}
       </div>
@@ -61,20 +64,21 @@ export default function DashboardStats() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       {statsData.map((stat) => (
-        <Link href={`/dashboard/students?class=${stat.classId}`} key={stat.title}>
-          <Card className="hover:shadow-lg hover:border-primary/50 transition-all h-full">
+        <Link href={`/dashboard/students?class=${stat.classId}`} key={stat.title} className="group">
+          <Card className="hover:shadow-lg hover:border-primary/50 transition-all h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${stat.colorClass}`}>{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                Click to view list
-              </p>
+            <CardContent className="flex-grow">
+              <div className={`text-3xl font-bold ${stat.colorClass}`}>{stat.value}</div>
             </CardContent>
+            <CardFooter className="text-xs text-muted-foreground flex justify-between items-center">
+                <span>View list</span>
+                <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </CardFooter>
           </Card>
         </Link>
       ))}
