@@ -127,7 +127,6 @@
             min-height: initial;
             box-shadow: initial;
             background: initial;
-            page-break-after: always;
             padding: 0;
         }
         .page {
