@@ -29,7 +29,8 @@ export default function RootPage() {
   }, [router]);
 
   const handleVerify = async () => {
-    if (!udiseInput || udiseInput.length !== 11) {
+    const trimmedUdise = udiseInput.trim();
+    if (!trimmedUdise || trimmedUdise.length !== 11) {
       setError('Please enter a valid 11-digit UDISE code.');
       return;
     }
@@ -38,9 +39,9 @@ export default function RootPage() {
     setError(null);
 
     try {
-      const schoolData = await getSchoolByUdise(udiseInput);
+      const schoolData = await getSchoolByUdise(trimmedUdise);
       if (schoolData) {
-        localStorage.setItem('udise_code', udiseInput);
+        localStorage.setItem('udise_code', trimmedUdise);
         localStorage.setItem('school_data', JSON.stringify(schoolData));
         router.push('/dashboard');
       } else {
