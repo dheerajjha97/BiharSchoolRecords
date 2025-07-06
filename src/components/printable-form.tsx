@@ -2,8 +2,7 @@
 
 import * as React from 'react';
 import type { FormValues } from '@/lib/form-schema';
-import { useSchoolData } from '@/hooks/use-school-data';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { School } from '@/lib/school';
 
 // Helper component for a full-width row in a table
 // Reduced padding for compactness
@@ -67,8 +66,7 @@ const streamDisplayNames: { [key: string]: string } = {
   '11-commerce': 'Class 11 - Commerce',
 };
 
-export const PrintableForm = ({ formData }: { formData: FormValues }) => {
-  const { school, loading } = useSchoolData();
+export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; schoolData: School }) => {
   const { admissionDetails, studentDetails, contactDetails, addressDetails, bankDetails, otherDetails, prevSchoolDetails, subjectDetails } = formData;
   
   const isClass11 = admissionDetails.classSelection?.startsWith('11');
@@ -89,21 +87,11 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
                     src="https://storage.googleapis.com/project-os-frontend-prod.appspot.com/1722424888803_bihar_govt_logo.jpg"
                     alt="Bihar Government Logo"
                     className="h-20 w-20"
-                    crossOrigin="anonymous"
                 />
             </div>
             <div className="text-center flex-grow">
-                 {loading ? (
-                    <div className="space-y-2">
-                        <Skeleton className="h-10 w-3/4 mx-auto" />
-                        <Skeleton className="h-6 w-full mx-auto" />
-                    </div>
-                ) : (
-                    <>
-                        <h1 className="text-4xl font-bold">{school?.name || 'School Name'}</h1>
-                        <p className="text-lg font-semibold">{school?.address || 'School Address'}</p>
-                    </>
-                )}
+                <h1 className="text-4xl font-bold">{schoolData.name}</h1>
+                <p className="text-lg font-semibold">{schoolData.address}</p>
                 <p className="text-xl font-bold mt-1">ADMISSION FORM</p>
                 <p className="text-sm">(Session 2025-2026)</p>
             </div>

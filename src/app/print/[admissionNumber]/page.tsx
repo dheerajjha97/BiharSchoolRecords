@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
+import type { School } from '@/lib/school';
 
 export default function PrintAdmissionPage({ params }: { params: Promise<{ admissionNumber: string }> }) {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
+  const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -17,6 +19,20 @@ export default function PrintAdmissionPage({ params }: { params: Promise<{ admis
   const { admissionNumber } = resolvedParams;
 
   useEffect(() => {
+    // This effect runs on the client. We can access localStorage here.
+    try {
+      const schoolDataString = localStorage.getItem('school_data');
+      if (schoolDataString) {
+        setSchoolData(JSON.parse(schoolDataString));
+      } else {
+        // If school data isn't in local storage, that's a problem.
+        setError("Could not find school configuration data. Please log in to the dashboard again.");
+      }
+    } catch (e) {
+      console.error("Failed to parse school data for print page", e);
+      setError("Could not read school configuration data.");
+    }
+
     if (firebaseError) {
       setError(firebaseError);
       setLoading(false);
@@ -68,11 +84,11 @@ export default function PrintAdmissionPage({ params }: { params: Promise<{ admis
     );
   }
 
-  if (!studentData) {
+  if (!studentData || !schoolData) {
     return (
          <div className="flex items-center justify-center min-h-screen text-destructive p-4 text-center">
             <AlertTriangle className="h-8 w-8 mr-2" />
-            <p>Could not load student data to print.</p>
+            <p>Could not load student or school data to print.</p>
         </div>
     );
   }
@@ -88,7 +104,7 @@ export default function PrintAdmissionPage({ params }: { params: Promise<{ admis
             </Button>
         </header>
         <main>
-          <PrintableForm formData={studentData} />
+          <PrintableForm formData={studentData} schoolData={schoolData} />
         </main>
       </div>
     </div>
