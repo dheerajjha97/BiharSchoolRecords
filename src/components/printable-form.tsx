@@ -77,35 +77,34 @@ export const PrintableForm = ({ formData }: { formData: FormValues }) => {
     <div className="a4-container bg-white text-black font-body shadow-lg">
       {/* --- PAGE 1 --- */}
       <div className="page">
-        <header className="text-center border-b-4 border-black pb-2 break-inside-avoid">
-            <h1 className="text-2xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
-            <p className="text-sm font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
-            <p className="text-lg font-bold mt-2">ADMISSION FORM</p>
-            <p className="text-sm">(Session 2024-2025)</p>
-        </header>
-        
-        <div className="flex items-start justify-between gap-4 mt-4 break-inside-avoid">
-            {/* Admission Details Table */}
-            <div className="flex-grow">
-                <table className="w-full border-collapse border border-black text-sm">
-                    <tbody>
-                        <PrintTableDoubleRow 
-                            label1="Admission No." value1={admissionDetails.admissionNumber} 
-                            label2="Admission Date" value2={admissionDetails.admissionDate} 
-                        />
-                        <PrintTableDoubleRow 
-                            label1="Class / Stream" value1={displayStream}
-                            label2="Roll Number" value2={admissionDetails.rollNumber} 
-                        />
-                    </tbody>
-                </table>
-            </div>
+        <div className="flex items-start justify-between gap-4 break-inside-avoid">
+            <header className="text-center flex-grow">
+                <h1 className="text-2xl font-bold">उच्च माध्यमिक विद्यालय बेरुआ</h1>
+                <p className="text-sm font-semibold">ग्राम –चोरनियां, पोस्ट – चिरैला, प्रखंड –गायघाट, जिला –मुजफ्फरपुर</p>
+                <p className="text-lg font-bold mt-2">ADMISSION FORM</p>
+                <p className="text-sm">(Session 2024-2025)</p>
+            </header>
+            
             {/* Photo box */}
             <div className="w-36 h-44 border-2 border-black flex-shrink-0 flex items-center justify-center text-center p-2 text-sm">
                 Affix recent passport size photograph
             </div>
         </div>
         
+        {/* Admission Details Table */}
+        <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
+            <tbody>
+                <PrintTableDoubleRow 
+                    label1="Admission No." value1={admissionDetails.admissionNumber} 
+                    label2="Admission Date" value2={admissionDetails.admissionDate} 
+                />
+                <PrintTableDoubleRow 
+                    label1="Class / Stream" value1={displayStream}
+                    label2="Roll Number" value2={admissionDetails.rollNumber} 
+                />
+            </tbody>
+        </table>
+
         {/* Personal Details Table */}
         <table className="w-full mt-4 border-collapse border border-black text-sm break-inside-avoid">
             <tbody>
