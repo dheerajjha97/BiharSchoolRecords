@@ -87,6 +87,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                     src="https://storage.googleapis.com/project-os-frontend-prod.appspot.com/1722424888803_bihar_govt_logo.jpg"
                     alt="Bihar Government Logo"
                     className="h-20 w-20"
+                    crossOrigin="anonymous"
                 />
             </div>
             <div className="text-center flex-grow">
