@@ -64,9 +64,22 @@ export default function RootPage() {
     
     setError(null);
     setIsLoading(true);
+
+    // Special handling to update specific school data for 10141201505
+    if (trimmedUdise === '10141201505') {
+        const schoolData: School = {
+            udise: '10141201505',
+            name: 'उच्च माध्यमिक विद्यालय बेरुआ',
+            address: 'ग्राम – चोरनियां, पोस्ट – चिरैला, प्रखंड – गायघाट, जिला – मुजफ्फरपुर',
+        };
+        // This will save/update the data in Firestore and proceed
+        await proceedToDashboard(schoolData);
+        setIsLoading(false); // Make sure to stop loading indicator
+        return;
+    }
     
     try {
-      // Check if school exists in Firestore
+      // Check if school exists in Firestore for any other UDISE code
       const existingSchool = await getSchoolByUdise(trimmedUdise);
       
       if (existingSchool) {
