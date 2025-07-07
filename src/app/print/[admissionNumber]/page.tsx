@@ -81,6 +81,23 @@ export default function PrintAdmissionPage() {
     }
   }, [admissionNumber]);
 
+  const handlePrint = () => {
+    const images = document.querySelectorAll('img');
+    const promises = Array.from(images).map(img => {
+      if (img.complete) {
+        return Promise.resolve();
+      }
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve; // Resolve even on error to not block printing
+      });
+    });
+
+    Promise.all(promises).then(() => {
+      window.print();
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -113,7 +130,7 @@ export default function PrintAdmissionPage() {
       <div className="mx-auto">
         <header className="flex justify-end gap-4 mb-4 print-hide">
             <Button variant="outline" onClick={() => window.close()}>Cancel</Button>
-            <Button onClick={() => window.print()}>
+            <Button onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" />
                 Print or Save as PDF
             </Button>
