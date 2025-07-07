@@ -110,6 +110,10 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                             label1="Class / Stream" value1={displayStream}
                             label2="Roll Number" value2={admissionDetails.rollNumber} 
                         />
+                        <PrintTableDoubleRow 
+                            label1="PEN Number" value1="" 
+                            label2="E-shikshakosh ID" value2=""
+                        />
                     </tbody>
                 </table>
             </div>
