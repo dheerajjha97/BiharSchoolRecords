@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -146,7 +147,7 @@ function StudentsListContent() {
                             <span className="sr-only">Edit</span>
                           </Button>
                           <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/print/${student.id}`} target="_blank" rel="noopener noreferrer">
+                            <Link href={`/print/${student.id}?udise=${school?.udise || ''}`} target="_blank" rel="noopener noreferrer">
                                 <Printer className="h-4 w-4" />
                                 <span className="sr-only">Print</span>
                             </Link>

@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import type { FormValues } from '@/lib/form-schema';
 import { PrintableForm } from '@/components/printable-form';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,13 @@ import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
 import { getSchoolByUdise } from '@/lib/school';
 
-export default function PrintAdmissionPage() {
+
+function PrintPageContent() {
   const params = useParams<{ admissionNumber: string }>();
+  const searchParams = useSearchParams();
+
   const admissionNumber = params?.admissionNumber;
+  const udiseFromQuery = searchParams.get('udise');
   
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [schoolData, setSchoolData] = useState<School | null>(null);
@@ -48,19 +52,11 @@ export default function PrintAdmissionPage() {
         }
         setStudentData(admissionInfo);
         
-        // 2. Determine the UDISE code to use, with a fallback for older data
-        let udiseToUse = admissionInfo.admissionDetails.udise;
-        if (!udiseToUse) {
-            console.warn("UDISE code not found in admission record. Trying localStorage.");
-            try {
-              const schoolDataString = localStorage.getItem('school_data');
-              if (schoolDataString) {
-                  udiseToUse = JSON.parse(schoolDataString)?.udise;
-              }
-            } catch (e) {
-                console.error("Could not parse school data from localStorage", e);
-            }
-        }
+        // 2. Determine the UDISE code with a clear priority:
+        //    a) From the admission record itself (most reliable)
+        //    b) From the URL query parameter (great fallback from student list)
+        //    c) From localStorage (last resort)
+        const udiseToUse = admissionInfo.admissionDetails?.udise || udiseFromQuery || localStorage.getItem('udise_code');
 
         // 3. Fetch school data from Firestore using the determined UDISE code
         if (udiseToUse) {
@@ -68,22 +64,8 @@ export default function PrintAdmissionPage() {
             if (firestoreSchoolData) {
                 setSchoolData(firestoreSchoolData);
             } else {
-                console.warn(`School with UDISE ${udiseToUse} not found in Firestore. Falling back to localStorage.`);
-                const schoolDataString = localStorage.getItem('school_data');
-                if (schoolDataString) {
-                    try {
-                      const localSchoolData = JSON.parse(schoolDataString);
-                      if (localSchoolData.udise === udiseToUse) {
-                          setSchoolData(localSchoolData);
-                      } else {
-                           setError(`School details for UDISE ${udiseToUse} were not found.`);
-                      }
-                    } catch (e) {
-                       setError(`School details for UDISE ${udiseToUse} were not found.`);
-                    }
-                } else {
-                   setError(`School details for UDISE ${udiseToUse} were not found.`);
-                }
+                // This error is informational; we might still render the form without school details
+                setError(`School details for UDISE ${udiseToUse} were not found in the database. The printable form might be missing school information.`);
             }
         } else {
             setError(`Could not determine a UDISE code for this student record. School details cannot be loaded.`);
@@ -100,7 +82,7 @@ export default function PrintAdmissionPage() {
     if (admissionNumber) {
       loadData();
     }
-  }, [admissionNumber]);
+  }, [admissionNumber, udiseFromQuery]);
 
   const handlePrint = () => {
     const images = document.querySelectorAll('img');
@@ -168,4 +150,17 @@ export default function PrintAdmissionPage() {
       </div>
     </div>
   );
+}
+
+export default function PrintAdmissionPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <p className="ml-2">Loading...</p>
+            </div>
+        }>
+            <PrintPageContent />
+        </Suspense>
+    )
 }
