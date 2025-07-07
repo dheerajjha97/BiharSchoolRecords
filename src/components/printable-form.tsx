@@ -84,8 +84,8 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         <header className="flex items-center w-full mb-4 break-inside-avoid gap-4">
             <div className="flex-shrink-0">
                 <img
-                    src="https://storage.googleapis.com/project-os-frontend-prod.appspot.com/1722424888803_bihar_govt_logo.jpg"
-                    alt="Bihar Government Logo"
+                    src="https://pbs.twimg.com/profile_images/1790589713323098112/MFnv3U9X.jpg"
+                    alt="School Logo"
                     className="h-20 w-20"
                     crossOrigin="anonymous"
                 />
