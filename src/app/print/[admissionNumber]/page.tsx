@@ -1,6 +1,8 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import type { FormValues } from '@/lib/form-schema';
 import { PrintableForm } from '@/components/printable-form';
 import { Button } from '@/components/ui/button';
@@ -10,15 +12,22 @@ import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
 import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
 
-export default function PrintAdmissionPage({ params }: { params: { admissionNumber: string } }) {
+export default function PrintAdmissionPage() {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { admissionNumber } = params;
+  const params = useParams<{ admissionNumber: string }>();
+  const admissionNumber = params?.admissionNumber;
 
   useEffect(() => {
     const loadData = async () => {
+      if (!admissionNumber) {
+        setLoading(false);
+        setError("Admission number not found in URL.");
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
