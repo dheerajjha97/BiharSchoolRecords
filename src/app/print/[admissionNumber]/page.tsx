@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import type { FormValues } from '@/lib/form-schema';
 import { PrintableForm } from '@/components/printable-form';
@@ -39,40 +39,56 @@ export default function PrintAdmissionPage() {
       }
       
       try {
-        // 1. Fetch student data by its ID from the URL
+        // 1. Fetch student data
         const admissionInfo = await getAdmissionById(admissionNumber);
-
         if (!admissionInfo) {
           setError(`No admission record found for ID: ${admissionNumber}`);
           setLoading(false);
           return;
         }
-        
         setStudentData(admissionInfo);
         
-        // 2. Fetch school data from Firestore using UDISE from student record
-        if (admissionInfo.admissionDetails.udise) {
-          const firestoreSchoolData = await getSchoolByUdise(admissionInfo.admissionDetails.udise);
-          if (firestoreSchoolData) {
-            setSchoolData(firestoreSchoolData);
-          } else {
-            // Fallback for data entered before this fix (e.g., from localStorage)
-            console.warn(`School with UDISE ${admissionInfo.admissionDetails.udise} not in Firestore. Trying localStorage.`);
-            const schoolDataString = localStorage.getItem('school_data');
-            if (schoolDataString) {
-              const localSchoolData = JSON.parse(schoolDataString);
-              if (localSchoolData.udise === admissionInfo.admissionDetails.udise) {
-                setSchoolData(localSchoolData);
-              } else {
-                setError(`School details for UDISE ${admissionInfo.admissionDetails.udise} were not found.`);
+        // 2. Determine the UDISE code to use, with a fallback for older data
+        let udiseToUse = admissionInfo.admissionDetails.udise;
+        if (!udiseToUse) {
+            console.warn("UDISE code not found in admission record. Trying localStorage.");
+            try {
+              const schoolDataString = localStorage.getItem('school_data');
+              if (schoolDataString) {
+                  udiseToUse = JSON.parse(schoolDataString)?.udise;
               }
-            } else {
-               setError(`School details for UDISE ${admissionInfo.admissionDetails.udise} were not found.`);
+            } catch (e) {
+                console.error("Could not parse school data from localStorage", e);
             }
-          }
-        } else {
-            setError(`This student record does not have a UDISE code, so school details cannot be loaded.`);
         }
+
+        // 3. Fetch school data from Firestore using the determined UDISE code
+        if (udiseToUse) {
+            const firestoreSchoolData = await getSchoolByUdise(udiseToUse);
+            if (firestoreSchoolData) {
+                setSchoolData(firestoreSchoolData);
+            } else {
+                console.warn(`School with UDISE ${udiseToUse} not found in Firestore. Falling back to localStorage.`);
+                const schoolDataString = localStorage.getItem('school_data');
+                if (schoolDataString) {
+                    try {
+                      const localSchoolData = JSON.parse(schoolDataString);
+                      if (localSchoolData.udise === udiseToUse) {
+                          setSchoolData(localSchoolData);
+                      } else {
+                           setError(`School details for UDISE ${udiseToUse} were not found.`);
+                      }
+                    } catch (e) {
+                       setError(`School details for UDISE ${udiseToUse} were not found.`);
+                    }
+                } else {
+                   setError(`School details for UDISE ${udiseToUse} were not found.`);
+                }
+            }
+        } else {
+            setError(`Could not determine a UDISE code for this student record. School details cannot be loaded.`);
+        }
+
       } catch(e) {
           console.error("Failed to load admission or school data:", e);
           setError("An error occurred while retrieving data for printing.");
