@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2, School as SchoolIcon } from 'lucide-react';
 import type { School } from '@/lib/school';
-import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AddSchoolDialog } from '@/components/add-school-dialog';
 import { DebugEnvVars } from '@/components/debug-env-vars';
@@ -18,10 +17,8 @@ export default function RootPage() {
   const router = useRouter();
   const [udiseInput, setUdiseInput] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [isAddSchoolDialogOpen, setAddSchoolDialogOpen] = useState(false);
   const [udiseForNewSchool, setUdiseForNewSchool] = useState('');
-  const [schoolToConfirm, setSchoolToConfirm] = useState<School | null>(null);
   const [initialDataForDialog, setInitialDataForDialog] = useState<School | undefined>(undefined);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
@@ -40,60 +37,21 @@ export default function RootPage() {
     router.push('/dashboard');
   };
 
-  const handleVerify = async () => {
+  const handleConfigure = () => {
     const trimmedUdise = udiseInput.trim();
     if (!trimmedUdise || trimmedUdise.length !== 11) {
       setError('Please enter a valid 11-digit UDISE code.');
       return;
     }
     
-    setIsVerifying(true);
     setError(null);
-    setSchoolToConfirm(null);
-
-    try {
-      const response = await lookupSchoolByUdise({ udise: trimmedUdise });
-      
-      if (response?.found && response.name && response.address) {
-        // School found by AI, show confirmation screen
-        const schoolData: School = {
-          udise: trimmedUdise,
-          name: response.name,
-          address: response.address,
-        };
-        setSchoolToConfirm(schoolData);
-      } else {
-        // School not found by AI, open dialog to add manually
-        setUdiseForNewSchool(trimmedUdise);
-        setInitialDataForDialog(undefined); // No initial data
-        setAddSchoolDialogOpen(true);
-      }
-    } catch (err) {
-      console.error("AI School lookup failed:", err);
-      // Fallback to manual entry on AI error
-      setError("The automatic lookup failed. Please add the school details manually.");
-      setUdiseForNewSchool(trimmedUdise);
-      setInitialDataForDialog(undefined);
-      setAddSchoolDialogOpen(true);
-    } finally {
-      setIsVerifying(false);
-    }
+    
+    // AI call is removed. We go straight to the dialog for manual entry.
+    setUdiseForNewSchool(trimmedUdise);
+    setInitialDataForDialog(undefined); // Always start fresh
+    setAddSchoolDialogOpen(true);
   };
 
-  const handleEdit = () => {
-    if (schoolToConfirm) {
-      setUdiseForNewSchool(schoolToConfirm.udise);
-      setInitialDataForDialog(schoolToConfirm);
-      setAddSchoolDialogOpen(true);
-      setSchoolToConfirm(null);
-    }
-  };
-
-  const handleBackToSearch = () => {
-    setSchoolToConfirm(null);
-    setUdiseInput('');
-    setError(null);
-  }
 
   if (checkingAuth) {
     return (
@@ -118,32 +76,12 @@ export default function RootPage() {
         </div>
         <Card className="w-full max-w-md shadow-2xl">
           <CardHeader>
-            <CardTitle>{schoolToConfirm ? 'Confirm Your School' : 'Initial Setup'}</CardTitle>
+            <CardTitle>Initial Setup</CardTitle>
             <CardDescription>
-              {schoolToConfirm
-                ? 'We found the following school details. Please confirm they are correct.'
-                : "Please enter your school's UDISE code to configure the application."}
+              Please enter your school's UDISE code to configure the application.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {schoolToConfirm ? (
-              <div className="space-y-4">
-                <div className="space-y-2 rounded-md border bg-muted/50 p-4">
-                  <p className="text-lg font-semibold">{schoolToConfirm.name}</p>
-                  <p className="text-sm text-muted-foreground">{schoolToConfirm.address}</p>
-                  <p className="text-xs text-muted-foreground pt-1">UDISE: {schoolToConfirm.udise}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                   <Button variant="outline" onClick={handleEdit}>
-                    Edit Details
-                  </Button>
-                  <Button onClick={() => proceedToDashboard(schoolToConfirm)}>
-                    Yes, Continue
-                  </Button>
-                </div>
-                <Button variant="link" className="w-full" onClick={handleBackToSearch}>Search for another school</Button>
-              </div>
-            ) : (
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="udise">UDISE Code</Label>
@@ -152,8 +90,7 @@ export default function RootPage() {
                     placeholder="Enter 11-digit UDISE code"
                     value={udiseInput}
                     onChange={(e) => setUdiseInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
-                    disabled={isVerifying}
+                    onKeyDown={(e) => e.key === 'Enter' && handleConfigure()}
                   />
                 </div>
                 {error && (
@@ -162,18 +99,10 @@ export default function RootPage() {
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-                <Button onClick={handleVerify} disabled={isVerifying || !udiseInput} className="w-full">
-                  {isVerifying ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    'Configure School'
-                  )}
+                <Button onClick={handleConfigure} disabled={!udiseInput} className="w-full">
+                  Configure School
                 </Button>
               </div>
-            )}
           </CardContent>
         </Card>
         <div className="w-full max-w-md">

@@ -67,7 +67,7 @@ const streamDisplayNames: { [key: string]: string } = {
   '11-commerce': 'Class 11 - Commerce',
 };
 
-export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; schoolData: School }) => {
+export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; schoolData: School | null }) => {
   const { admissionDetails, studentDetails, contactDetails, addressDetails, bankDetails, otherDetails, prevSchoolDetails, subjectDetails } = formData;
   
   const isClass11 = admissionDetails.classSelection?.startsWith('11');
@@ -88,11 +88,12 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                     src="/logo.jpg"
                     alt="School Logo"
                     className="h-20 w-20"
+                    crossOrigin="anonymous"
                 />
             </div>
             <div className="text-center flex-grow">
-                <h1 className="text-4xl font-bold">{schoolData.name}</h1>
-                <p className="text-lg font-semibold">{schoolData.address}</p>
+                <h1 className="text-4xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
+                <p className="text-lg font-semibold">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
                 <p className="text-xl font-bold mt-1">ADMISSION FORM</p>
                 <p className="text-sm">(Session 2025-2026)</p>
             </div>

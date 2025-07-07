@@ -10,7 +10,6 @@ import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
-import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
 
 export default function PrintAdmissionPage() {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
@@ -48,29 +47,22 @@ export default function PrintAdmissionPage() {
       
       setStudentData(admissionInfo);
       
-      // 2. Fetch school data using the UDISE code from the student's record
-      const udise = admissionInfo.admissionDetails.udise;
-      if (!udise) {
-        setError(`The admission record is missing a UDISE code. Cannot fetch school details.`);
-        setLoading(false);
-        return;
-      }
-
+      // 2. Fetch school data from localStorage (best effort)
       try {
-        const schoolLookupResult = await lookupSchoolByUdise({ udise });
-        if (schoolLookupResult.found && schoolLookupResult.name && schoolLookupResult.address) {
-            const school: School = {
-                udise: udise,
-                name: schoolLookupResult.name,
-                address: schoolLookupResult.address,
-            };
-            setSchoolData(school);
+        const schoolDataString = localStorage.getItem('school_data');
+        if (schoolDataString) {
+          const localSchoolData = JSON.parse(schoolDataString);
+          if (localSchoolData.udise === admissionInfo.admissionDetails.udise) {
+            setSchoolData(localSchoolData);
+          } else {
+             setError(`School data in your browser's storage does not match this student's school. Please log in to the correct school dashboard in another tab and try printing again.`);
+          }
         } else {
-            setError(`Could not find school details for UDISE code: ${udise}`);
+          setError(`Could not find school details in your browser's storage. To print with school details, please ensure you are logged into the school's dashboard in another browser tab.`);
         }
       } catch (e) {
-          console.error("School lookup failed:", e);
-          setError("Failed to retrieve school details. The lookup service may be down.");
+          console.error("Failed to retrieve school data from local storage:", e);
+          setError("An error occurred while retrieving school details for printing.");
       } finally {
         setLoading(false);
       }
@@ -107,7 +99,7 @@ export default function PrintAdmissionPage() {
     );
   }
 
-  if (error) {
+  if (error && !studentData) { // Only show full-page error if student data also fails
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-destructive p-4 text-center">
         <AlertTriangle className="h-8 w-8 mb-2" />
@@ -116,11 +108,11 @@ export default function PrintAdmissionPage() {
     );
   }
 
-  if (!studentData || !schoolData) {
+  if (!studentData) {
     return (
       <div className="flex items-center justify-center min-h-screen text-destructive p-4 text-center">
         <AlertTriangle className="h-8 w-8 mr-2" />
-        <p>Could not load student or school data to print.</p>
+        <p>Could not load student data to print.</p>
       </div>
     );
   }
@@ -135,6 +127,12 @@ export default function PrintAdmissionPage() {
                 Print or Save as PDF
             </Button>
         </header>
+        {error && schoolData === null && (
+          <div className="text-center p-4 mb-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-md print-hide">
+            <p className="font-bold">School Details Missing</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
         <main>
           <PrintableForm formData={studentData} schoolData={schoolData} />
         </main>

@@ -24,7 +24,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DatePicker } from "@/components/ui/date-picker";
 import { FormSection } from "@/components/form-section";
 import type { FormValues } from "@/lib/form-schema";
-import { transliterate } from "@/ai/flows/transliterate-flow";
 import { Label } from "@/components/ui/label";
 
 interface AdmissionFormStepProps {
@@ -33,32 +32,9 @@ interface AdmissionFormStepProps {
 
 export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const isDifferentlyAbled = form.watch("studentDetails.isDifferentlyAbled");
-  const [isTranslatingName, setIsTranslatingName] = useState(false);
-  const [isTranslatingFatherName, setIsTranslatingFatherName] = useState(false);
-  const [isTranslatingMotherName, setIsTranslatingMotherName] = useState(false);
   const [isFetchingPinDetails, setIsFetchingPinDetails] = useState(false);
   const [isFetchingBankDetails, setIsFetchingBankDetails] = useState(false);
   const [availableBlocks, setAvailableBlocks] = useState<string[]>([]);
-
-  const handleTransliteration = async (
-    sourceText: string,
-    targetField: "studentDetails.nameHi" | "studentDetails.fatherNameHi" | "studentDetails.motherNameHi",
-    setLoading: (loading: boolean) => void
-  ) => {
-    if (!sourceText.trim()) return;
-    setLoading(true);
-    try {
-      const result = await transliterate({ text: sourceText });
-      if (result.transliteratedText) {
-        form.setValue(targetField, result.transliteratedText, { shouldValidate: true });
-      }
-    } catch (error) {
-      console.error("Transliteration failed:", error);
-      // Optional: Show a toast notification to the user about the failure
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handlePinCodeLookup = async (pinCode: string) => {
     // Reset blocks and form value when a new lookup starts
@@ -164,10 +140,6 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                       const upperCaseValue = e.target.value.toUpperCase();
                       field.onChange(upperCaseValue);
                     }}
-                    onBlur={(e) => {
-                        field.onBlur();
-                        handleTransliteration(form.getValues("studentDetails.nameEn"), "studentDetails.nameHi", setIsTranslatingName);
-                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -181,12 +153,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Student's Name (Hindi)</FormLabel>
                 <FormControl>
-                  <div className="relative">
                     <Input placeholder="e.g., जॉन डो" {...field} />
-                    {isTranslatingName && (
-                        <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
-                    )}
-                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -206,10 +173,6 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                       const upperCaseValue = e.target.value.toUpperCase();
                       field.onChange(upperCaseValue);
                     }}
-                    onBlur={(e) => {
-                        field.onBlur();
-                        handleTransliteration(form.getValues("studentDetails.fatherNameEn"), "studentDetails.fatherNameHi", setIsTranslatingFatherName);
-                    }}
                    />
                 </FormControl>
                 <FormMessage />
@@ -223,12 +186,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Father's Name (Hindi)</FormLabel>
                 <FormControl>
-                    <div className="relative">
-                        <Input placeholder="e.g., रिचर्ड डो" {...field} />
-                        {isTranslatingFatherName && (
-                            <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
-                        )}
-                    </div>
+                    <Input placeholder="e.g., रिचर्ड डो" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -248,10 +206,6 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                       const upperCaseValue = e.target.value.toUpperCase();
                       field.onChange(upperCaseValue);
                     }}
-                    onBlur={(e) => {
-                        field.onBlur();
-                        handleTransliteration(form.getValues("studentDetails.motherNameEn"), "studentDetails.motherNameHi", setIsTranslatingMotherName);
-                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -265,12 +219,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Mother's Name (Hindi)</FormLabel>
                 <FormControl>
-                    <div className="relative">
-                        <Input placeholder="e.g., जेन डो" {...field} />
-                        {isTranslatingMotherName && (
-                            <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
-                        )}
-                    </div>
+                    <Input placeholder="e.g., जेन डो" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

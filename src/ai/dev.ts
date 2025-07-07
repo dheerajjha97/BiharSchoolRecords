@@ -1,3 +1,1 @@
-// Flows will be imported for their side effects in this file.
-import './flows/transliterate-flow';
-import './flows/school-lookup-flow';
+// This file is not used after removing AI features.
