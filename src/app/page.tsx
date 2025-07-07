@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,6 +12,7 @@ import type { School } from '@/lib/school';
 import { lookupSchoolByUdise } from '@/ai/flows/school-lookup-flow';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AddSchoolDialog } from '@/components/add-school-dialog';
+import { DebugEnvVars } from '@/components/debug-env-vars';
 
 export default function RootPage() {
   const router = useRouter();
@@ -174,6 +176,9 @@ export default function RootPage() {
             )}
           </CardContent>
         </Card>
+        <div className="w-full max-w-md">
+            <DebugEnvVars />
+        </div>
       </main>
       <AddSchoolDialog
         open={isAddSchoolDialogOpen}
