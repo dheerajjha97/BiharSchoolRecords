@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2, School as SchoolIcon } from 'lucide-react';
 import type { School } from '@/lib/school';
+import { getSchoolByUdise, saveSchool } from '@/lib/school';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AddSchoolDialog } from '@/components/add-school-dialog';
 import { DebugEnvVars } from '@/components/debug-env-vars';
@@ -21,6 +22,7 @@ export default function RootPage() {
   const [udiseForNewSchool, setUdiseForNewSchool] = useState('');
   const [initialDataForDialog, setInitialDataForDialog] = useState<School | undefined>(undefined);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // This effect runs only on the client side
@@ -31,13 +33,29 @@ export default function RootPage() {
     }
   }, [router]);
 
-  const proceedToDashboard = (schoolData: School) => {
-    localStorage.setItem('udise_code', schoolData.udise);
-    localStorage.setItem('school_data', JSON.stringify(schoolData));
-    router.push('/dashboard');
+  const proceedToDashboard = async (schoolData: School) => {
+    setIsLoading(true);
+    try {
+      // Save to Firestore first
+      await saveSchool(schoolData);
+      
+      // Then save to localStorage and navigate
+      localStorage.setItem('udise_code', schoolData.udise);
+      localStorage.setItem('school_data', JSON.stringify(schoolData));
+      router.push('/dashboard');
+    } catch (e) {
+      console.error("Failed to save school data:", e);
+      let errorMessage = "Could not save school details. Please try again.";
+      if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleConfigure = () => {
+  const handleConfigure = async () => {
     const trimmedUdise = udiseInput.trim();
     if (!trimmedUdise || trimmedUdise.length !== 11) {
       setError('Please enter a valid 11-digit UDISE code.');
@@ -45,11 +63,27 @@ export default function RootPage() {
     }
     
     setError(null);
+    setIsLoading(true);
     
-    // AI call is removed. We go straight to the dialog for manual entry.
-    setUdiseForNewSchool(trimmedUdise);
-    setInitialDataForDialog(undefined); // Always start fresh
-    setAddSchoolDialogOpen(true);
+    try {
+      // Check if school exists in Firestore
+      const existingSchool = await getSchoolByUdise(trimmedUdise);
+      
+      if (existingSchool) {
+          // If it exists, proceed directly to dashboard
+          await proceedToDashboard(existingSchool);
+      } else {
+          // Otherwise, open the dialog for manual entry
+          setUdiseForNewSchool(trimmedUdise);
+          setInitialDataForDialog(undefined); // Start fresh for a new school
+          setAddSchoolDialogOpen(true);
+      }
+    } catch (e) {
+        console.error("Error checking school data:", e);
+        setError("Could not verify school information. Please check your connection and try again.");
+    } finally {
+        setIsLoading(false);
+    }
   };
 
 
@@ -99,8 +133,8 @@ export default function RootPage() {
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-                <Button onClick={handleConfigure} disabled={!udiseInput} className="w-full">
-                  Configure School
+                <Button onClick={handleConfigure} disabled={!udiseInput || isLoading} className="w-full">
+                  {isLoading ? <Loader2 className="animate-spin" /> : 'Configure School'}
                 </Button>
               </div>
           </CardContent>

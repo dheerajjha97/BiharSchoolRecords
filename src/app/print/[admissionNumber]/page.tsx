@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useParams } from 'next/navigation';
 import type { FormValues } from '@/lib/form-schema';
 import { PrintableForm } from '@/components/printable-form';
@@ -10,14 +10,16 @@ import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
 import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
+import { getSchoolByUdise } from '@/lib/school';
 
 export default function PrintAdmissionPage() {
+  const params = useParams<{ admissionNumber: string }>();
+  const admissionNumber = params?.admissionNumber;
+  
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const params = useParams<{ admissionNumber: string }>();
-  const admissionNumber = params?.admissionNumber;
 
   useEffect(() => {
     const loadData = async () => {
@@ -36,33 +38,44 @@ export default function PrintAdmissionPage() {
         return;
       }
       
-      // 1. Fetch student data by its ID from the URL
-      const admissionInfo = await getAdmissionById(admissionNumber);
-
-      if (!admissionInfo) {
-        setError(`No admission record found for ID: ${admissionNumber}`);
-        setLoading(false);
-        return;
-      }
-      
-      setStudentData(admissionInfo);
-      
-      // 2. Fetch school data from localStorage (best effort)
       try {
-        const schoolDataString = localStorage.getItem('school_data');
-        if (schoolDataString) {
-          const localSchoolData = JSON.parse(schoolDataString);
-          if (localSchoolData.udise === admissionInfo.admissionDetails.udise) {
-            setSchoolData(localSchoolData);
+        // 1. Fetch student data by its ID from the URL
+        const admissionInfo = await getAdmissionById(admissionNumber);
+
+        if (!admissionInfo) {
+          setError(`No admission record found for ID: ${admissionNumber}`);
+          setLoading(false);
+          return;
+        }
+        
+        setStudentData(admissionInfo);
+        
+        // 2. Fetch school data from Firestore using UDISE from student record
+        if (admissionInfo.admissionDetails.udise) {
+          const firestoreSchoolData = await getSchoolByUdise(admissionInfo.admissionDetails.udise);
+          if (firestoreSchoolData) {
+            setSchoolData(firestoreSchoolData);
           } else {
-             setError(`School data in your browser's storage does not match this student's school. Please log in to the correct school dashboard in another tab and try printing again.`);
+            // Fallback for data entered before this fix (e.g., from localStorage)
+            console.warn(`School with UDISE ${admissionInfo.admissionDetails.udise} not in Firestore. Trying localStorage.`);
+            const schoolDataString = localStorage.getItem('school_data');
+            if (schoolDataString) {
+              const localSchoolData = JSON.parse(schoolDataString);
+              if (localSchoolData.udise === admissionInfo.admissionDetails.udise) {
+                setSchoolData(localSchoolData);
+              } else {
+                setError(`School details for UDISE ${admissionInfo.admissionDetails.udise} were not found.`);
+              }
+            } else {
+               setError(`School details for UDISE ${admissionInfo.admissionDetails.udise} were not found.`);
+            }
           }
         } else {
-          setError(`Could not find school details in your browser's storage. To print with school details, please ensure you are logged into the school's dashboard in another browser tab.`);
+            setError(`This student record does not have a UDISE code, so school details cannot be loaded.`);
         }
-      } catch (e) {
-          console.error("Failed to retrieve school data from local storage:", e);
-          setError("An error occurred while retrieving school details for printing.");
+      } catch(e) {
+          console.error("Failed to load admission or school data:", e);
+          setError("An error occurred while retrieving data for printing.");
       } finally {
         setLoading(false);
       }
