@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -84,10 +85,9 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         <header className="flex items-center w-full mb-4 break-inside-avoid gap-4">
             <div className="flex-shrink-0">
                 <img
-                    src="https://pbs.twimg.com/profile_images/1790589713323098112/MFnv3U9X.jpg"
+                    src="/logo.jpg"
                     alt="School Logo"
                     className="h-20 w-20"
-                    crossOrigin="anonymous"
                 />
             </div>
             <div className="text-center flex-grow">
