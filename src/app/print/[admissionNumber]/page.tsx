@@ -15,10 +15,9 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
   const [schoolData, setSchoolData] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { admissionNumber } = params;
 
   useEffect(() => {
-    const admissionNumber = params.admissionNumber;
-
     const loadData = async () => {
       setLoading(true);
       setError(null);
@@ -71,7 +70,7 @@ export default function PrintAdmissionPage({ params }: { params: { admissionNumb
     if (admissionNumber) {
       loadData();
     }
-  }, [params]);
+  }, [admissionNumber]);
 
   if (loading) {
     return (
