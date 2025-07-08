@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, LogOut, PlusCircle, School, Users } from 'lucide-react';
+import { FileCog, LayoutDashboard, LogOut, PlusCircle, School, Users } from 'lucide-react';
 import { useSchoolData } from '@/hooks/use-school-data';
 
 import {
@@ -14,11 +14,18 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import {
+    Menubar,
+    MenubarContent,
+    MenubarItem,
+    MenubarMenu,
+    MenubarTrigger,
+} from "@/components/ui/menubar"
 
 export default function DashboardLayout({
   children,
@@ -97,18 +104,26 @@ export default function DashboardLayout({
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-2 mt-auto">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
-                <LogOut />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
+        <header className="flex items-center justify-end p-2 border-b bg-card">
+            <Menubar className="border-none bg-transparent shadow-none">
+                <MenubarMenu>
+                    <MenubarTrigger asChild>
+                        <Button variant="ghost">
+                            <FileCog className="mr-2 h-4 w-4" />
+                            Options
+                        </Button>
+                    </MenubarTrigger>
+                    <MenubarContent align="end">
+                        <MenubarItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Logout</span>
+                        </MenubarItem>
+                    </MenubarContent>
+                </MenubarMenu>
+            </Menubar>
+        </header>
         <main className="min-h-screen p-4 sm:p-6 md:p-8 bg-secondary/40">
             {children}
         </main>
