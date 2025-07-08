@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2, School as SchoolIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { saveSchool, getSchoolByUdise } from '@/lib/school';
+import { saveSchool } from '@/lib/school';
 import { updateUserProfile } from '@/lib/user';
 import type { School } from '@/lib/school';
 
@@ -45,14 +45,6 @@ export default function CompleteProfilePage() {
     setIsLoading(true);
 
     try {
-      // Check if another user has already registered this UDISE code
-      const existingSchool = await getSchoolByUdise(udise);
-      if (existingSchool?.ownerUid) {
-        setError('This UDISE code is already registered by another user.');
-        setIsLoading(false);
-        return;
-      }
-      
       const schoolData: School = {
         udise,
         name: schoolName,
@@ -60,7 +52,9 @@ export default function CompleteProfilePage() {
         ownerUid: user.uid,
       };
 
-      // Save school and update user profile in one go
+      // Save school and update user profile in one go.
+      // This will overwrite an existing school with the same UDISE,
+      // effectively "claiming" it for the current user.
       await saveSchool(schoolData);
       await updateUserProfile(user.uid, { udise });
 

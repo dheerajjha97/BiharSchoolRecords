@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2, School as SchoolIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { saveSchool, getSchoolByUdise } from '@/lib/school';
+import { saveSchool } from '@/lib/school';
 import { updateUserProfile } from '@/lib/user';
 import type { School } from '@/lib/school';
 import { schoolLookup } from '@/ai/flows/school-lookup-flow';
@@ -78,19 +78,12 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // Check if UDISE is already registered
-      const existingSchool = await getSchoolByUdise(udise);
-      if (existingSchool) {
-        setError('This UDISE code is already registered. Please login instead.');
-        setIsLoading(false);
-        return;
-      }
-
       // Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Create school document in Firestore
+      // Create school document in Firestore. This will overwrite any existing
+      // school with the same UDISE, effectively "claiming" it for the new user.
       const schoolData: School = {
         udise,
         name: schoolName,
