@@ -91,7 +91,7 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      // Let the AuthContext handle redirection
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -134,7 +134,7 @@ export default function LoginPage() {
     setIsPhoneLoading(true);
     try {
         await window.confirmationResult.confirm(otp);
-        router.push('/dashboard');
+        // Let the AuthContext handle redirection
     } catch (e: any) {
         setError(`Invalid OTP or error verifying. Please try again. Error: ${e.message}`);
     } finally {
