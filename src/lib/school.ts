@@ -1,11 +1,13 @@
 
 import { db, firebaseError } from './firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import { getUserProfile } from './user';
 
 export interface School {
     name: string;
     address: string;
     udise: string;
+    ownerUid?: string;
 }
 
 
@@ -20,7 +22,6 @@ export const saveSchool = async (schoolData: School): Promise<void> => {
     }
     try {
         const schoolDocRef = doc(db, 'schools', schoolData.udise);
-        // Use setDoc with merge to create a new document or update an existing one.
         await setDoc(schoolDocRef, schoolData, { merge: true });
     } catch (e) {
         console.error("Error saving school to Firestore: ", e);
@@ -48,9 +49,39 @@ export const getSchoolByUdise = async (udise: string): Promise<School | null> =>
         if (docSnap.exists()) {
             return docSnap.data() as School;
         }
-        return null; // School not found in the database
+        return null;
     } catch (e) {
         console.error(`Error fetching school with UDISE ${udise}:`, e);
         return null;
     }
+};
+
+/**
+ * Fetches the school data associated with a given user ID.
+ * @param uid The user's unique ID from Firebase Auth.
+ * @returns A promise that resolves to the school data, or null if not found.
+ */
+export const getSchoolForUser = async (uid: string): Promise<School | null> => {
+  if (!db) {
+    return null;
+  }
+  
+  // First, get the user's profile to find their UDISE code
+  const userProfile = await getUserProfile(uid);
+  if (userProfile?.udise) {
+    // If UDISE exists on user profile, fetch school directly
+    return getSchoolByUdise(userProfile.udise);
+  }
+
+  // Fallback: If no UDISE on user profile, check schools collection by ownerUid
+  // This is useful for migrating older data structures or as a backup.
+  const q = query(collection(db, 'schools'), where('ownerUid', '==', uid));
+  const querySnapshot = await getDocs(q);
+  
+  if (!querySnapshot.empty) {
+    const schoolDoc = querySnapshot.docs[0];
+    return schoolDoc.data() as School;
+  }
+  
+  return null; // No school associated with this user
 };

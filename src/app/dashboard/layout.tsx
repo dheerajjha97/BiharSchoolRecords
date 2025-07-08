@@ -3,8 +3,9 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { getAuth, signOut } from 'firebase/auth';
 import { FileCog, LayoutDashboard, LogOut, PlusCircle, School, Users } from 'lucide-react';
-import { useSchoolData } from '@/hooks/use-school-data';
+import { useAuth } from '@/context/AuthContext';
 
 import {
   SidebarProvider,
@@ -26,6 +27,7 @@ import {
     MenubarMenu,
     MenubarTrigger,
 } from "@/components/ui/menubar"
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardLayout({
   children,
@@ -34,12 +36,18 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { school, loading } = useSchoolData();
+  const { school, loading } = useAuth();
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    localStorage.removeItem('udise_code');
-    localStorage.removeItem('school_data');
-    router.push('/');
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
+      router.push('/login');
+    } catch (error) {
+      toast({ title: "Logout Failed", description: "Could not log you out. Please try again.", variant: "destructive" });
+    }
   };
 
   return (
