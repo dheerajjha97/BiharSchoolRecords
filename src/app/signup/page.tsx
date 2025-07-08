@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { saveSchool, getSchoolByUdise } from '@/lib/school';
 import { updateUserProfile } from '@/lib/user';
 import type { School } from '@/lib/school';
+import { schoolLookup } from '@/ai/flows/school-lookup-flow';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -28,6 +29,30 @@ export default function SignupPage() {
   
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+
+  // Effect to auto-fill school details from UDISE code
+  useEffect(() => {
+    const lookupSchool = async () => {
+      if (udise.length === 11) {
+        setIsLookingUp(true);
+        setError(null);
+        try {
+          const schoolData = await schoolLookup({ udise });
+          if (schoolData) {
+            setSchoolName(schoolData.name);
+            setAddress(schoolData.address);
+          }
+        } catch (e) {
+          console.error("School lookup failed", e);
+          // Don't set an error, just allow manual entry
+        } finally {
+          setIsLookingUp(false);
+        }
+      }
+    };
+    lookupSchool();
+  }, [udise]);
 
   const handleSignup = async () => {
     setError(null);
@@ -115,9 +140,10 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2 md:col-span-2 relative">
               <Label htmlFor="udise">UDISE Code</Label>
               <Input id="udise" placeholder="11-digit UDISE code" value={udise} onChange={(e) => setUdise(e.target.value)} />
+              {isLookingUp && <Loader2 className="absolute right-3 top-9 h-4 w-4 animate-spin" />}
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="school-name">School Name</Label>
@@ -150,7 +176,7 @@ export default function SignupPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button onClick={handleSignup} disabled={isLoading} className="w-full mt-6">
+          <Button onClick={handleSignup} disabled={isLoading || isLookingUp} className="w-full mt-6">
             {isLoading ? <Loader2 className="animate-spin" /> : 'Create Account'}
           </Button>
           <div className="mt-4 text-center text-sm">
