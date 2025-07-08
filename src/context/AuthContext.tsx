@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (schoolData) {
           setSchool(schoolData);
           localStorage.setItem('school_data', JSON.stringify(schoolData));
-          if (unprotectedRoutes.includes(pathname)) {
+          if (unprotectedRoutes.includes(pathname) || pathname === '/') {
             router.push('/dashboard');
           }
         } else {
