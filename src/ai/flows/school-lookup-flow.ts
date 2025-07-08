@@ -22,7 +22,7 @@ const SchoolLookupOutputSchema = z.object({
 }).nullable();
 export type SchoolLookupOutput = z.infer<typeof SchoolLookupOutputSchema>;
 
-// This is a mock database to simulate fetching from the datameet repository.
+// This is a mock database to simulate fetching from the udise_schools repository.
 // In a real application, this would be a call to an external API or database.
 const schoolDatabase: Record<string, { name: string; address: string }> = {
   '10141201505': {

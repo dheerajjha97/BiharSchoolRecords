@@ -72,7 +72,7 @@ export default function RootPage() {
           // School found in our DB, proceed directly to dashboard
           await proceedToDashboard(existingSchool);
       } else {
-          // 2. Not in our DB, try the lookup service (simulating datameet)
+          // 2. Not in our DB, try the lookup service (simulating udise_schools)
           const schoolFromApi = await schoolLookup({ udise: trimmedUdise });
 
           if (schoolFromApi) {
