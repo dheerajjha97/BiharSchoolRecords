@@ -3,13 +3,12 @@
 import DashboardStats from '@/components/dashboard-stats';
 import RecentAdmissions from '@/components/recent-admissions';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import GenerateQrCode from '@/components/generate-qr-code';
-import { firebaseError } from '@/lib/firebase';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSchoolData } from '@/hooks/use-school-data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DebugEnvVars } from '@/components/debug-env-vars';
 
 export default function DashboardPage() {
   const { school, loading } = useSchoolData();
@@ -17,13 +16,7 @@ export default function DashboardPage() {
   return (
     <>
       <div className="flex flex-col gap-8">
-        {firebaseError && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Configuration Error</AlertTitle>
-            <AlertDescription>{firebaseError}</AlertDescription>
-          </Alert>
-        )}
+        <DebugEnvVars />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <header>
             {loading ? (

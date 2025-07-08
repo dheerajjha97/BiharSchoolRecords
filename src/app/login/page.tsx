@@ -15,12 +15,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, School, Mail, KeyRound, Smartphone, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Loader2, School, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { auth, firebaseError } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
+import { DebugEnvVars } from '@/components/debug-env-vars';
 
 declare global {
   interface Window {
@@ -172,17 +173,11 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {firebaseError && (
-              <Alert variant="destructive" className="mb-4">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Configuration Error</AlertTitle>
-                  <AlertDescription>{firebaseError}</AlertDescription>
-              </Alert>
-          )}
+          <DebugEnvVars />
           <Tabs defaultValue="email" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="phone">Phone</TabsTrigger>
+              <TabsTrigger value="email" disabled={!!firebaseError}>Email</TabsTrigger>
+              <TabsTrigger value="phone" disabled={!!firebaseError}>Phone</TabsTrigger>
             </TabsList>
 
             <TabsContent value="email" className="space-y-4 pt-4">

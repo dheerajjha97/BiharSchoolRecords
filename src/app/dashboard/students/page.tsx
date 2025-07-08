@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Printer, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useSchoolData } from '@/hooks/use-school-data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { firebaseError } from '@/lib/firebase';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { DebugEnvVars } from '@/components/debug-env-vars';
 
 const classOptions = [
   { value: 'all', label: 'All Classes' },
@@ -74,13 +74,7 @@ function StudentsListContent() {
   return (
     <>
       <div className="space-y-8">
-        {firebaseError && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Configuration Error</AlertTitle>
-            <AlertDescription>{firebaseError}</AlertDescription>
-          </Alert>
-        )}
+        <DebugEnvVars />
         <header className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Students List</h1>
