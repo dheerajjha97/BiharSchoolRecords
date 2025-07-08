@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2, School as SchoolIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { saveSchool } from '@/lib/school';
+import { saveSchool, getSchoolByUdise } from '@/lib/school';
 import { updateUserProfile } from '@/lib/user';
 import type { School } from '@/lib/school';
 import { schoolLookup } from '@/ai/flows/school-lookup-flow';
@@ -38,10 +38,18 @@ export default function SignupPage() {
         setIsLookingUp(true);
         setError(null);
         try {
-          const schoolData = await schoolLookup({ udise });
-          if (schoolData) {
-            setSchoolName(schoolData.name);
-            setAddress(schoolData.address);
+          // Prioritize checking the "real" database first
+          const firestoreSchool = await getSchoolByUdise(udise);
+          if (firestoreSchool) {
+            setSchoolName(firestoreSchool.name);
+            setAddress(firestoreSchool.address);
+          } else {
+            // Fallback to the mock data lookup if not found in the real DB
+            const schoolData = await schoolLookup({ udise });
+            if (schoolData) {
+              setSchoolName(schoolData.name);
+              setAddress(schoolData.address);
+            }
           }
         } catch (e) {
           console.error("School lookup failed", e);
