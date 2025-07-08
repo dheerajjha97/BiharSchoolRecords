@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,9 +16,11 @@ import { updateUserProfile } from '@/lib/user';
 import type { School } from '@/lib/school';
 import { schoolLookup } from '@/ai/flows/school-lookup-flow';
 import { auth } from '@/lib/firebase';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { loading: authLoading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -124,6 +127,14 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
+  
+  if (authLoading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-8">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-4 sm:p-8">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -15,7 +16,7 @@ import type { School } from '@/lib/school';
 
 export default function CompleteProfilePage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [udise, setUdise] = useState('');
   const [schoolName, setSchoolName] = useState('');
@@ -69,6 +70,14 @@ export default function CompleteProfilePage() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-8">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-8">

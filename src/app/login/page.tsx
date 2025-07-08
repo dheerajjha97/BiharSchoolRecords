@@ -20,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { auth, firebaseError } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/context/AuthContext';
 
 declare global {
   interface Window {
@@ -30,6 +31,7 @@ declare global {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { loading: authLoading } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,7 +75,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      // Let AuthContext handle redirection
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -141,6 +143,14 @@ export default function LoginPage() {
         setIsPhoneLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-8">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-4 sm:p-8">
