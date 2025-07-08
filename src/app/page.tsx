@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,7 +19,6 @@ export default function RootPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAddSchoolDialogOpen, setAddSchoolDialogOpen] = useState(false);
   const [udiseForNewSchool, setUdiseForNewSchool] = useState('');
-  const [initialDataForDialog, setInitialDataForDialog] = useState<Partial<School> | undefined>(undefined);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,7 +34,7 @@ export default function RootPage() {
   const proceedToDashboard = async (schoolData: School) => {
     setIsLoading(true);
     try {
-      // Save to Firestore first
+      // Save to Firestore first to ensure it's there for future logins
       await saveSchool(schoolData);
       
       // Then save to localStorage and navigate
@@ -69,20 +67,11 @@ export default function RootPage() {
       const existingSchool = await getSchoolByUdise(trimmedUdise);
       
       if (existingSchool) {
+          // School found, proceed directly to dashboard
           await proceedToDashboard(existingSchool);
       } else {
-          // If school is not found, open the dialog for manual entry.
-          // For the specific UDISE code the user is having trouble with, we can pre-fill the data for them.
-          let prefilledData: Partial<School> | undefined = undefined;
-          if (trimmedUdise === '10141201505') {
-            prefilledData = {
-              name: 'उच्च माध्यमिक विद्यालय बेरुआ',
-              address: 'ग्राम – चोरनियां, पोस्ट – चिरैला, प्रखंड – गायघाट, जिला – मुजफ्फरपुर',
-            };
-          }
-
+          // School not found, open the dialog for manual entry.
           setUdiseForNewSchool(trimmedUdise);
-          setInitialDataForDialog(prefilledData);
           setAddSchoolDialogOpen(true);
       }
     } catch (e) {
@@ -155,7 +144,6 @@ export default function RootPage() {
         onOpenChange={setAddSchoolDialogOpen}
         udise={udiseForNewSchool}
         onSave={proceedToDashboard}
-        initialData={initialDataForDialog}
       />
     </>
   );

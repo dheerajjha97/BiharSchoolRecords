@@ -19,20 +19,19 @@ interface AddSchoolDialogProps {
   onOpenChange: (open: boolean) => void;
   udise: string;
   onSave: (school: School) => void;
-  initialData?: Partial<School>;
 }
 
-export function AddSchoolDialog({ open, onOpenChange, udise, onSave, initialData }: AddSchoolDialogProps) {
+export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchoolDialogProps) {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
 
   useEffect(() => {
-    // When the dialog opens, pre-fill the form with initial data if it exists.
+    // When the dialog opens or udise changes, reset the fields.
     if (open) {
-        setName(initialData?.name || '');
-        setAddress(initialData?.address || '');
+        setName('');
+        setAddress('');
     }
-  }, [open, udise, initialData]);
+  }, [open, udise]);
 
   const handleSave = () => {
     if (name.trim() && address.trim()) {
@@ -49,12 +48,9 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave, initialData
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{initialData?.name ? 'Confirm School Details' : 'Add New School'}</DialogTitle>
+          <DialogTitle>Register New School</DialogTitle>
           <DialogDescription>
-            {initialData?.name 
-              ? `Please confirm the details for UDISE code ${udise} and click Save.`
-              : `The school for UDISE code ${udise} is not yet registered. Please add the details below to save it for future use.`
-            }
+            The school for UDISE code {udise} is not yet registered. Please add the details below to save it for future use.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
