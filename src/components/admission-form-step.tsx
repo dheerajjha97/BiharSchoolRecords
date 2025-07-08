@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { UseFormReturn, FieldPath } from "react-hook-form";
@@ -25,7 +24,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { FormSection } from "@/components/form-section";
 import type { FormValues } from "@/lib/form-schema";
 import { Label } from "@/components/ui/label";
-import { translateName } from "@/ai/flows/name-translate-flow";
 
 interface AdmissionFormStepProps {
   form: UseFormReturn<FormValues>;
@@ -36,25 +34,6 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const [isFetchingPinDetails, setIsFetchingPinDetails] = useState(false);
   const [isFetchingBankDetails, setIsFetchingBankDetails] = useState(false);
   const [availableBlocks, setAvailableBlocks] = useState<string[]>([]);
-  const [isTranslating, setIsTranslating] = useState<string | null>(null);
-
-  const handleNameTranslate = async (name: string, targetField: FieldPath<FormValues>) => {
-    if (!name.trim()) return;
-    
-    const fieldId = targetField.split('.').pop() || '';
-    setIsTranslating(fieldId);
-    try {
-        const result = await translateName({ name });
-        if (result.translatedName) {
-            form.setValue(targetField, result.translatedName, { shouldValidate: true });
-        }
-    } catch (error) {
-        console.error("Name translation failed:", error);
-    } finally {
-        setIsTranslating(null);
-    }
-  }
-
 
   const handlePinCodeLookup = async (pinCode: string) => {
     // Reset blocks and form value when a new lookup starts
@@ -153,15 +132,11 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Student's Name (English)</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input 
-                      placeholder="e.g., JOHN DOE" 
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      onBlur={(e) => handleNameTranslate(e.target.value, "studentDetails.nameHi")}
-                    />
-                    {isTranslating === 'nameEn' && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
-                  </div>
+                  <Input 
+                    placeholder="e.g., JOHN DOE" 
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -187,15 +162,11 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Father's Name (English)</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input 
-                      placeholder="e.g., RICHARD DOE" 
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      onBlur={(e) => handleNameTranslate(e.target.value, "studentDetails.fatherNameHi")}
-                    />
-                    {isTranslating === 'fatherNameEn' && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
-                  </div>
+                  <Input 
+                    placeholder="e.g., RICHARD DOE" 
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -221,15 +192,11 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Mother's Name (English)</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input 
-                      placeholder="e.g., JANE DOE" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      onBlur={(e) => handleNameTranslate(e.target.value, "studentDetails.motherNameHi")}
-                    />
-                    {isTranslating === 'motherNameEn' && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
-                  </div>
+                  <Input 
+                    placeholder="e.g., JANE DOE" 
+                    {...field} 
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

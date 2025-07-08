@@ -12,6 +12,7 @@ import { getSchoolByUdise, saveSchool } from '@/lib/school';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AddSchoolDialog } from '@/components/add-school-dialog';
 import { DebugEnvVars } from '@/components/debug-env-vars';
+import { schoolLookup } from '@/ai/flows/school-lookup-flow';
 
 export default function RootPage() {
   const router = useRouter();
@@ -64,19 +65,28 @@ export default function RootPage() {
     setIsLoading(true);
     
     try {
+      // 1. Check local Firestore DB first for user-saved schools
       const existingSchool = await getSchoolByUdise(trimmedUdise);
       
       if (existingSchool) {
-          // School found, proceed directly to dashboard
+          // School found in our DB, proceed directly to dashboard
           await proceedToDashboard(existingSchool);
       } else {
-          // School not found, open the dialog for manual entry.
-          setUdiseForNewSchool(trimmedUdise);
-          setAddSchoolDialogOpen(true);
+          // 2. Not in our DB, try the lookup service (simulating datameet)
+          const schoolFromApi = await schoolLookup({ udise: trimmedUdise });
+
+          if (schoolFromApi) {
+              // Found via "API", save it and proceed to dashboard
+              await proceedToDashboard(schoolFromApi);
+          } else {
+              // 3. Not found anywhere, open the dialog for manual entry.
+              setUdiseForNewSchool(trimmedUdise);
+              setAddSchoolDialogOpen(true);
+          }
       }
     } catch (e) {
-        console.error("Error checking school data:", e);
-        setError("Could not verify school information. Please check your connection and try again.");
+        console.error("Error during school lookup:", e);
+        setError("Could not verify school information. Please try again or enter details manually.");
     } finally {
         setIsLoading(false);
     }
