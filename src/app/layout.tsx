@@ -1,4 +1,5 @@
-import type {Metadata} from 'next';
+
+import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/AuthContext';
@@ -6,7 +7,11 @@ import { AuthProvider } from '@/context/AuthContext';
 export const metadata: Metadata = {
   title: 'EduAssist Forms',
   description: 'Admission and Subject Selection Forms for Class 9 & Class 11 (Arts, Science, Commerce)',
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
