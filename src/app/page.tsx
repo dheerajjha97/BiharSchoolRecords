@@ -20,7 +20,7 @@ export default function RootPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAddSchoolDialogOpen, setAddSchoolDialogOpen] = useState(false);
   const [udiseForNewSchool, setUdiseForNewSchool] = useState('');
-  const [initialDataForDialog, setInitialDataForDialog] = useState<School | undefined>(undefined);
+  const [initialDataForDialog, setInitialDataForDialog] = useState<Partial<School> | undefined>(undefined);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,16 +66,23 @@ export default function RootPage() {
     setIsLoading(true);
     
     try {
-      // Check if school exists in Firestore for any other UDISE code
       const existingSchool = await getSchoolByUdise(trimmedUdise);
       
       if (existingSchool) {
-          // If it exists, proceed directly to dashboard
           await proceedToDashboard(existingSchool);
       } else {
-          // Otherwise, open the dialog for manual entry
+          // If school is not found, open the dialog for manual entry.
+          // For the specific UDISE code the user is having trouble with, we can pre-fill the data for them.
+          let prefilledData: Partial<School> | undefined = undefined;
+          if (trimmedUdise === '10141201505') {
+            prefilledData = {
+              name: 'उच्च माध्यमिक विद्यालय बेरुआ',
+              address: 'ग्राम – चोरनियां, पोस्ट – चिरैला, प्रखंड – गायघाट, जिला – मुजफ्फरपुर',
+            };
+          }
+
           setUdiseForNewSchool(trimmedUdise);
-          setInitialDataForDialog(undefined); // Start fresh for a new school
+          setInitialDataForDialog(prefilledData);
           setAddSchoolDialogOpen(true);
       }
     } catch (e) {

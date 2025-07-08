@@ -49,11 +49,11 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave, initialData
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{initialData ? 'Edit School Details' : 'Add New School'}</DialogTitle>
+          <DialogTitle>{initialData?.name ? 'Confirm School Details' : 'Add New School'}</DialogTitle>
           <DialogDescription>
-            {initialData 
-              ? `Please correct the school details for UDISE code ${udise}.`
-              : `The UDISE code ${udise} was not found. Please add the school details below.`
+            {initialData?.name 
+              ? `Please confirm the details for UDISE code ${udise} and click Save.`
+              : `The school for UDISE code ${udise} is not yet registered. Please add the details below to save it for future use.`
             }
           </DialogDescription>
         </DialogHeader>
