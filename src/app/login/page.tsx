@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  getAuth,
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
@@ -18,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, School, Mail, KeyRound, Smartphone, MessageSquare } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
 
 declare global {
@@ -30,7 +29,6 @@ declare global {
 
 export default function LoginPage() {
   const router = useRouter();
-  const auth = getAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,6 +43,10 @@ export default function LoginPage() {
 
 
   const setupRecaptcha = () => {
+    if (!auth) {
+        setError("Firebase auth is not configured.");
+        return null;
+    }
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         'size': 'invisible',
@@ -58,6 +60,10 @@ export default function LoginPage() {
   };
 
   const handleEmailLogin = async () => {
+    if (!auth) {
+        setError("Firebase auth is not configured.");
+        return;
+    }
     if (!email || !password) {
       setError('Please enter both email and password.');
       return;
@@ -75,6 +81,10 @@ export default function LoginPage() {
   };
   
   const handleGoogleLogin = async () => {
+    if (!auth) {
+        setError("Firebase auth is not configured.");
+        return;
+    }
     setError(null);
     setIsGoogleLoading(true);
     try {
@@ -89,6 +99,10 @@ export default function LoginPage() {
   };
 
   const handleSendOtp = async () => {
+    if (!auth) {
+        setError("Firebase auth is not configured.");
+        return;
+    }
     if (!phone || !/^\+?[1-9]\d{1,14}$/.test(phone)) {
         setError('Please enter a valid phone number with country code (e.g., +919876543210).');
         return;
@@ -98,6 +112,7 @@ export default function LoginPage() {
 
     try {
         const recaptchaVerifier = setupRecaptcha();
+        if (!recaptchaVerifier) return; // Stop if recaptcha setup failed
         const confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
         window.confirmationResult = confirmationResult;
         setIsOtpSent(true);

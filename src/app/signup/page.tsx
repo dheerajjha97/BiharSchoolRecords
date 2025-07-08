@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,10 @@ import { saveSchool } from '@/lib/school';
 import { updateUserProfile } from '@/lib/user';
 import type { School } from '@/lib/school';
 import { schoolLookup } from '@/ai/flows/school-lookup-flow';
+import { auth } from '@/lib/firebase';
 
 export default function SignupPage() {
   const router = useRouter();
-  const auth = getAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,6 +55,10 @@ export default function SignupPage() {
   }, [udise]);
 
   const handleSignup = async () => {
+    if (!auth) {
+        setError("Firebase auth is not configured. Cannot sign up.");
+        return;
+    }
     setError(null);
 
     // Validation

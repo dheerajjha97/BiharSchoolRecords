@@ -3,9 +3,10 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { getAuth, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { FileCog, LayoutDashboard, LogOut, PlusCircle, School, Users } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { auth } from '@/lib/firebase';
 
 import {
   SidebarProvider,
@@ -40,8 +41,11 @@ export default function DashboardLayout({
   const { toast } = useToast();
 
   const handleLogout = async () => {
+    if (!auth) {
+        toast({ title: "Logout Failed", description: "Firebase is not configured.", variant: "destructive" });
+        return;
+    }
     try {
-      const auth = getAuth();
       await signOut(auth);
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
       router.push('/login');
