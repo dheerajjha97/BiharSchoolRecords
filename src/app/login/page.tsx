@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -14,10 +15,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, School, Mail, KeyRound, Smartphone, MessageSquare } from 'lucide-react';
+import { Loader2, School, Mail, KeyRound, Smartphone, MessageSquare, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { auth } from '@/lib/firebase';
+import { auth, firebaseError } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
 
 declare global {
@@ -161,6 +162,13 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {firebaseError && (
+              <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Configuration Error</AlertTitle>
+                  <AlertDescription>{firebaseError}</AlertDescription>
+              </Alert>
+          )}
           <Tabs defaultValue="email" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="email">Email</TabsTrigger>
@@ -176,11 +184,11 @@ export default function LoginPage() {
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleEmailLogin()} />
               </div>
-              <Button onClick={handleEmailLogin} disabled={isLoading} className="w-full">
+              <Button onClick={handleEmailLogin} disabled={isLoading || !!firebaseError} className="w-full">
                 {isLoading ? <Loader2 className="animate-spin" /> : 'Login with Email'}
               </Button>
               <Separator className="my-4" />
-              <Button variant="outline" onClick={handleGoogleLogin} disabled={isGoogleLoading} className="w-full">
+              <Button variant="outline" onClick={handleGoogleLogin} disabled={isGoogleLoading || !!firebaseError} className="w-full">
                 {isGoogleLoading ? <Loader2 className="animate-spin" /> : <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 172.9 56.6l-69.7 69.7C323.8 102.3 289.2 88 248 88c-88.3 0-160 71.7-160 160s71.7 160 160 160c94.4 0 135.3-63.5 140.8-95.3H248v-72.2h239.3c5.3 22.8 8.7 47.8 8.7 75.3z"></path></svg>}
                 Sign in with Google
               </Button>
@@ -194,7 +202,7 @@ export default function LoginPage() {
                     <Input id="phone" type="tel" placeholder="+919876543210" value={phone} onChange={(e) => setPhone(e.target.value)} />
                     <p className="text-xs text-muted-foreground">Include your country code.</p>
                   </div>
-                  <Button onClick={handleSendOtp} disabled={isPhoneLoading} className="w-full">
+                  <Button onClick={handleSendOtp} disabled={isPhoneLoading || !!firebaseError} className="w-full">
                     {isPhoneLoading ? <Loader2 className="animate-spin" /> : 'Send OTP'}
                   </Button>
                 </>
@@ -205,7 +213,7 @@ export default function LoginPage() {
                     <Input id="otp" type="text" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} />
                     <p className="text-xs text-muted-foreground">An OTP has been sent to {phone}.</p>
                   </div>
-                  <Button onClick={handleVerifyOtp} disabled={isPhoneLoading} className="w-full">
+                  <Button onClick={handleVerifyOtp} disabled={isPhoneLoading || !!firebaseError} className="w-full">
                     {isPhoneLoading ? <Loader2 className="animate-spin" /> : 'Verify OTP & Login'}
                   </Button>
                   <Button variant="link" onClick={() => setIsOtpSent(false)} className="w-full">
