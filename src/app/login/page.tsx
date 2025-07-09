@@ -48,8 +48,6 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    setShowAddSchoolDialog(false);
-
 
     if (firebaseError) {
         setError(firebaseError);
@@ -61,7 +59,7 @@ export default function LoginPage() {
       const school = await getSchoolByUdise(udise);
       
       if (!school) {
-        setError(`School with UDISE code ${udise} not found.`);
+        setError(`School with UDISE code ${udise} not found. Please register it.`);
         setShowAddSchoolDialog(true);
         setLoading(false);
         return;
@@ -88,14 +86,21 @@ export default function LoginPage() {
 
   const handleSaveSchool = async (school: School) => {
     setLoading(true);
+    setError('');
     try {
       await saveSchool(school);
       await login(school.udise);
       setShowAddSchoolDialog(false);
       router.push('/dashboard');
     } catch (err) {
-      setError('Failed to save the new school. Please try again.');
+      let errorMessage = 'An unexpected error occurred.';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(`Failed to save the new school. ${errorMessage}`);
       console.error(err);
+      // Re-throw to be caught in the dialog to stop its loading state
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -139,7 +144,7 @@ export default function LoginPage() {
                 <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
                 <Label htmlFor="remember-me" className="text-sm font-normal">Remember my UDISE code</Label>
             </div>
-            {error && !showAddSchoolDialog && (
+            {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Login Failed</AlertTitle>
@@ -149,11 +154,27 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {loading ? 'Verifying...' : 'Login'}
+              {loading && !showAddSchoolDialog ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {loading && !showAddSchoolDialog ? 'Verifying...' : 'Login'}
             </Button>
           </CardFooter>
         </form>
+
+        <div className="px-6 pb-6">
+            <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">
+                        Or
+                    </span>
+                </div>
+            </div>
+            <Button variant="outline" className="w-full" type="button" onClick={() => setShowAddSchoolDialog(true)}>
+                Register a New School
+            </Button>
+        </div>
       </Card>
       
       <AddSchoolDialog 

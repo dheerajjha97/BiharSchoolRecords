@@ -128,7 +128,7 @@ export default function DashboardLayout({
               </Button>
             </div>
         </header>
-        <div className="flex-1 p-4 sm:p-6 md:p-8 bg-secondary/40">
+        <div className="flex-1 p-4 sm:p-6 md:p-8 bg-secondary/40 overflow-y-auto">
             {children}
         </div>
       </SidebarInset>
