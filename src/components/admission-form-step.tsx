@@ -392,7 +392,24 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
 
       <FormSection title="Contact & Address Information">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="contactDetails.mobileNumber" render={({ field }) => (<FormItem><FormLabel>Mobile Number</FormLabel><FormControl><Input placeholder="9876543210" type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField
+              control={form.control}
+              name="contactDetails.mobileNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mobile Number</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <span className="text-muted-foreground sm:text-sm">+91</span>
+                      </div>
+                      <Input placeholder="9876543210" type="tel" className="pl-12" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField control={form.control} name="contactDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><FormControl><Input placeholder="student@example.com" type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
             <FormField control={form.control} name="contactDetails.aadharNumber" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Aadhar Number</FormLabel><FormControl><Input placeholder="12-digit Aadhar number" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>

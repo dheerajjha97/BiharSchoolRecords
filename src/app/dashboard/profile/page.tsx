@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -42,10 +41,15 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (school) {
+      // Strip +91 for display in the form input
+      const displayMobile = school.mobile?.startsWith('+91') 
+        ? school.mobile.substring(3) 
+        : school.mobile;
+
       form.reset({
         name: school.name,
         address: school.address,
-        mobile: school.mobile || '',
+        mobile: displayMobile || '',
         email: school.email || '',
       });
     }
@@ -63,11 +67,14 @@ export default function ProfilePage() {
 
     setIsSaving(true);
     try {
+      // Prepend +91 if mobile number is present
+      const mobileWithCode = data.mobile ? `+91${data.mobile}` : undefined;
+      
       const updatedSchoolData = { 
         ...school, 
         name: data.name,
         address: data.address,
-        mobile: data.mobile || undefined,
+        mobile: mobileWithCode,
         email: data.email || undefined,
       };
       await saveSchool(updatedSchoolData);
@@ -169,7 +176,12 @@ export default function ProfilePage() {
                   <FormItem>
                     <FormLabel>Mobile Number</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="10-digit mobile number" {...field} />
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <span className="text-muted-foreground sm:text-sm">+91</span>
+                        </div>
+                        <Input type="tel" placeholder="10-digit mobile number" className="pl-12" {...field} />
+                      </div>
                     </FormControl>
                     <FormDescription>
                       This will be used for future communication and password recovery.

@@ -156,6 +156,11 @@ function AdmissionWizardContent() {
     }
     setIsLoading(true);
     try {
+      // Prepend country code to mobile number before saving
+      if (data.contactDetails.mobileNumber) {
+        data.contactDetails.mobileNumber = `+91${data.contactDetails.mobileNumber}`;
+      }
+
       const dataWithUdise: FormValues = {
         ...data,
         admissionDetails: {
