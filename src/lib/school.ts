@@ -7,6 +7,7 @@ export interface School {
     address: string;
     udise: string;
     ownerUid?: string;
+    password?: string;
 }
 
 

@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, School, Users, LogOut, Loader2 } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, School, Users, LogOut, Loader2, KeyRound } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 import {
@@ -19,6 +19,8 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { SheetTitle } from '@/components/ui/sheet';
+
 
 export default function DashboardLayout({
   children,
@@ -46,6 +48,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <Sidebar>
+        <SheetTitle className="sr-only">Sidebar Navigation</SheetTitle>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <Link href="/dashboard" className="flex items-center gap-3 p-2 w-full">
@@ -94,6 +97,18 @@ export default function DashboardLayout({
                 <Link href="/form">
                   <PlusCircle />
                   <span>New Admission</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/dashboard/reset-password'}
+                tooltip="Reset Password"
+              >
+                <Link href="/dashboard/reset-password">
+                  <KeyRound />
+                  <span>Reset Password</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
