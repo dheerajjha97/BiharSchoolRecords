@@ -1,10 +1,8 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
 
 let app;
 let dbInstance = null;
-let authInstance = null;
 let firebaseError: string | null = null;
 
 try {
@@ -22,7 +20,6 @@ try {
   if (allVarsPresent) {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     dbInstance = getFirestore(app);
-    authInstance = getAuth(app);
   } else {
     throw new Error("One or more Firebase environment variables are missing from .env.local.");
   }
@@ -33,5 +30,4 @@ try {
 }
 
 export const db = dbInstance;
-export const auth = authInstance;
 export { firebaseError };

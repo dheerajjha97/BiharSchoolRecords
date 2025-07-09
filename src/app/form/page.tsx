@@ -1,7 +1,7 @@
 
 import AdmissionWizard from '@/components/admission-wizard';
 import { Button } from '@/components/ui/button';
-import { Lock } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { DebugEnvVars } from '@/components/debug-env-vars';
 
@@ -16,7 +16,7 @@ export default function FormPage() {
       <footer className="absolute bottom-4 right-4">
         <Button asChild variant="outline" size="sm">
           <Link href="/dashboard">
-            <Lock className="mr-2 h-4 w-4" />
+            <LayoutDashboard className="mr-2 h-4 w-4" />
             Admin Dashboard
           </Link>
         </Button>
