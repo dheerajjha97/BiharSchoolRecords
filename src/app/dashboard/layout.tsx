@@ -128,9 +128,9 @@ export default function DashboardLayout({
               </Button>
             </div>
         </header>
-        <main className="min-h-screen p-4 sm:p-6 md:p-8 bg-secondary/40">
+        <div className="flex-1 p-4 sm:p-6 md:p-8 bg-secondary/40">
             {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
