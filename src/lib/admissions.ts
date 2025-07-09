@@ -109,20 +109,22 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
 };
 
 /**
- * Gets the total count of all approved (non-pending) admission documents across all schools.
- * @returns A promise that resolves to the total number of approved admissions.
+ * Gets the count of approved (non-pending) admissions for a specific school.
+ * @param udise The UDISE code of the school.
+ * @returns A promise that resolves to the number of approved admissions in that school.
  */
-const getGlobalAdmissionCount = async (): Promise<number> => {
+const getSchoolAdmissionCount = async (udise: string): Promise<number> => {
     if (!db) {
         console.warn(firebaseError || "Database not available. Cannot get admission count.");
         return 0;
     }
     try {
-        // Querying the entire collection. This can be slow and costly at a very large scale.
-        const q = query(collection(db, "admissions"));
+        const q = query(collection(db, "admissions"), 
+            where('admissionDetails.udise', '==', udise),
+        );
         const snapshot = await getDocs(q);
         
-        // A student is approved if their status is NOT 'pending'. This includes legacy data without a status.
+        // A student is approved if their status is NOT 'pending' or is undefined (for old records).
         const approvedCount = snapshot.docs.filter(doc => {
             const data = doc.data() as FormValues;
             return data.admissionDetails?.status !== 'pending';
@@ -130,7 +132,7 @@ const getGlobalAdmissionCount = async (): Promise<number> => {
 
         return approvedCount;
     } catch (e) {
-        console.error("Error getting global admission count:", e);
+        console.error("Error getting school admission count:", e);
         return 0;
     }
 };
@@ -150,14 +152,17 @@ export const approveAdmission = async (id: string, udise: string, classSelection
 
         // Get counts to generate new numbers
         const approvedInClassCount = await getClassAdmissionCount(udise, classSelection); // For school/class-specific roll number
-        const totalApprovedCount = await getGlobalAdmissionCount(); // For globally unique admission number
+        const totalApprovedInSchoolCount = await getSchoolAdmissionCount(udise); // For school-specific admission number
         
         // Generate numbers
         const rollNumber = String(approvedInClassCount + 1);
+        
         const year = new Date().getFullYear().toString().slice(-2);
-        const nextId = (totalApprovedCount + 1).toString().padStart(4, '0');
-        // A shorter, simpler, globally unique admission number
-        const admissionNumber = `ADM/${year}/${nextId}`;
+        // Create a 6-digit unique school identifier from UDISE: [District][Block][School]
+        // This makes the admission number unique per school without being too long.
+        const schoolIdentifier = udise.substring(2, 6) + udise.substring(9, 11);
+        const nextId = (totalApprovedInSchoolCount + 1).toString().padStart(4, '0');
+        const admissionNumber = `ADM/${schoolIdentifier}/${year}/${nextId}`;
 
         // Update document
         await updateDoc(docRef, {
@@ -205,6 +210,10 @@ export const listenToAdmissions = (
     
     if (status) {
         constraints.push(where('admissionDetails.status', '==', status));
+    } else {
+        // This is for the "Approved Students" list.
+        // We want all students who are NOT pending. This includes 'approved', 'rejected', and old data without a status.
+        constraints.push(where('admissionDetails.status', '!=', 'pending'));
     }
 
     const q = query(collection(db, 'admissions'), ...constraints);
@@ -215,11 +224,6 @@ export const listenToAdmissions = (
             admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
         });
         
-        if (status === 'approved') {
-            // This is now handled by the Firestore query, but we keep this as a safeguard
-            admissions = admissions.filter(s => s.admissionDetails.status === 'approved');
-        }
-
         // Sort the data on the client-side
         const sortField: 'submittedAt' | 'admissionDate' = status === 'pending' ? 'submittedAt' : 'admissionDate';
         admissions.sort((a, b) => {
@@ -236,7 +240,7 @@ export const listenToAdmissions = (
                  return (dateB as Date).getTime() - (dateA as Date).getTime();
             }
             
-            // Fallback sort if dates are not present or equal
+            // Fallback sort for records without a date, sorting by name
             return (a.studentDetails?.nameEn || '').localeCompare(b.studentDetails?.nameEn || '');
         });
         
