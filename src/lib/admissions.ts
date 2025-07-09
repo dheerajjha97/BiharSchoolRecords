@@ -1,3 +1,4 @@
+
 import { db, firebaseError } from './firebase';
 import {
   collection,
@@ -190,10 +191,24 @@ export const listenToAdmissions = (
             const dateA = a.admissionDetails?.[sortField] as Date | undefined;
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
-            if (!dateB) return -1;
-            if (!dateA) return 1;
+            // Handle cases where dates might be missing or invalid.
+            // Records with invalid/missing dates should be sorted to the end.
+            const aHasDate = dateA && dateA instanceof Date && !isNaN(dateA.getTime());
+            const bHasDate = dateB && dateB instanceof Date && !isNaN(dateB.getTime());
 
-            return dateB.getTime() - dateA.getTime(); // For descending order
+            if (aHasDate && !bHasDate) {
+              return -1; // a comes first
+            }
+            if (!aHasDate && bHasDate) {
+              return 1; // b comes first
+            }
+            if (!aHasDate && !bHasDate) {
+              // Fallback to name sorting if no dates are available
+              return (a.studentDetails?.nameEn || '').localeCompare(b.studentDetails?.nameEn || '');
+            }
+            
+            // Both dates are valid, sort descending (newest first)
+            return (dateB as Date).getTime() - (dateA as Date).getTime();
         });
         
         // Apply limit on the client-side
