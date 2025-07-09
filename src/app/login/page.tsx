@@ -133,6 +133,7 @@ export default function LoginPage() {
                 onChange={(e) => setUdise(e.target.value)}
                 required
                 maxLength={11}
+                disabled={!!firebaseError}
               />
             </div>
             <div className="space-y-2">
@@ -144,13 +145,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={!!firebaseError}
               />
             </div>
             <div className="flex items-center space-x-2">
-                <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
+                <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} disabled={!!firebaseError} />
                 <Label htmlFor="remember-me" className="text-sm font-normal">Remember me</Label>
             </div>
-            {error && (
+            {error && error !== firebaseError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Login Failed</AlertTitle>
@@ -159,7 +161,7 @@ export default function LoginPage() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !!firebaseError}>
               {loading && !showAddSchoolDialog ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {loading && !showAddSchoolDialog ? 'Verifying...' : 'Login'}
             </Button>
@@ -177,7 +179,7 @@ export default function LoginPage() {
                     </span>
                 </div>
             </div>
-            <Button variant="outline" className="w-full" type="button" onClick={() => setShowAddSchoolDialog(true)}>
+            <Button variant="outline" className="w-full" type="button" onClick={() => setShowAddSchoolDialog(true)} disabled={!!firebaseError}>
                 Register a New School
             </Button>
         </div>
