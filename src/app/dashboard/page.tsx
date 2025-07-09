@@ -9,8 +9,6 @@ import Link from 'next/link';
 import GenerateQrCode from '@/components/generate-qr-code';
 import { useSchoolData } from '@/hooks/use-school-data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DebugEnvVars } from '@/components/debug-env-vars';
-import { DebugSchoolData } from '@/components/debug-school-data';
 
 export default function DashboardPage() {
   const { school, loading } = useSchoolData();
@@ -18,9 +16,6 @@ export default function DashboardPage() {
   return (
     <>
       <div className="flex flex-col gap-8">
-        <DebugEnvVars />
-        <DebugSchoolData />
-
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
