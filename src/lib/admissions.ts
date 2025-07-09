@@ -109,11 +109,14 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
 };
 
 /**
- * Gets the count of approved (non-pending) admissions for a specific school.
+ * Gets the count of approved admissions for a specific school.
+ * If a year is provided, the count is filtered for that year.
+ * This function queries all school documents and filters client-side to avoid composite indexes.
  * @param udise The UDISE code of the school.
- * @returns A promise that resolves to the number of approved admissions in that school.
+ * @param year Optional. The calendar year to count admissions for.
+ * @returns A promise that resolves to the number of approved admissions.
  */
-const getSchoolAdmissionCount = async (udise: string): Promise<number> => {
+const getSchoolAdmissionCount = async (udise: string, year?: number): Promise<number> => {
     if (!db) {
         console.warn(firebaseError || "Database not available. Cannot get admission count.");
         return 0;
@@ -124,13 +127,29 @@ const getSchoolAdmissionCount = async (udise: string): Promise<number> => {
         );
         const snapshot = await getDocs(q);
         
-        // A student is approved if their status is NOT 'pending' or is undefined (for old records).
-        const approvedCount = snapshot.docs.filter(doc => {
+        const approvedDocs = snapshot.docs.filter(doc => {
             const data = doc.data() as FormValues;
+            // An admission is approved if its status is not 'pending'. This includes old records without a status field.
             return data.admissionDetails?.status !== 'pending';
-        }).length;
+        });
 
-        return approvedCount;
+        if (year) {
+            // If a year is provided, filter the approved documents by that year.
+            const yearlyCount = approvedDocs.filter(doc => {
+                const data = doc.data() as FormValues;
+                const admissionDate = data.admissionDetails?.admissionDate;
+                if (admissionDate && admissionDate instanceof Timestamp) {
+                    return admissionDate.toDate().getFullYear() === year;
+                }
+                if (admissionDate && admissionDate instanceof Date) {
+                    return admissionDate.getFullYear() === year;
+                }
+                return false;
+            }).length;
+            return yearlyCount;
+        }
+
+        return approvedDocs.length;
     } catch (e) {
         console.error("Error getting school admission count:", e);
         return 0;
@@ -150,31 +169,19 @@ export const approveAdmission = async (id: string, udise: string, classSelection
     try {
         const docRef = doc(db, "admissions", id);
 
+        const admissionYear = admissionDate.getFullYear();
+        const year = admissionYear.toString().slice(-2);
+
         // Get counts to generate new numbers
         const approvedInClassCount = await getClassAdmissionCount(udise, classSelection); // For school/class-specific roll number
-        const totalApprovedInSchoolCount = await getSchoolAdmissionCount(udise); // For school-specific admission number
+        const totalApprovedInSchoolCountForYear = await getSchoolAdmissionCount(udise, admissionYear); // For school-specific admission number, count only for the current year.
         
         // Generate numbers
         const rollNumber = String(approvedInClassCount + 1);
         
-        const year = new Date().getFullYear().toString().slice(-2);
-        
-        // Create a 6-digit unique school identifier from the 11-digit UDISE code.
-        // The official UDISE+ format is [State(2)][District(2)][Block(2)][Village(3)][School(2)].
-        // For example, in '10141201505':
-        // - '10' is the State code.
-        // - '14' is the District code (chars at index 2, 3).
-        // - '12' is the Block code (chars at index 4, 5).
-        // - '015' is the Village code.
-        // - '05' is the School code (chars at index 9, 10).
-        // Our unique identifier combines District, Block, and School codes.
-        const districtCode = udise.substring(2, 4);
-        const blockCode = udise.substring(4, 6);
-        const schoolCode = udise.substring(9, 11);
-        const schoolIdentifier = `${districtCode}${blockCode}${schoolCode}`;
-        
-        const nextId = (totalApprovedInSchoolCount + 1).toString().padStart(4, '0');
-        const admissionNumber = `ADM/${schoolIdentifier}/${year}/${nextId}`;
+        // The serial number restarts every year for each school.
+        const nextId = (totalApprovedInSchoolCountForYear + 1).toString().padStart(4, '0');
+        const admissionNumber = `ADM/${year}/${nextId}`;
 
         // Update document
         await updateDoc(docRef, {
@@ -251,7 +258,7 @@ export const listenToAdmissions = (
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
             const aHasDate = dateA && dateA instanceof Date && !isNaN(dateA.getTime());
-            const bHasDate = dateB && dateB instanceof Date && !isNaN(dateB.getTime());
+            const bHasDate = dateB && dateB instanceof Date && !isNaN(bHasDate.getTime());
 
             if (aHasDate && !bHasDate) return -1;
             if (!aHasDate && bHasDate) return 1;
