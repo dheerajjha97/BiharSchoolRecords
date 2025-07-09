@@ -159,8 +159,15 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         
         const year = new Date().getFullYear().toString().slice(-2);
         
-        // Create a 6-digit unique school identifier from UDISE.
-        // UDISE format: [State 2][District 2][Block 2][Village 3][School 2]
+        // Create a 6-digit unique school identifier from the 11-digit UDISE code.
+        // The official UDISE+ format is [State(2)][District(2)][Block(2)][Village(3)][School(2)].
+        // For example, in '10141201505':
+        // - '10' is the State code.
+        // - '14' is the District code (chars at index 2, 3).
+        // - '12' is the Block code (chars at index 4, 5).
+        // - '015' is the Village code.
+        // - '05' is the School code (chars at index 9, 10).
+        // Our unique identifier combines District, Block, and School codes.
         const districtCode = udise.substring(2, 4);
         const blockCode = udise.substring(4, 6);
         const schoolCode = udise.substring(9, 11);
@@ -229,10 +236,12 @@ export const listenToAdmissions = (
         
         let students: (FormValues & { id: string })[] = [];
 
-        if (status === 'pending') {
-            students = allFetchedStudents; // Query was already filtered
-        } else { // This handles 'approved' and the case where no status is specified
+        if (status === 'approved') {
             students = allFetchedStudents.filter(s => s.admissionDetails.status !== 'pending');
+        } else if (status === 'pending') {
+            students = allFetchedStudents; // Query was already filtered
+        } else {
+            students = allFetchedStudents;
         }
         
         // Sort the data on the client-side
