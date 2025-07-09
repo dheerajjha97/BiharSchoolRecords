@@ -19,6 +19,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function DashboardLayout({
@@ -36,28 +37,30 @@ export default function DashboardLayout({
     }
   }, [loading, school, router]);
 
-  if (loading || !school) {
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-background">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    );
-  }
-
   return (
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full">
-                <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-                    <School className="h-6 w-6 text-primary" />
+            {loading ? (
+                <div className="flex items-center gap-3 p-2 w-full">
+                    <Skeleton className="h-10 w-10 rounded-lg flex-shrink-0" />
+                    <div className="group-data-[collapsible=icon]:hidden min-w-0 flex-1 space-y-1.5">
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-3 w-full" />
+                    </div>
                 </div>
-                <div className="group-data-[collapsible=icon]:hidden min-w-0">
-                    <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
-                    <div className="text-xs text-sidebar-foreground/70 whitespace-pre-wrap">{school?.address}</div>
-                </div>
-            </Link>
+            ) : (
+              <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full">
+                  <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                      <School className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="group-data-[collapsible=icon]:hidden min-w-0">
+                      <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                      <div className="text-xs text-sidebar-foreground/70 whitespace-pre-wrap">{school?.address}</div>
+                  </div>
+              </Link>
+            )}
           </div>
         </SidebarHeader>
         <SidebarContent className="p-2">
@@ -130,8 +133,17 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="lg:hidden" />
                 <div className="lg:hidden">
-                    <div className="font-bold text-base">{school?.name || 'EduAssist'}</div>
-                    <div className="text-muted-foreground text-xs">{school?.address}</div>
+                  {loading ? (
+                    <div className="space-y-1.5">
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-3 w-40" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="font-bold text-base">{school?.name || 'EduAssist'}</div>
+                      <div className="text-muted-foreground text-xs">{school?.address}</div>
+                    </>
+                  )}
                 </div>
             </div>
             <div>
@@ -140,9 +152,15 @@ export default function DashboardLayout({
               </Button>
             </div>
         </header>
-        <div className="flex-1 p-4 sm:p-6 md:p-8 bg-secondary/40 overflow-y-auto">
-            {children}
-        </div>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 bg-secondary/40 overflow-y-auto">
+            {(loading || !school) ? (
+                <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            ) : (
+                children
+            )}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
