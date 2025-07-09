@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getSchoolByUdise, saveSchool } from '@/lib/school';
@@ -156,9 +157,14 @@ export default function LoginPage() {
                 disabled={!!firebaseError}
               />
             </div>
-            <div className="flex items-center space-x-2">
-                <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} disabled={!!firebaseError} />
-                <Label htmlFor="remember-me" className="text-sm font-normal">Remember me</Label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                  <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} disabled={!!firebaseError} />
+                  <Label htmlFor="remember-me" className="text-sm font-normal">Remember me</Label>
+              </div>
+              <Link href="/forgot-password" passHref className="text-sm font-medium text-primary hover:underline underline-offset-4">
+                Forgot Password?
+              </Link>
             </div>
             {error && !firebaseError && (
               <Alert variant="destructive">
