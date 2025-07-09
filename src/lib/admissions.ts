@@ -173,8 +173,8 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         const year = admissionYear.toString().slice(-2);
 
         // Get counts to generate new numbers
-        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection); // For school/class-specific roll number
         const totalApprovedInSchoolCountForYear = await getSchoolAdmissionCount(udise, admissionYear); // For school-specific admission number, count only for the current year.
+        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection); // For school/class-specific roll number
         
         // Generate numbers
         const rollNumber = String(approvedInClassCount + 1);
@@ -258,7 +258,7 @@ export const listenToAdmissions = (
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
             const aHasDate = dateA && dateA instanceof Date && !isNaN(dateA.getTime());
-            const bHasDate = dateB && dateB instanceof Date && !isNaN(bHasDate.getTime());
+            const bHasDate = dateB && dateB instanceof Date && !isNaN(dateB.getTime());
 
             if (aHasDate && !bHasDate) return -1;
             if (!aHasDate && bHasDate) return 1;
