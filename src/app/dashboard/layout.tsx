@@ -3,8 +3,9 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, School, Users, LogOut, Loader2, KeyRound, Building } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 import {
@@ -44,7 +45,7 @@ export default function DashboardLayout({
           <div className="flex items-center gap-2 p-2">
             {loading ? (
                 <div className="flex items-center gap-3 p-2 w-full">
-                    <Skeleton className="h-10 w-10 rounded-lg flex-shrink-0" />
+                    <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
                     <div className="group-data-[collapsible=icon]:hidden min-w-0 flex-1 space-y-1.5">
                         <Skeleton className="h-5 w-3/4" />
                         <Skeleton className="h-3 w-full" />
@@ -52,8 +53,8 @@ export default function DashboardLayout({
                 </div>
             ) : (
               <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full">
-                  <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-                      <School className="h-6 w-6 text-primary" />
+                  <div className="flex-shrink-0">
+                      <Image src="/logo.jpg" alt="School Logo" width={32} height={32} className="rounded-md" />
                   </div>
                   <div className="group-data-[collapsible=icon]:hidden min-w-0">
                       <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
