@@ -74,21 +74,36 @@ export default function ForgotPasswordPage() {
 
   const handleUdiseSubmit = async ({ udise }: { udise: string }) => {
     setLoading(true);
+    udiseForm.clearErrors('udise'); // Clear previous errors
     try {
       const schoolData = await getSchoolByUdise(udise);
-      if (schoolData && (schoolData.mobile || schoolData.email)) {
+
+      if (!schoolData) {
+        udiseForm.setError('udise', {
+          type: 'manual',
+          message: 'This UDISE code is not registered with any school.',
+        });
+        return; // Stop if school is not found
+      }
+
+      // Check if contact info is available for password recovery
+      if (schoolData.mobile || schoolData.email) {
         setSchool(schoolData);
         setStep('verify-otp');
       } else {
         udiseForm.setError('udise', {
           type: 'manual',
-          message: 'School not found or no contact info registered.',
+          message: 'This school has no registered mobile or email for recovery. Please update profile or contact support.',
         });
       }
     } catch (error) {
+      let errorMessage = 'Failed to verify UDISE code. Please try again later.';
+      if (error instanceof Error && /unavailable/i.test(error.message)) {
+        errorMessage = 'Could not connect to the database. Please check your internet connection.';
+      }
       udiseForm.setError('udise', {
         type: 'manual',
-        message: 'Failed to verify UDISE code. Please try again.',
+        message: errorMessage,
       });
     } finally {
       setLoading(false);
