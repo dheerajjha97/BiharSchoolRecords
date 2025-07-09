@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   signInWithPhoneNumber,
   RecaptchaVerifier,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import { auth, firebaseError } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
 import { DebugEnvVars } from '@/components/debug-env-vars';
+import { useToast } from '@/hooks/use-toast';
 
 declare global {
   interface Window {
@@ -33,6 +35,7 @@ declare global {
 export default function LoginPage() {
   const router = useRouter();
   const { loading: authLoading } = useAuth();
+  const { toast } = useToast();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -145,6 +148,30 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!auth) {
+        setError("Firebase auth is not configured.");
+        return;
+    }
+    if (!email) {
+      setError('Please enter your email address in the field above, then click "Forgot password?" again.');
+      return;
+    }
+    setError(null);
+    setIsLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: `Please check your inbox at ${email} for instructions to reset your password.`,
+      });
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-8">
@@ -186,7 +213,12 @@ export default function LoginPage() {
                 <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                   <Button type="button" variant="link" className="p-0 h-auto font-normal text-xs" onClick={handlePasswordReset} disabled={isLoading}>
+                    Forgot password?
+                  </Button>
+                </div>
                 <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleEmailLogin()} />
               </div>
               <Button onClick={handleEmailLogin} disabled={isLoading || !!firebaseError} className="w-full">
