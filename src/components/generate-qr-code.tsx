@@ -36,17 +36,15 @@ export default function GenerateQrCode() {
   const [showPublicUrlWarning, setShowPublicUrlWarning] = useState(false);
 
   useEffect(() => {
+    // Use NEXT_PUBLIC_BASE_URL if available, otherwise fallback to window.location.origin
     const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (publicUrl && publicUrl.startsWith('http')) {
       setBaseUrl(publicUrl);
       setShowPublicUrlWarning(false);
     } else {
       setBaseUrl(window.location.origin);
-      // Only show the warning if not on a typical localhost domain,
-      // as cloud dev environments are the main issue.
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-         setShowPublicUrlWarning(true);
-      }
+      // Show warning if the URL is not set, as it might be a temporary/private dev URL
+      setShowPublicUrlWarning(true);
     }
   }, []);
 
@@ -107,7 +105,7 @@ export default function GenerateQrCode() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Action Required: Set Public URL</AlertTitle>
                 <AlertDescription>
-                    Your QR code may not work on other devices because it points to a private development URL. To fix this, create a <code>.env.local</code> file, add the line <code>NEXT_PUBLIC_BASE_URL=https://your-app-public-url.com</code>, and restart your server.
+                    Your QR code may not work on other devices. To fix this, open the <code>.env.local</code> file, set <code>NEXT_PUBLIC_BASE_URL</code> to your app's public URL, and restart your server.
                 </AlertDescription>
             </Alert>
         )}
