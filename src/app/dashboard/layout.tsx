@@ -18,6 +18,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { SheetTitle } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLayout({
@@ -31,13 +32,14 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <Sidebar>
+        <SheetTitle className="sr-only">Sidebar Navigation</SheetTitle>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <Link href="/dashboard" className="flex items-center gap-3 p-2 w-full">
                 <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
                     <School className="h-6 w-6 text-primary" />
                 </div>
-                <div className="group-data-[collapsible=icon]:hidden overflow-hidden">
+                <div className="group-data-[collapsible=icon]:hidden min-w-0">
                     {loading ? (
                         <div className="space-y-1">
                             <Skeleton className="h-5 w-32" />
@@ -45,8 +47,8 @@ export default function DashboardLayout({
                         </div>
                     ) : (
                         <div>
-                        <div className="font-bold text-base text-primary">{school?.name || 'EduAssist'}</div>
-                        <div className="text-xs text-sidebar-foreground/70 truncate">{school?.address}</div>
+                        <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                        <div className="text-xs text-sidebar-foreground/70 whitespace-pre-wrap">{school?.address}</div>
                         </div>
                     )}
                 </div>
@@ -107,7 +109,7 @@ export default function DashboardLayout({
                     ) : (
                         <div>
                             <div className="font-bold text-base">{school?.name || 'EduAssist'}</div>
-                            <div className="text-xs text-muted-foreground">{school?.address}</div>
+                            <div className="text-muted-foreground text-xs">{school?.address}</div>
                         </div>
                     )}
                 </div>
