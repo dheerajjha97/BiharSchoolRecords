@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import type { FormValues } from '@/lib/form-schema';
 import type { School } from '@/lib/school';
 
@@ -82,7 +83,10 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
     <div className="a4-container bg-white text-black font-body shadow-lg text-xs">
       {/* --- PAGE 1 --- */}
       <div className="page">
-        <header className="text-center w-full mb-4 break-inside-avoid">
+        <header className="relative text-center w-full mb-4 break-inside-avoid">
+            <div className="absolute left-0 top-0">
+                <Image src="/logo.jpg" alt="School Logo" width={80} height={80} data-ai-hint="school logo" />
+            </div>
             <div>
                 <h1 className="text-4xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
                 <p className="text-lg font-semibold">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
