@@ -129,8 +129,8 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         const rollNumber = String(approvedInClassCount + 1);
         const year = new Date().getFullYear().toString().slice(-2);
         const nextId = (totalApprovedCount + 1).toString().padStart(4, '0');
-        const schoolIdPart = udise.slice(-4);
-        const admissionNumber = `ADM/${schoolIdPart}/${year}/${nextId}`;
+        // Use the full UDISE to guarantee uniqueness across schools
+        const admissionNumber = `ADM/${udise}/${year}/${nextId}`;
 
         // Update document
         await updateDoc(docRef, {
@@ -176,8 +176,6 @@ export const listenToAdmissions = (
         where('admissionDetails.udise', '==', udise),
     ];
     
-    // For 'pending' status, we can use a direct query as it's efficient and correct.
-    // For 'approved' status, we fetch all and filter client-side to include old records without a status field.
     if (status === 'pending') {
         constraints.push(where('admissionDetails.status', '==', 'pending'));
     }
@@ -190,9 +188,9 @@ export const listenToAdmissions = (
             admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
         });
         
-        // If the 'approved' status is requested, we filter client-side to include records
-        // that are explicitly 'approved' or have no status field (i.e., they are not 'pending').
         if (status === 'approved') {
+            // A student is considered approved if their status is NOT 'pending'.
+            // This includes old records without a status field and new records with status 'approved'.
             admissions = admissions.filter(s => s.admissionDetails.status !== 'pending');
         }
 
@@ -202,17 +200,18 @@ export const listenToAdmissions = (
             const dateA = a.admissionDetails?.[sortField] as Date | undefined;
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
-            // Handle cases where dates might be missing or invalid.
             const aHasDate = dateA && dateA instanceof Date && !isNaN(dateA.getTime());
             const bHasDate = dateB && dateB instanceof Date && !isNaN(dateB.getTime());
 
             if (aHasDate && !bHasDate) return -1;
             if (!aHasDate && bHasDate) return 1;
-            if (!aHasDate && !bHasDate) {
-              return (a.studentDetails?.nameEn || '').localeCompare(b.studentDetails?.nameEn || '');
+            
+            if (aHasDate && bHasDate) {
+                 return (dateB as Date).getTime() - (dateA as Date).getTime();
             }
             
-            return (dateB as Date).getTime() - (dateA as Date).getTime();
+            // Fallback sort if dates are not present
+            return (a.studentDetails?.nameEn || '').localeCompare(b.studentDetails?.nameEn || '');
         });
         
         // Apply limit on the client-side
@@ -238,16 +237,11 @@ export const getAdmissionCount = async (udise: string): Promise<number> => {
         return 0;
     }
     try {
-        // We cannot use a '!=' query directly in Firestore for status.
-        // So, we fetch all documents for the school and filter client-side.
-        // This is acceptable for a single school's data but could be slow for very large datasets.
         const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
         const snapshot = await getDocs(q);
         
         const approvedCount = snapshot.docs.filter(doc => {
             const data = doc.data() as FormValues;
-            // A student is considered approved if their status is not 'pending'.
-            // This includes old records without a status field and new records with status 'approved'.
             return data.admissionDetails?.status !== 'pending';
         }).length;
 
@@ -271,7 +265,6 @@ export const getClassAdmissionCount = async (udise: string, classSelection: stri
         return 0;
     }
     try {
-        // Fetch all students in the class for the school, then filter for approved status.
         const q = query(collection(db, 'admissions'), 
             where('admissionDetails.udise', '==', udise),
             where('admissionDetails.classSelection', '==', classSelection)
@@ -280,7 +273,6 @@ export const getClassAdmissionCount = async (udise: string, classSelection: stri
 
         const approvedInClassCount = snapshot.docs.filter(doc => {
             const data = doc.data() as FormValues;
-            // A student is considered approved if their status is not 'pending'.
             return data.admissionDetails?.status !== 'pending';
         }).length;
         
