@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -54,6 +53,7 @@ export default function GenerateQrCode() {
       const url = new URL(baseUrl);
       url.pathname = '/form';
       url.searchParams.set('class', selectedClass);
+      url.searchParams.set('source', 'qr'); // Add source parameter
       setQrUrl(url.toString());
     } else {
       setQrUrl('');

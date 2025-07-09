@@ -1,11 +1,13 @@
 import { z } from "zod";
 
 const admissionDetailsSchema = z.object({
-  admissionNumber: z.string(),
-  admissionDate: z.date({ required_error: "Admission date is required." }),
+  admissionNumber: z.string().optional(),
+  admissionDate: z.date().optional(),
   classSelection: z.enum(["9", "11-arts", "11-science", "11-commerce"], { required_error: "Please select a class/stream." }),
-  rollNumber: z.string().min(1, "Roll number is required."),
+  rollNumber: z.string().optional(),
   udise: z.string().optional(),
+  status: z.enum(['pending', 'approved', 'rejected']).default('pending').optional(),
+  submittedAt: z.date().optional(),
 });
 
 const studentDetailsSchema = z.object({

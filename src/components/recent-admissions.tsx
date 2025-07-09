@@ -49,10 +49,11 @@ export default function RecentAdmissions() {
         }
 
         setLoading(true);
+        // Listen to 5 most recent APPROVED admissions
         const unsubscribe = listenToAdmissions(school.udise, (recentAdmissions) => {
             setAdmissions(recentAdmissions);
             setLoading(false);
-        }, 5); // Fetch top 5 recent
+        }, { count: 5, status: 'approved' });
 
         return () => unsubscribe();
     }, [school, schoolLoading]);
@@ -61,8 +62,8 @@ export default function RecentAdmissions() {
         <Card className="h-full shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Recent Admissions</CardTitle>
-                    <CardDescription>The latest 5 students who have been admitted.</CardDescription>
+                    <CardTitle>Recent Approved Admissions</CardTitle>
+                    <CardDescription>The latest 5 students who have been approved.</CardDescription>
                 </div>
                 <Button asChild variant="outline" size="sm">
                     <Link href="/dashboard/students">View All</Link>
@@ -97,11 +98,11 @@ export default function RecentAdmissions() {
                                         {classDisplayNameMap[admission.admissionDetails.classSelection] || admission.admissionDetails.classSelection}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-right">{new Date(admission.admissionDetails.admissionDate).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-right">{admission.admissionDetails.admissionDate ? new Date(admission.admissionDetails.admissionDate).toLocaleDateString() : 'N/A'}</TableCell>
                             </TableRow>
                         )) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">No admissions yet for this school.</TableCell>
+                                <TableCell colSpan={4} className="h-24 text-center">No approved admissions yet for this school.</TableCell>
                             </TableRow>
                         )}
                     </TableBody>

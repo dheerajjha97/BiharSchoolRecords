@@ -1,4 +1,3 @@
-
 import { db, firebaseError } from './firebase';
 import {
   collection,
@@ -14,6 +13,9 @@ import {
   Timestamp,
   QueryConstraint,
   writeBatch,
+  updateDoc,
+  orderBy,
+  limit,
 } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 
@@ -108,67 +110,90 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
 };
 
 /**
- * Retrieves a list of admissions for a specific school, ordered by date.
+ * Approves a pending admission, generating admission/roll numbers and updating the status.
+ * @param id The document ID of the admission record.
  * @param udise The UDISE code of the school.
- * @param count Optional limit for the number of records to fetch.
- * @returns A promise that resolves to an array of admission documents.
+ * @param classSelection The class of the student.
+ * @param admissionDate The date of admission set by the admin.
  */
-export const getAdmissions = async (udise: string, count?: number): Promise<(FormValues & { id: string })[]> => {
-  if (!db || !udise) {
-    console.warn(firebaseError || "Database not available or UDISE not provided. Cannot fetch admissions.");
-    return [];
-  }
-  
-  const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
+export const approveAdmission = async (id: string, udise: string, classSelection: string, admissionDate: Date): Promise<void> => {
+    if (!db) { throw new Error(firebaseError || "Database not available."); }
+    
+    try {
+        const docRef = doc(db, "admissions", id);
 
-  const querySnapshot = await getDocs(q);
-  const admissions: (FormValues & { id: string })[] = [];
-  querySnapshot.forEach((doc) => {
-    admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
-  });
+        // Get counts to generate new numbers
+        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection, 'approved');
+        const totalApprovedCount = await getAdmissionCount(udise, 'approved');
+        
+        // Generate numbers
+        const rollNumber = String(approvedInClassCount + 1);
+        const year = new Date().getFullYear().toString().slice(-2);
+        const nextId = (totalApprovedCount + 1).toString().padStart(4, '0');
+        const schoolIdPart = udise.slice(-4);
+        const admissionNumber = `ADM/${schoolIdPart}/${year}/${nextId}`;
 
-  // Client-side sorting
-  admissions.sort((a, b) => new Date(b.admissionDetails.admissionDate).getTime() - new Date(a.admissionDetails.admissionDate).getTime());
-  
-  if (count) {
-    return admissions.slice(0, count);
-  }
+        // Update document
+        await updateDoc(docRef, {
+            'admissionDetails.status': 'approved',
+            'admissionDetails.admissionDate': admissionDate,
+            'admissionDetails.rollNumber': rollNumber,
+            'admissionDetails.admissionNumber': admissionNumber,
+        });
 
-  return admissions;
+    } catch (e) {
+        console.error("Error approving admission:", e);
+        let errorMessage = "Failed to approve admission.";
+        if (e instanceof Error) {
+            errorMessage += ` Reason: ${e.message}`;
+        }
+        throw new Error(errorMessage);
+    }
 };
+
 
 /**
  * Listens for real-time updates to the admissions collection for a specific school.
  * @param udise The UDISE code of the school.
  * @param callback The function to call with the updated admissions list.
- * @param count Optional limit for the number of records to listen to.
+ * @param options Optional parameters to filter the results, e.g., by count or status.
  * @returns An Unsubscribe function to stop listening for updates.
  */
-export const listenToAdmissions = (udise: string | undefined, callback: (admissions: (FormValues & { id: string })[]) => void, count?: number): Unsubscribe => {
+export const listenToAdmissions = (
+    udise: string | undefined, 
+    callback: (admissions: (FormValues & { id: string })[]) => void, 
+    options?: { count?: number; status?: 'approved' | 'pending' }
+): Unsubscribe => {
     if (!db || !udise) {
         console.warn(firebaseError || "Database not available or UDISE not provided. Cannot listen to admissions.");
         callback([]);
         return () => {}; // Return a no-op unsubscribe function
     }
+    
+    // Default to approved if status is not specified
+    const status = options?.status || 'approved';
+    const sortField = status === 'pending' ? 'admissionDetails.submittedAt' : 'admissionDetails.admissionDate';
 
-    const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
+    const constraints: QueryConstraint[] = [
+        where('admissionDetails.udise', '==', udise),
+        where('admissionDetails.status', '==', status),
+        orderBy(sortField, 'desc')
+    ];
+
+    if (options?.count) {
+        constraints.push(limit(options.count));
+    }
+
+    const q = query(collection(db, 'admissions'), ...constraints);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const admissions: (FormValues & { id: string })[] = [];
         querySnapshot.forEach((doc) => {
             admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
         });
-        
-        // Client-side sorting
-        admissions.sort((a, b) => new Date(b.admissionDetails.admissionDate).getTime() - new Date(a.admissionDetails.admissionDate).getTime());
-
-        if (count) {
-            callback(admissions.slice(0, count));
-        } else {
-            callback(admissions);
-        }
+        callback(admissions);
     }, (error) => {
-        console.error("Error listening to admissions:", error);
+        console.error(`Error listening to ${status} admissions:`, error);
         callback([]); // Pass empty array on error
     });
 
@@ -176,17 +201,18 @@ export const listenToAdmissions = (udise: string | undefined, callback: (admissi
 };
 
 /**
- * Gets the total count of all admission documents for a specific school.
+ * Gets the total count of all admission documents for a specific school and status.
  * @param udise The UDISE code of the school.
+ * @param status The status to filter by ('approved' or 'pending').
  * @returns A promise that resolves to the total number of admissions.
  */
-export const getAdmissionCount = async (udise: string): Promise<number> => {
+export const getAdmissionCount = async (udise: string, status: 'approved' | 'pending' = 'approved'): Promise<number> => {
     if (!db || !udise) {
         console.warn(firebaseError || "Database not available or UDISE not provided. Cannot get admission count.");
         return 0;
     }
     try {
-        const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
+        const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise), where('admissionDetails.status', '==', status));
         const snapshot = await getCountFromServer(q);
         return snapshot.data().count;
     } catch (e) {
@@ -199,9 +225,10 @@ export const getAdmissionCount = async (udise: string): Promise<number> => {
  * Gets the count of admissions for a specific class in a specific school.
  * @param udise The UDISE code of the school.
  * @param classSelection The class to filter by (e.g., '9', '11-arts').
+ * @param status The status to filter by ('approved' or 'pending').
  * @returns A promise that resolves to the number of admissions in that class.
  */
-export const getClassAdmissionCount = async (udise: string, classSelection: string): Promise<number> => {
+export const getClassAdmissionCount = async (udise: string, classSelection: string, status: 'approved' | 'pending' = 'approved'): Promise<number> => {
     if (!db || !udise) {
         console.warn(firebaseError || "Database not available or UDISE not provided. Cannot get class admission count.");
         return 0;
@@ -209,7 +236,9 @@ export const getClassAdmissionCount = async (udise: string, classSelection: stri
     try {
         const q = query(collection(db, 'admissions'), 
             where('admissionDetails.udise', '==', udise),
-            where('admissionDetails.classSelection', '==', classSelection));
+            where('admissionDetails.classSelection', '==', classSelection),
+            where('admissionDetails.status', '==', status)
+        );
         const snapshot = await getCountFromServer(q);
         return snapshot.data().count;
     } catch(e) {
@@ -241,47 +270,5 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
   } catch (e) {
     console.error(`Error fetching document with ID ${id}:`, e);
     return null;
-  }
-};
-
-/**
- * Migrates old admission records that do not have a UDISE code by assigning them one.
- * This is a one-time utility function. It reads the entire collection, which can be inefficient.
- * @param udiseToAssign The UDISE code to assign to the old records.
- * @returns The number of records that were updated.
- */
-export const migrateOldAdmissions = async (udiseToAssign: string): Promise<number> => {
-  if (!db) {
-    throw new Error(firebaseError || "Database not available. Migration failed.");
-  }
-  try {
-    const admissionsCollection = collection(db, 'admissions');
-    const querySnapshot = await getDocs(admissionsCollection);
-    
-    const batch = writeBatch(db);
-    let recordsToUpdateCount = 0;
-
-    querySnapshot.forEach((document) => {
-      const data = document.data();
-      // Check if the udise field is missing inside admissionDetails
-      if (!data.admissionDetails?.udise) {
-        const docRef = doc(db, 'admissions', document.id);
-        batch.update(docRef, { 'admissionDetails.udise': udiseToAssign });
-        recordsToUpdateCount++;
-      }
-    });
-
-    if (recordsToUpdateCount > 0) {
-      await batch.commit();
-    }
-
-    return recordsToUpdateCount;
-  } catch (e) {
-    console.error("Error migrating old admissions:", e);
-    let errorMessage = "Failed to migrate old data.";
-    if (e instanceof Error) {
-        errorMessage += ` Reason: ${e.message}`;
-    }
-    throw new Error(errorMessage);
   }
 };

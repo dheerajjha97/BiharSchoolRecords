@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
@@ -7,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
-import { addAdmission, getAdmissionCount, getClassAdmissionCount } from "@/lib/admissions";
+import { addAdmission } from "@/lib/admissions";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -17,8 +16,6 @@ import { SubjectSelectionStep } from "@/components/subject-selection-step";
 import { FormReviewStep } from "@/components/form-review-step";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { DatePicker } from "@/components/ui/date-picker";
 import { ArrowLeft, ArrowRight, Send, Loader2 } from "lucide-react";
 import {
   Select,
@@ -58,9 +55,11 @@ function AdmissionWizardContent() {
       admissionDetails: {
         admissionNumber: "",
         rollNumber: "",
-        admissionDate: new Date(),
+        admissionDate: undefined,
         classSelection: undefined,
         udise: undefined,
+        status: 'pending',
+        submittedAt: new Date(),
       },
       studentDetails: {
         nameEn: "", nameHi: "",
@@ -84,24 +83,10 @@ function AdmissionWizardContent() {
   const handleClassChange = useCallback(async (value: string | undefined) => {
     if (!value || !['9', '11-arts', '11-science', '11-commerce'].includes(value)) {
         form.setValue('admissionDetails.classSelection', undefined);
-        form.setValue('admissionDetails.rollNumber', '', { shouldValidate: false });
         return;
     }
-
     form.setValue('admissionDetails.classSelection', value as any, { shouldValidate: true });
-
-    if (firebaseError || !school?.udise) {
-      form.setValue('admissionDetails.rollNumber', '1');
-      return;
-    }
-    try {
-        const count = await getClassAdmissionCount(school.udise, value);
-        form.setValue('admissionDetails.rollNumber', String(count + 1), { shouldValidate: true });
-    } catch(e) {
-        console.error("Could not generate roll number.", e);
-        form.setValue('admissionDetails.rollNumber', '1', { shouldValidate: true });
-    }
-  }, [form, school]);
+  }, [form]);
 
   // Set class from URL query parameter
   useEffect(() => {
@@ -110,33 +95,6 @@ function AdmissionWizardContent() {
       handleClassChange(classFromQuery);
     }
   }, [searchParams, handleClassChange]);
-
-  const generateAdmissionNumber = useCallback(async () => {
-    if (firebaseError || !school?.udise) {
-        const year = new Date().getFullYear().toString().slice(-2);
-        form.setValue('admissionDetails.admissionNumber', `ADM/----/${year}/0001`);
-        return;
-    }
-    try {
-      const count = await getAdmissionCount(school.udise);
-      const year = new Date().getFullYear().toString().slice(-2);
-      const nextId = (count + 1).toString().padStart(4, '0');
-      const schoolIdPart = school.udise.slice(-4);
-      form.setValue('admissionDetails.admissionNumber', `ADM/${schoolIdPart}/${year}/${nextId}`);
-    } catch (error) {
-      console.error("Could not generate admission number.", error);
-      const year = new Date().getFullYear().toString().slice(-2);
-      form.setValue('admissionDetails.admissionNumber', `ADM/${school?.udise.slice(-4)}/${year}/FALLBACK`);
-    }
-  }, [form, school]);
-
-  // Generate a new admission number on component mount if school is available
-  useEffect(() => {
-    if (school) {
-        generateAdmissionNumber();
-    }
-  }, [generateAdmissionNumber, school]);
-
 
   const processForm = async (data: FormValues) => {
     if (firebaseError) {
@@ -150,7 +108,7 @@ function AdmissionWizardContent() {
     if (!school?.udise) {
         toast({
             title: "School Not Configured",
-            description: "Cannot submit form without a configured school.",
+            description: "Cannot submit form without a configured school. Please log in as an administrator.",
             variant: "destructive",
         });
         return;
@@ -167,20 +125,21 @@ function AdmissionWizardContent() {
         admissionDetails: {
           ...data.admissionDetails,
           udise: school.udise,
+          status: 'pending',
+          submittedAt: new Date(),
         },
       };
 
-      const newAdmissionId = await addAdmission(dataWithUdise);
+      await addAdmission(dataWithUdise);
 
       toast({
-        title: "Form Submitted!",
-        description: `The admission form for ${data.studentDetails.nameEn} has been successfully submitted.`,
+        title: "Form Submitted Successfully!",
+        description: `The admission form for ${data.studentDetails.nameEn} has been submitted for review.`,
       });
-
-      // Automatically open the print page for the new admission
-      window.open(`/print/${newAdmissionId}?udise=${school.udise}`, '_blank');
       
-      router.push('/dashboard');
+      form.reset();
+      // After submission, stay on the form page, but maybe clear the query params
+      router.push('/form');
 
     } catch (error) {
        console.error("Submission failed:", error); // Log the full error
@@ -213,7 +172,7 @@ function AdmissionWizardContent() {
     
     toast({
         title: "Validation Error",
-        description: `Please correct the errors on Step ${targetStep}. Check the console for more details.`,
+        description: `Please correct the errors on Step ${targetStep}.`,
         variant: "destructive",
     });
   };
@@ -221,7 +180,7 @@ function AdmissionWizardContent() {
   const handleNext = async () => {
     let fieldsToValidate: (keyof FormValues)[] | any[];
     if (step === 1) {
-      fieldsToValidate = [ "admissionDetails", "studentDetails", "contactDetails", "addressDetails", "bankDetails", "otherDetails", "prevSchoolDetails", ];
+      fieldsToValidate = [ "admissionDetails.classSelection", "studentDetails", "contactDetails", "addressDetails", "bankDetails", "otherDetails", "prevSchoolDetails", ];
     } else if (step === 2) {
       fieldsToValidate = ["subjectDetails"];
     } else {
@@ -267,31 +226,7 @@ function AdmissionWizardContent() {
             {step === 1 && (
               <>
                  <Card className="bg-muted/50 border-dashed">
-                  <CardContent className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                      <FormField
-                        control={form.control}
-                        name="admissionDetails.admissionNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Admission Number</FormLabel>
-                            <FormControl>
-                              <Input {...field} readOnly disabled />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="admissionDetails.admissionDate"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Admission Date</FormLabel>
-                            <DatePicker date={field.value} setDate={field.onChange} />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                  <CardContent className="p-6">
                       <FormField
                           control={form.control}
                           name="admissionDetails.classSelection"
@@ -307,19 +242,6 @@ function AdmissionWizardContent() {
                                       <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
                                   </SelectContent>
                               </Select>
-                              <FormMessage />
-                          </FormItem>
-                          )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="admissionDetails.rollNumber"
-                          render={({ field }) => (
-                          <FormItem>
-                              <FormLabel>Roll Number</FormLabel>
-                              <FormControl>
-                                <Input {...field} readOnly disabled placeholder="Select class first" />
-                              </FormControl>
                               <FormMessage />
                           </FormItem>
                           )}
@@ -349,7 +271,7 @@ function AdmissionWizardContent() {
               {step === STEPS.length && (
                 <Button type="submit" variant="default" disabled={isLoading}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                  {isLoading ? "Submitting..." : "Submit Form"}
+                  {isLoading ? "Submitting..." : "Submit for Review"}
                 </Button>
               )}
             </div>

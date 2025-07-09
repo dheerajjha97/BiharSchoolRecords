@@ -32,6 +32,7 @@ export default function DashboardStats() {
     }
     
     setLoading(true);
+    // Listen to approved students for stats
     const unsubscribe = listenToAdmissions(school.udise, (students) => {
       setStats({
         total: students.length,
@@ -41,13 +42,13 @@ export default function DashboardStats() {
         commerce: students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
       });
       setLoading(false);
-    });
+    }, { status: 'approved' });
 
     return () => unsubscribe(); // Cleanup listener on unmount
   }, [school, schoolLoading]);
 
   const statsData = [
-    { title: "Total Admissions", value: stats.total.toLocaleString(), icon: Users, classId: "all" },
+    { title: "Total Approved", value: stats.total.toLocaleString(), icon: Users, classId: "all" },
     { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9" },
     { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts" },
     { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science" },

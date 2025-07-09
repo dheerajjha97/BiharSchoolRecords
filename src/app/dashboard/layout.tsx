@@ -1,12 +1,12 @@
-
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, BellDot, CheckCircle2, History } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { usePendingAdmissionsCount } from '@/hooks/use-pending-admissions';
 
 import {
   SidebarProvider,
@@ -18,6 +18,7 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +32,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { school, loading, logout } = useAuth();
+  const { count: pendingCount } = usePendingAdmissionsCount();
   
   React.useEffect(() => {
     if (!loading && !school) {
@@ -78,15 +80,16 @@ export default function DashboardLayout({
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-             <SidebarMenuItem>
+            <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === '/dashboard/profile'}
-                tooltip="School Profile"
+                isActive={pathname.startsWith('/dashboard/admissions/pending')}
+                tooltip="Pending Admissions"
               >
-                <Link href="/dashboard/profile">
-                  <Building />
-                  <span>School Profile</span>
+                <Link href="/dashboard/admissions/pending">
+                  <History />
+                  <span>Pending Admissions</span>
+                   {pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -94,11 +97,11 @@ export default function DashboardLayout({
               <SidebarMenuButton
                 asChild
                 isActive={pathname.startsWith('/dashboard/students')}
-                tooltip="Students List"
+                tooltip="Approved Students"
               >
                 <Link href="/dashboard/students">
-                  <Users />
-                  <span>Students List</span>
+                  <CheckCircle2 />
+                  <span>Approved Students</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -111,6 +114,18 @@ export default function DashboardLayout({
                 <Link href="/form">
                   <PlusCircle />
                   <span>New Admission</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/dashboard/profile'}
+                tooltip="School Profile"
+              >
+                <Link href="/dashboard/profile">
+                  <Building />
+                  <span>School Profile</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
