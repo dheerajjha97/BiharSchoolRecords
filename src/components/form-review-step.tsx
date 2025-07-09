@@ -142,7 +142,7 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                     <ReviewItem label="Compulsory Group 1" value={subjectDetails.compulsoryGroup1} />
                     <ReviewItem label="Compulsory Group 2" value={subjectDetails.compulsoryGroup2} />
                     <ReviewItem label="Elective Subjects" value={subjectDetails.electives} />
-                    <ReviewItem label="Optional Subject" value={subjectDetails.optionalSubject} />
+                    <ReviewItem label="Additional Subject" value={subjectDetails.additionalSubject} />
                 </Section>
             )}
 

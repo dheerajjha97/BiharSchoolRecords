@@ -71,7 +71,7 @@ const subjectDetailsSchema = z.object({
     compulsoryGroup1: z.string().optional(),
     compulsoryGroup2: z.string().optional(),
     electives: z.array(z.string()).optional(),
-    optionalSubject: z.string().optional(),
+    additionalSubject: z.string().optional(),
     // Class 9 Fields
     mil: z.enum(["hindi", "urdu"]).optional(),
     class8PassingYear: z.string().optional(),
@@ -111,7 +111,7 @@ export const formSchema = z.object({
             compulsoryGroup1: z.string({ required_error: "Please select a subject from Group 1." }),
             compulsoryGroup2: z.string({ required_error: "Please select a subject from Group 2." }),
             electives: z.array(z.string()).min(3, "Please select exactly 3 elective subjects.").max(3, "Please select exactly 3 elective subjects."),
-            optionalSubject: z.string().optional(),
+            additionalSubject: z.string().optional(),
         });
 
         const validationResult = class11Schema.safeParse(data.subjectDetails);
@@ -129,6 +129,21 @@ export const formSchema = z.object({
                     message: "Group 2 subject must be different from Group 1.",
                     path: ["subjectDetails.compulsoryGroup2"],
                 });
+            }
+            if (validationResult.data.additionalSubject) {
+                const selectedSubjects = [
+                    validationResult.data.compulsoryGroup1,
+                    validationResult.data.compulsoryGroup2,
+                    ...(validationResult.data.electives || []),
+                ].filter(Boolean);
+        
+                if (selectedSubjects.includes(validationResult.data.additionalSubject)) {
+                    ctx.addIssue({
+                        code: "custom",
+                        message: "Additional subject cannot be one of the already selected compulsory or elective subjects.",
+                        path: ["subjectDetails.additionalSubject"],
+                    });
+                }
             }
         }
     } else if (data.admissionDetails.classSelection === "9") {

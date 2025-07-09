@@ -218,7 +218,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                         label2="Compulsory Group 2" value2={subjectDetails.compulsoryGroup2} 
                     />
                     <PrintTableRow label="Elective Subjects" value={subjectDetails.electives} />
-                    <PrintTableRow label="Optional Subject" value={subjectDetails.optionalSubject} />
+                    <PrintTableRow label="Additional Subject" value={subjectDetails.additionalSubject} />
                 </tbody>
             </table>
           </>

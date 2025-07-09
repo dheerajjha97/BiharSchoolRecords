@@ -23,7 +23,7 @@ interface SubjectSelectionStepProps {
 interface Class11SubjectSelectionProps {
   form: UseFormReturn<FormValues>;
   electiveSubjects: { id: string; label: string }[];
-  optionalSubjects: { id: string; label: string }[];
+  additionalSubjects: { id: string; label: string }[];
 }
 
 const compulsoryGroup1Subjects = [
@@ -32,20 +32,32 @@ const compulsoryGroup1Subjects = [
 ];
 
 const compulsoryGroup2Subjects = [
+  { id: 'english-305', label: 'English - 305' },
   { id: 'hindi-306', label: 'Hindi - 306' },
   { id: 'urdu-307', label: 'Urdu - 307' },
+  { id: 'maithili-308', label: 'Maithili - 308' },
   { id: 'sanskrit-309', label: 'Sanskrit - 309' },
+  { id: 'prakrit-310', label: 'Prakrit - 310' },
+  { id: 'magahi-311', label: 'Magahi - 311' },
+  { id: 'bhojpuri-312', label: 'Bhojpuri - 312' },
+  { id: 'arabic-313', label: 'Arabic - 313' },
+  { id: 'persian-314', label: 'Persian - 314' },
+  { id: 'pali-315', label: 'Pali - 315' },
+  { id: 'bangla-316', label: 'Bangla - 316' },
 ];
 
 // Arts Subjects
 const artsElectiveSubjects = [
   { id: 'music-318', label: 'Music - 318' },
+  { id: 'home-science-319', label: 'Home Science - 319' },
+  { id: 'philosophy-320', label: 'Philosophy - 320' },
   { id: 'history-321', label: 'History - 321' },
   { id: 'political-science-322', label: 'Political Science - 322' },
-  { id: 'philosophy-323', label: 'Philosophy - 323' },
-  { id: 'home-science-326', label: 'Home Science - 326' },
-  { id: 'economics-319', label: 'Economics - 319' },
-  { id: 'psychology-320', label: 'Psychology - 320' },
+  { id: 'geography-323', label: 'Geography - 323' },
+  { id: 'psychology-324', label: 'Psychology - 324' },
+  { id: 'sociology-325', label: 'Sociology - 325' },
+  { id: 'economics-326', label: 'Economics - 326' },
+  { id: 'mathematics-327', label: 'Mathematics - 327' },
 ];
 
 // Science Subjects
@@ -60,20 +72,31 @@ const scienceElectiveSubjects = [
 const commerceElectiveSubjects = [
     { id: 'accountancy-314', label: 'Accountancy - 314' },
     { id: 'business-studies-315', label: 'Business Studies - 315' },
-    { id: 'economics-319', label: 'Economics - 319' },
+    { id: 'economics-319', label: 'Economics - 319' }, // Note: Different economics code than Arts
     { id: 'entrepreneurship-316', label: 'Entrepreneurship - 316' },
     { id: 'mathematics-312', label: 'Mathematics - 312' },
 ];
 
-const otherOptionalSubjects = [
-  { id: 'computer-science-328', label: 'Computer Science - 328' },
-  { id: 'multimedia-329', label: 'Multimedia - 329' },
-]
+const artsAdditionalSubjectsList = [
+    ...compulsoryGroup2Subjects,
+    ...artsElectiveSubjects,
+    { id: 'computer-science-328', label: 'Computer Sc. - 328' },
+    { id: 'multimedia-web-tech-329', label: 'Multimedia & Web Tech - 329' },
+    { id: 'yoga-physical-education-317', label: 'Yoga & Physical Education - 317' }
+];
+const uniqueArtsAdditionalSubjects = [...new Map(artsAdditionalSubjectsList.map(item => [item.id, item])).values()];
 
 
-const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: Class11SubjectSelectionProps) => {
+const Class11SubjectSelection = ({ form, electiveSubjects, additionalSubjects }: Class11SubjectSelectionProps) => {
   const compGroup1Selection = form.watch("subjectDetails.compulsoryGroup1");
-  const allOptionalSubjects = [...otherOptionalSubjects, ...electiveSubjects];
+  const compGroup2Selection = form.watch("subjectDetails.compulsoryGroup2");
+  const electivesSelection = form.watch("subjectDetails.electives") || [];
+  
+  const availableAdditionalSubjects = additionalSubjects.filter(subject => 
+      subject.id !== compGroup1Selection &&
+      subject.id !== compGroup2Selection &&
+      !electivesSelection.includes(subject.id)
+  );
 
   return (
     <div className="space-y-6">
@@ -115,7 +138,7 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
           name="subjectDetails.compulsoryGroup1"
           render={({ field }) => (
             <FormItem className="mb-6">
-              <FormLabel>Compulsory Group-1 (Choose One)</FormLabel>
+              <FormLabel>Compulsory Group-1 (100 Marks - Choose One)</FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4 pt-2">
                   {compulsoryGroup1Subjects.map((subject) => (
@@ -135,10 +158,10 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
           name="subjectDetails.compulsoryGroup2"
           render={({ field }) => (
             <FormItem className="mb-6">
-              <FormLabel>Compulsory Group-2 (Choose One)</FormLabel>
+              <FormLabel>Compulsory Group-2 (100 Marks - Choose One)</FormLabel>
               <FormDescription>Cannot be the same as Group-1 selection.</FormDescription>
                <FormControl>
-                  <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4 pt-2">
+                  <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2">
                     {compulsoryGroup2Subjects.map((subject) => (
                       <div key={subject.id} className="flex items-center space-x-2">
                         <RadioGroupItem value={subject.id} id={`comp2-${subject.id}`} disabled={subject.id === compGroup1Selection} />
@@ -157,7 +180,7 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
           name="subjectDetails.electives"
           render={() => (
             <FormItem className="mb-6">
-              <FormLabel>Elective Subjects (Choose 3)</FormLabel>
+              <FormLabel>Elective Subjects (300 Marks - Choose 3)</FormLabel>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
                 {electiveSubjects.map((subject) => (
                   <FormField
@@ -188,16 +211,17 @@ const Class11SubjectSelection = ({ form, electiveSubjects, optionalSubjects }: C
         />
          <FormField
           control={form.control}
-          name="subjectDetails.optionalSubject"
+          name="subjectDetails.additionalSubject"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Optional Subject (Choose 1)</FormLabel>
+              <FormLabel>Additional Subject (100 Marks - Optional)</FormLabel>
+              <FormDescription>Select one subject you have not already chosen.</FormDescription>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-                  {allOptionalSubjects.map((subject) => (
+                  {availableAdditionalSubjects.map((subject) => (
                     <div key={subject.id} className="flex items-center space-x-2">
-                      <RadioGroupItem value={subject.id} id={`opt-${subject.id}`} />
-                      <Label htmlFor={`opt-${subject.id}`} className="font-normal">{subject.label}</Label>
+                      <RadioGroupItem value={subject.id} id={`add-${subject.id}`} />
+                      <Label htmlFor={`add-${subject.id}`} className="font-normal">{subject.label}</Label>
                     </div>
                   ))}
                 </RadioGroup>
@@ -357,15 +381,15 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
   }
 
   if (classSelection === "11-arts") {
-    return <Class11SubjectSelection form={form} electiveSubjects={artsElectiveSubjects} optionalSubjects={[]} />;
+    return <Class11SubjectSelection form={form} electiveSubjects={artsElectiveSubjects} additionalSubjects={uniqueArtsAdditionalSubjects} />;
   }
 
   if (classSelection === "11-science") {
-    return <Class11SubjectSelection form={form} electiveSubjects={scienceElectiveSubjects} optionalSubjects={[]} />;
+    return <Class11SubjectSelection form={form} electiveSubjects={scienceElectiveSubjects} additionalSubjects={[]} />;
   }
   
   if (classSelection === "11-commerce") {
-    return <Class11SubjectSelection form={form} electiveSubjects={commerceElectiveSubjects} optionalSubjects={[]} />;
+    return <Class11SubjectSelection form={form} electiveSubjects={commerceElectiveSubjects} additionalSubjects={[]} />;
   }
 
 
