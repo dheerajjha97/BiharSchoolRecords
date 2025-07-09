@@ -158,9 +158,14 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         const rollNumber = String(approvedInClassCount + 1);
         
         const year = new Date().getFullYear().toString().slice(-2);
-        // Create a 6-digit unique school identifier from UDISE: [District][Block][School]
-        // This makes the admission number unique per school without being too long.
-        const schoolIdentifier = udise.substring(2, 6) + udise.substring(9, 11);
+        
+        // Create a 6-digit unique school identifier from UDISE.
+        // UDISE format: [State 2][District 2][Block 2][Village 3][School 2]
+        const districtCode = udise.substring(2, 4);
+        const blockCode = udise.substring(4, 6);
+        const schoolCode = udise.substring(9, 11);
+        const schoolIdentifier = `${districtCode}${blockCode}${schoolCode}`;
+        
         const nextId = (totalApprovedInSchoolCount + 1).toString().padStart(4, '0');
         const admissionNumber = `ADM/${schoolIdentifier}/${year}/${nextId}`;
 
@@ -204,29 +209,35 @@ export const listenToAdmissions = (
     
     const status = options?.status;
     
+    // Base query for the school
     const constraints: QueryConstraint[] = [
         where('admissionDetails.udise', '==', udise),
     ];
     
-    if (status) {
-        constraints.push(where('admissionDetails.status', '==', status));
-    } else {
-        // This is for the "Approved Students" list.
-        // We want all students who are NOT pending. This includes 'approved', 'rejected', and old data without a status.
-        constraints.push(where('admissionDetails.status', '!=', 'pending'));
+    // For 'pending' status, we can filter directly in the query as it's efficient.
+    if (status === 'pending') {
+        constraints.push(where('admissionDetails.status', '==', 'pending'));
     }
-
+    
+    // For 'approved' status, we fetch ALL documents for the school and filter client-side.
+    // This avoids needing a Firestore composite index for a `!= 'pending'` query and
+    // correctly includes old records that might not have a 'status' field.
     const q = query(collection(db, 'admissions'), ...constraints);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        let admissions: (FormValues & { id: string })[] = [];
-        querySnapshot.forEach((doc) => {
-            admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
-        });
+        let allFetchedStudents = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
+        
+        let students: (FormValues & { id: string })[] = [];
+
+        if (status === 'pending') {
+            students = allFetchedStudents; // Query was already filtered
+        } else { // This handles 'approved' and the case where no status is specified
+            students = allFetchedStudents.filter(s => s.admissionDetails.status !== 'pending');
+        }
         
         // Sort the data on the client-side
-        const sortField: 'submittedAt' | 'admissionDate' = status === 'pending' ? 'submittedAt' : 'admissionDate';
-        admissions.sort((a, b) => {
+        const sortField = status === 'pending' ? 'submittedAt' : 'admissionDate';
+        students.sort((a, b) => {
             const dateA = a.admissionDetails?.[sortField] as Date | undefined;
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
@@ -245,7 +256,7 @@ export const listenToAdmissions = (
         });
         
         // Apply limit on the client-side
-        const finalAdmissions = options?.count ? admissions.slice(0, options.count) : admissions;
+        const finalAdmissions = options?.count ? students.slice(0, options.count) : students;
 
         callback(finalAdmissions);
     }, (error) => {
