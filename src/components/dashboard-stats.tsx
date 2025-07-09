@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, Palette, FlaskConical, Landmark, ArrowRight } from "lucide-react";
 import { listenToAdmissions } from '@/lib/admissions';
 import { useSchoolData } from '@/hooks/use-school-data';
@@ -47,18 +47,18 @@ export default function DashboardStats() {
   }, [school, schoolLoading]);
 
   const statsData = [
-    { title: "Total Admissions", value: stats.total.toLocaleString(), icon: Users, classId: "all", bgClass: "bg-blue-500", },
-    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9", bgClass: "bg-green-500", },
-    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts", bgClass: "bg-orange-500", },
-    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science", bgClass: "bg-purple-600", },
-    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce", bgClass: "bg-teal-500", },
+    { title: "Total Admissions", value: stats.total.toLocaleString(), icon: Users, classId: "all" },
+    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9" },
+    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts" },
+    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science" },
+    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce" },
   ];
 
   if (loading) {
     return (
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, index) => (
-           <div key={index} className="h-[160px] bg-muted/80 rounded-lg p-5 flex flex-col justify-between">
+           <div key={index} className="h-[160px] bg-card rounded-xl p-5 flex flex-col justify-between border">
                 <div>
                     <Skeleton className="h-5 w-3/4" />
                     <Skeleton className="h-10 w-1/2 mt-3" />
@@ -76,20 +76,19 @@ export default function DashboardStats() {
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
       {statsData.map((stat) => (
         <Link href={`/dashboard/students?class=${stat.classId}`} key={stat.title} className="group">
-          <Card className={`shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between ${stat.bgClass} text-white relative overflow-hidden rounded-xl`}>
-            
-            <div className="p-5 z-10">
-              <CardTitle className="text-base font-bold">{stat.title}</CardTitle>
-              <p className="text-4xl font-bold mt-2">{stat.value}</p>
+          <Card className="shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between relative overflow-hidden rounded-xl p-5">
+            <div className="z-10">
+              <CardTitle className="text-base font-bold text-muted-foreground">{stat.title}</CardTitle>
+              <p className="text-4xl font-bold mt-2 text-foreground">{stat.value}</p>
             </div>
             
-            <div className="p-5 pt-0 z-10">
-                <p className="text-xs flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+            <div className="z-10">
+                <p className="text-xs flex items-center gap-1 text-muted-foreground group-hover:text-primary transition-opacity">
                     View list <ArrowRight className="h-3 w-3" />
                 </p>
             </div>
 
-            <stat.icon className="absolute -bottom-5 -right-5 w-24 h-24 text-white/10 group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300" />
+            <stat.icon className="absolute -bottom-5 -right-5 w-24 h-24 text-foreground/5 group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300" />
           </Card>
         </Link>
       ))}
