@@ -115,11 +115,20 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
             </Section>
 
             {isClass9 && subjectDetails && (
-                <Section title="Subject Selection (Class 9)">
-                    <ReviewItem label="MIL" value={subjectDetails.mil} />
-                    <ReviewItem label="SIL" value={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
-                    <ReviewItem label="Other Subjects" value="Mathematics, Social Science, English" />
-                </Section>
+                <>
+                    <Section title="Subject Selection (Class 9)">
+                        <ReviewItem label="MIL" value={subjectDetails.mil} />
+                        <ReviewItem label="SIL" value={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
+                        <ReviewItem label="Other Subjects" value="Mathematics, Social Science, English" />
+                    </Section>
+                    <Section title="Class 8 Details">
+                        <ReviewItem label="Passing Year" value={subjectDetails.class8PassingYear} />
+                        <ReviewItem label="Roll Number" value={subjectDetails.class8RollNo} />
+                        <ReviewItem label="Total Marks" value={subjectDetails.class8TotalMarks} />
+                        <ReviewItem label="Obtained Marks" value={subjectDetails.class8ObtainedMarks} />
+                        <ReviewItem label="Percentage" value={subjectDetails.class8Percentage ? `${subjectDetails.class8Percentage}%` : null} />
+                    </Section>
+                </>
             )}
 
             {isClass11 && subjectDetails && (

@@ -74,6 +74,11 @@ const subjectDetailsSchema = z.object({
     optionalSubject: z.string().optional(),
     // Class 9 Fields
     mil: z.enum(["hindi", "urdu"]).optional(),
+    class8PassingYear: z.string().optional(),
+    class8RollNo: z.string().optional(),
+    class8TotalMarks: z.string().optional(),
+    class8ObtainedMarks: z.string().optional(),
+    class8Percentage: z.string().optional(),
 });
 
 

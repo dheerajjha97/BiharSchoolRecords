@@ -282,6 +282,76 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
             </p>
           </FormItem>
         </FormSection>
+
+        <FormSection title="Class 8 Details (Optional)">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="subjectDetails.class8PassingYear"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Passing Year</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 2024" type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="subjectDetails.class8RollNo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Roll Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Class 8 Roll No." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="subjectDetails.class8TotalMarks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Total Marks</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 500" type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="subjectDetails.class8ObtainedMarks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Obtained Marks</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 450" type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="subjectDetails.class8Percentage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Percentage (%)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 90" type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </FormSection>
       </div>
     );
   }

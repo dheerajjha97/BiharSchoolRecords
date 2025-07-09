@@ -178,6 +178,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         </header>
 
         {isClass9 && subjectDetails && (
+          <>
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Subject Selection Details (Class 9)" />
@@ -187,6 +188,15 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                     <PrintTableRow label="Compulsory Subjects" value="Mathematics, Social Science, English" />
                 </tbody>
             </table>
+            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
+                <tbody>
+                    <SectionTitle title="7. Class 8 Details" />
+                    <PrintTableDoubleRow label1="Passing Year" value1={subjectDetails.class8PassingYear} label2="Roll Number" value2={subjectDetails.class8RollNo} />
+                    <PrintTableDoubleRow label1="Total Marks" value1={subjectDetails.class8TotalMarks} label2="Obtained Marks" value2={subjectDetails.class8ObtainedMarks} />
+                    <PrintTableRow label="Percentage (%)" value={subjectDetails.class8Percentage} />
+                </tbody>
+            </table>
+          </>
         )}
         
         {isClass11 && subjectDetails && (
