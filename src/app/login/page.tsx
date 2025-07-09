@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getSchoolByUdise, saveSchool } from '@/lib/school';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AddSchoolDialog } from '@/components/add-school-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -20,11 +21,20 @@ import { firebaseError } from '@/lib/firebase';
 export default function LoginPage() {
   const [udise, setUdise] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showAddSchoolDialog, setShowAddSchoolDialog] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
+
+  useEffect(() => {
+    const rememberedUdise = localStorage.getItem('remembered_udise');
+    if (rememberedUdise) {
+      setUdise(rememberedUdise);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +68,11 @@ export default function LoginPage() {
       }
 
       if (school.password === password) {
+        if (rememberMe) {
+          localStorage.setItem('remembered_udise', udise);
+        } else {
+          localStorage.removeItem('remembered_udise');
+        }
         await login(school.udise);
         router.push('/dashboard');
       } else {
@@ -119,6 +134,10 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </div>
+            <div className="flex items-center space-x-2">
+                <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
+                <Label htmlFor="remember-me" className="text-sm font-normal">Remember my UDISE code</Label>
             </div>
             {error && !showAddSchoolDialog && (
               <Alert variant="destructive">
