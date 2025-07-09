@@ -14,8 +14,6 @@ import {
   QueryConstraint,
   writeBatch,
   updateDoc,
-  orderBy,
-  limit,
 } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 
@@ -154,6 +152,7 @@ export const approveAdmission = async (id: string, udise: string, classSelection
 
 /**
  * Listens for real-time updates to the admissions collection for a specific school.
+ * This function sorts data client-side to avoid needing composite indexes in Firestore.
  * @param udise The UDISE code of the school.
  * @param callback The function to call with the updated admissions list.
  * @param options Optional parameters to filter the results, e.g., by count or status.
@@ -170,19 +169,13 @@ export const listenToAdmissions = (
         return () => {}; // Return a no-op unsubscribe function
     }
     
-    // Default to approved if status is not specified
     const status = options?.status || 'approved';
-    const sortField = status === 'pending' ? 'admissionDetails.submittedAt' : 'admissionDetails.admissionDate';
+    const sortField: 'submittedAt' | 'admissionDate' = status === 'pending' ? 'submittedAt' : 'admissionDate';
 
     const constraints: QueryConstraint[] = [
         where('admissionDetails.udise', '==', udise),
         where('admissionDetails.status', '==', status),
-        orderBy(sortField, 'desc')
     ];
-
-    if (options?.count) {
-        constraints.push(limit(options.count));
-    }
 
     const q = query(collection(db, 'admissions'), ...constraints);
 
@@ -191,7 +184,22 @@ export const listenToAdmissions = (
         querySnapshot.forEach((doc) => {
             admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
         });
-        callback(admissions);
+        
+        // Sort the data on the client-side
+        admissions.sort((a, b) => {
+            const dateA = a.admissionDetails?.[sortField] as Date | undefined;
+            const dateB = b.admissionDetails?.[sortField] as Date | undefined;
+            
+            if (!dateB) return -1;
+            if (!dateA) return 1;
+
+            return dateB.getTime() - dateA.getTime(); // For descending order
+        });
+        
+        // Apply limit on the client-side
+        const finalAdmissions = options?.count ? admissions.slice(0, options.count) : admissions;
+
+        callback(finalAdmissions);
     }, (error) => {
         console.error(`Error listening to ${status} admissions:`, error);
         callback([]); // Pass empty array on error
