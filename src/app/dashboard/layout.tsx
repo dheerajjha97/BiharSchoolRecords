@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, School, Users, LogOut, Loader2, KeyRound } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, School, Users, LogOut, Loader2, KeyRound, Building } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 import {
@@ -49,7 +49,7 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <Link href="/dashboard" className="flex items-center gap-3 p-2 w-full">
+            <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full">
                 <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
                     <School className="h-6 w-6 text-primary" />
                 </div>
@@ -71,6 +71,18 @@ export default function DashboardLayout({
                 <Link href="/dashboard">
                   <LayoutDashboard />
                   <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/dashboard/profile'}
+                tooltip="School Profile"
+              >
+                <Link href="/dashboard/profile">
+                  <Building />
+                  <span>School Profile</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

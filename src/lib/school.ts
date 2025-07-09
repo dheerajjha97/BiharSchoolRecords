@@ -8,6 +8,8 @@ export interface School {
     udise: string;
     ownerUid?: string;
     password?: string;
+    mobile?: string;
+    email?: string;
 }
 
 
