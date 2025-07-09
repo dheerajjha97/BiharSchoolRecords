@@ -82,16 +82,8 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
     <div className="a4-container bg-white text-black font-body shadow-lg text-xs">
       {/* --- PAGE 1 --- */}
       <div className="page">
-        <header className="flex items-center w-full mb-4 break-inside-avoid gap-4">
-            <div className="flex-shrink-0">
-                <img
-                    src="/logo.jpg"
-                    alt="School Logo"
-                    className="h-20 w-20"
-                    crossOrigin="anonymous"
-                />
-            </div>
-            <div className="text-center flex-grow">
+        <header className="text-center w-full mb-4 break-inside-avoid">
+            <div>
                 <h1 className="text-4xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
                 <p className="text-lg font-semibold">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
                 <p className="text-xl font-bold mt-1">ADMISSION FORM</p>

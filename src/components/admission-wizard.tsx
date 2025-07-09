@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
@@ -177,7 +178,7 @@ function AdmissionWizardContent() {
       });
 
       // Automatically open the print page for the new admission
-      window.open(`/print/${newAdmissionId}`, '_blank');
+      window.open(`/print/${newAdmissionId}?udise=${school.udise}`, '_blank');
       
       router.push('/dashboard');
 

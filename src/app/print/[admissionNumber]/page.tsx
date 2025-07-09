@@ -43,7 +43,7 @@ function PrintPageContent() {
       }
       
       try {
-        // 1. Fetch student data
+        // Step 1: Fetch the primary data for the form.
         const admissionInfo = await getAdmissionById(admissionNumber);
         if (!admissionInfo) {
           setError(`No admission record found for ID: ${admissionNumber}`);
@@ -52,20 +52,17 @@ function PrintPageContent() {
         }
         setStudentData(admissionInfo);
         
-        // 2. Determine the UDISE code with a clear priority:
-        //    a) From the admission record itself (most reliable)
-        //    b) From the URL query parameter (great fallback from student list)
-        //    c) From localStorage (last resort)
-        const udiseToUse = admissionInfo.admissionDetails?.udise || udiseFromQuery || localStorage.getItem('udise_code');
+        // Step 2: Determine the UDISE code. Prioritize the one in the record itself.
+        const udiseToUse = admissionInfo.admissionDetails?.udise || udiseFromQuery;
 
-        // 3. Fetch school data from Firestore using the determined UDISE code
+        // Step 3: Fetch the associated school data for the header.
         if (udiseToUse) {
             const firestoreSchoolData = await getSchoolByUdise(udiseToUse);
             if (firestoreSchoolData) {
                 setSchoolData(firestoreSchoolData);
             } else {
-                // This error is informational; we might still render the form without school details
-                setError(`School details for UDISE ${udiseToUse} were not found in the database. The printable form might be missing school information.`);
+                // This is an informational error; the form can still be printed.
+                setError(`School details for UDISE ${udiseToUse} were not found. The form will print without school info.`);
             }
         } else {
             setError(`Could not determine a UDISE code for this student record. School details cannot be loaded.`);
