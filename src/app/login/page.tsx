@@ -32,6 +32,10 @@ export default function LoginPage() {
     const rememberedUdise = localStorage.getItem('remembered_udise');
     if (rememberedUdise) {
       setUdise(rememberedUdise);
+      const rememberedPassword = localStorage.getItem('remembered_password');
+      if (rememberedPassword) {
+        setPassword(rememberedPassword);
+      }
       setRememberMe(true);
     }
   }, []);
@@ -68,8 +72,10 @@ export default function LoginPage() {
       if (school.password === password) {
         if (rememberMe) {
           localStorage.setItem('remembered_udise', udise);
+          localStorage.setItem('remembered_password', password);
         } else {
           localStorage.removeItem('remembered_udise');
+          localStorage.removeItem('remembered_password');
         }
         await login(school.udise);
         router.push('/dashboard');
@@ -142,7 +148,7 @@ export default function LoginPage() {
             </div>
             <div className="flex items-center space-x-2">
                 <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
-                <Label htmlFor="remember-me" className="text-sm font-normal">Remember my UDISE code</Label>
+                <Label htmlFor="remember-me" className="text-sm font-normal">Remember me</Label>
             </div>
             {error && (
               <Alert variant="destructive">
