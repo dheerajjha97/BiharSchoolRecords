@@ -170,44 +170,48 @@ export const listenToAdmissions = (
         return () => {}; // Return a no-op unsubscribe function
     }
     
-    const status = options?.status || 'approved';
-    const sortField: 'submittedAt' | 'admissionDate' = status === 'pending' ? 'submittedAt' : 'admissionDate';
-
+    const status = options?.status;
+    
     const constraints: QueryConstraint[] = [
         where('admissionDetails.udise', '==', udise),
-        where('admissionDetails.status', '==', status),
     ];
+    
+    // For 'pending' status, we can use a direct query as it's efficient and correct.
+    // For 'approved' status, we fetch all and filter client-side to include old records without a status field.
+    if (status === 'pending') {
+        constraints.push(where('admissionDetails.status', '==', 'pending'));
+    }
 
     const q = query(collection(db, 'admissions'), ...constraints);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const admissions: (FormValues & { id: string })[] = [];
+        let admissions: (FormValues & { id: string })[] = [];
         querySnapshot.forEach((doc) => {
             admissions.push({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string });
         });
         
+        // If the 'approved' status is requested, we filter client-side to include records
+        // that are explicitly 'approved' or have no status field (i.e., they are not 'pending').
+        if (status === 'approved') {
+            admissions = admissions.filter(s => s.admissionDetails.status !== 'pending');
+        }
+
         // Sort the data on the client-side
+        const sortField: 'submittedAt' | 'admissionDate' = status === 'pending' ? 'submittedAt' : 'admissionDate';
         admissions.sort((a, b) => {
             const dateA = a.admissionDetails?.[sortField] as Date | undefined;
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
             // Handle cases where dates might be missing or invalid.
-            // Records with invalid/missing dates should be sorted to the end.
             const aHasDate = dateA && dateA instanceof Date && !isNaN(dateA.getTime());
             const bHasDate = dateB && dateB instanceof Date && !isNaN(dateB.getTime());
 
-            if (aHasDate && !bHasDate) {
-              return -1; // a comes first
-            }
-            if (!aHasDate && bHasDate) {
-              return 1; // b comes first
-            }
+            if (aHasDate && !bHasDate) return -1;
+            if (!aHasDate && bHasDate) return 1;
             if (!aHasDate && !bHasDate) {
-              // Fallback to name sorting if no dates are available
               return (a.studentDetails?.nameEn || '').localeCompare(b.studentDetails?.nameEn || '');
             }
             
-            // Both dates are valid, sort descending (newest first)
             return (dateB as Date).getTime() - (dateA as Date).getTime();
         });
         
@@ -216,7 +220,7 @@ export const listenToAdmissions = (
 
         callback(finalAdmissions);
     }, (error) => {
-        console.error(`Error listening to ${status} admissions:`, error);
+        console.error(`Error listening to admissions:`, error);
         callback([]); // Pass empty array on error
     });
 
