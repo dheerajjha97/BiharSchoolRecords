@@ -3,8 +3,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, School, Users } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, PlusCircle, School, Users, LogOut, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 import {
@@ -18,7 +18,7 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardLayout({
   children,
@@ -26,7 +26,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { school, loading } = useAuth();
+  const router = useRouter();
+  const { school, loading, logout } = useAuth();
+  
+  React.useEffect(() => {
+    if (!loading && !school) {
+      router.push('/login');
+    }
+  }, [loading, school, router]);
+
+  if (loading || !school) {
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-background">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -38,17 +53,8 @@ export default function DashboardLayout({
                     <School className="h-6 w-6 text-primary" />
                 </div>
                 <div className="group-data-[collapsible=icon]:hidden min-w-0">
-                    {loading ? (
-                        <div className="space-y-1">
-                            <Skeleton className="h-5 w-32" />
-                            <Skeleton className="h-3 w-40" />
-                        </div>
-                    ) : (
-                        <div>
-                        <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
-                        <div className="text-xs text-sidebar-foreground/70 whitespace-pre-wrap">{school?.address}</div>
-                        </div>
-                    )}
+                    <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                    <div className="text-xs text-sidebar-foreground/70 whitespace-pre-wrap">{school?.address}</div>
                 </div>
             </Link>
           </div>
@@ -99,21 +105,14 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="lg:hidden" />
                 <div className="lg:hidden">
-                    {loading ? (
-                        <div className="space-y-1">
-                            <Skeleton className="h-5 w-32" />
-                            <Skeleton className="h-3 w-48" />
-                        </div>
-                    ) : (
-                        <div>
-                            <div className="font-bold text-base">{school?.name || 'EduAssist'}</div>
-                            <div className="text-muted-foreground text-xs">{school?.address}</div>
-                        </div>
-                    )}
+                    <div className="font-bold text-base">{school?.name || 'EduAssist'}</div>
+                    <div className="text-muted-foreground text-xs">{school?.address}</div>
                 </div>
             </div>
             <div>
-                {/* Auth options removed */}
+              <Button variant="ghost" size="icon" onClick={logout} aria-label="Logout">
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
         </header>
         <main className="min-h-screen p-4 sm:p-6 md:p-8 bg-secondary/40">

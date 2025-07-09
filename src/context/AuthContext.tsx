@@ -1,37 +1,86 @@
 
 'use client';
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { School } from '@/lib/school';
-
-// Mock user and school data since auth is removed.
-const mockUser = { uid: 'mock-user-id', email: 'admin@example.com' };
-const mockSchool: School = {
-    name: 'उच्च माध्यमिक विद्यालय बेरुआ',
-    address: 'ग्राम – चोरनियां, पोस्ट – चिरैला, प्रखंड – गायघाट, जिला – मुजफ्फरपुर',
-    udise: '10141201505',
-    ownerUid: 'mock-user-id',
-};
+import { getSchoolByUdise } from '@/lib/school';
+import { firebaseError } from '@/lib/firebase';
 
 interface AuthContextType {
-  user: typeof mockUser | null;
   school: School | null;
   loading: boolean;
+  login: (udise: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
   school: null,
-  loading: false, // Not loading as data is static
+  loading: true,
+  login: async () => {},
+  logout: () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // The provider now simply provides the mock data without any async logic.
-  const value = {
-    user: mockUser,
-    school: mockSchool,
-    loading: false,
-  };
+  const [school, setSchool] = useState<School | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkUser = async () => {
+        setLoading(true);
+        if (firebaseError) {
+            console.error("Auth provider cannot function due to Firebase error:", firebaseError);
+            setSchool(null);
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const storedUdise = localStorage.getItem('udise_code');
+            if (storedUdise) {
+                const schoolData = await getSchoolByUdise(storedUdise);
+                setSchool(schoolData);
+            } else {
+                setSchool(null);
+            }
+        } catch (error) {
+            console.error("Failed to load school data on init:", error);
+            setSchool(null);
+            localStorage.removeItem('udise_code');
+        } finally {
+            setLoading(false);
+        }
+    }
+    checkUser();
+  }, []);
+
+  const login = useCallback(async (udise: string) => {
+    setLoading(true);
+    try {
+        const schoolData = await getSchoolByUdise(udise);
+        if (schoolData) {
+            localStorage.setItem('udise_code', udise);
+            setSchool(schoolData);
+        } else {
+            throw new Error("School not found after trying to log in.");
+        }
+    } catch (error) {
+        console.error("Login failed:", error);
+        localStorage.removeItem('udise_code');
+        setSchool(null);
+    } finally {
+        setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('udise_code');
+    setSchool(null);
+    router.push('/login');
+  }, [router]);
+
+  const value = { school, loading, login, logout };
 
   return (
     <AuthContext.Provider value={value}>

@@ -2,6 +2,6 @@
 import { redirect } from 'next/navigation';
 
 export default function CompleteProfilePage() {
-  redirect('/dashboard');
+  redirect('/login');
   return null;
 }
