@@ -28,13 +28,13 @@ interface Class11SubjectSelectionProps {
   additionalSubjects: { id: string; label: string }[];
 }
 
-// Arts & Science Compulsory Subjects
-const artsScienceCompulsoryGroup1Subjects = [
+// Arts Compulsory Subjects
+const artsCompulsoryGroup1Subjects = [
   { id: 'english-305', label: 'English - 305' },
   { id: 'hindi-306', label: 'Hindi - 306' },
 ];
 
-const artsScienceCompulsoryGroup2Subjects = [
+const artsCompulsoryGroup2Subjects = [
   { id: 'english-305', label: 'English - 305' },
   { id: 'hindi-306', label: 'Hindi - 306' },
   { id: 'urdu-307', label: 'Urdu - 307' },
@@ -71,6 +71,28 @@ const commerceCompulsoryGroup2Subjects = [
   { id: 'bangla-216', label: 'Bangla - 216' },
 ];
 
+// Science Compulsory Subjects
+const scienceCompulsoryGroup1Subjects = [
+  { id: 'english-105', label: 'English - 105' },
+  { id: 'hindi-106', label: 'Hindi - 106' },
+];
+
+const scienceCompulsoryGroup2Subjects = [
+  { id: 'english-105', label: 'English - 105' },
+  { id: 'hindi-106', label: 'Hindi - 106' },
+  { id: 'urdu-107', label: 'Urdu - 107' },
+  { id: 'maithili-108', label: 'Maithili - 108' },
+  { id: 'sanskrit-109', label: 'Sanskrit - 109' },
+  { id: 'prakrit-110', label: 'Prakrit - 110' },
+  { id: 'magahi-111', label: 'Magahi - 111' },
+  { id: 'bhojpuri-112', label: 'Bhojpuri - 112' },
+  { id: 'arabic-113', label: 'Arabic - 113' },
+  { id: 'persian-114', label: 'Persian - 114' },
+  { id: 'pali-115', label: 'Pali - 115' },
+  { id: 'bangla-116', label: 'Bangla - 116' },
+];
+
+
 // Arts Elective Subjects
 const artsElectiveSubjects = [
   { id: 'music-318', label: 'Music - 318' },
@@ -87,10 +109,11 @@ const artsElectiveSubjects = [
 
 // Science Elective Subjects
 const scienceElectiveSubjects = [
-    { id: 'physics-310', label: 'Physics - 310' },
-    { id: 'chemistry-311', label: 'Chemistry - 311' },
-    { id: 'mathematics-312', label: 'Mathematics - 312' },
-    { id: 'biology-313', label: 'Biology - 313' },
+    { id: 'physics-117', label: 'Physics - 117' },
+    { id: 'chemistry-118', label: 'Chemistry - 118' },
+    { id: 'biology-119', label: 'Biology - 119' },
+    { id: 'agriculture-120', label: 'Agriculture - 120' },
+    { id: 'mathematics-121', label: 'Mathematics - 121' },
 ];
 
 // Commerce Elective Subjects
@@ -103,7 +126,7 @@ const commerceElectiveSubjects = [
 
 // Additional Subjects for Arts
 const artsAdditionalSubjectsList = [
-    ...artsScienceCompulsoryGroup2Subjects,
+    ...artsCompulsoryGroup2Subjects,
     ...artsElectiveSubjects,
     { id: 'computer-science-328', label: 'Computer Sc. - 328' },
     { id: 'multimedia-web-tech-329', label: 'Multimedia & Web Tech - 329' },
@@ -133,6 +156,15 @@ const commerceAdditionalSubjectsList = [
     { id: 'multimedia-web-tech-222', label: 'Multimedia & Web Tech. – 222' }
 ];
 const uniqueCommerceAdditionalSubjects = [...new Map(commerceAdditionalSubjectsList.map(item => [item.id, item])).values()];
+
+// Additional Subjects for Science
+const scienceAdditionalSubjectsList = [
+    ...scienceCompulsoryGroup2Subjects,
+    ...scienceElectiveSubjects,
+    { id: 'computer-science-122', label: 'Computer Science - 122' },
+    { id: 'multimedia-web-tech-123', label: 'Multimedia & Web Tech. - 123' },
+];
+const uniqueScienceAdditionalSubjects = [...new Map(scienceAdditionalSubjectsList.map(item => [item.id, item])).values()];
 
 
 const Class11SubjectSelection = ({ form, compulsoryGroup1Subjects, compulsoryGroup2Subjects, electiveSubjects, additionalSubjects }: Class11SubjectSelectionProps) => {
@@ -431,8 +463,8 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
   if (classSelection === "11-arts") {
     return <Class11SubjectSelection 
         form={form} 
-        compulsoryGroup1Subjects={artsScienceCompulsoryGroup1Subjects}
-        compulsoryGroup2Subjects={artsScienceCompulsoryGroup2Subjects}
+        compulsoryGroup1Subjects={artsCompulsoryGroup1Subjects}
+        compulsoryGroup2Subjects={artsCompulsoryGroup2Subjects}
         electiveSubjects={artsElectiveSubjects} 
         additionalSubjects={uniqueArtsAdditionalSubjects} 
     />;
@@ -441,10 +473,10 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
   if (classSelection === "11-science") {
     return <Class11SubjectSelection 
         form={form} 
-        compulsoryGroup1Subjects={artsScienceCompulsoryGroup1Subjects}
-        compulsoryGroup2Subjects={artsScienceCompulsoryGroup2Subjects}
+        compulsoryGroup1Subjects={scienceCompulsoryGroup1Subjects}
+        compulsoryGroup2Subjects={scienceCompulsoryGroup2Subjects}
         electiveSubjects={scienceElectiveSubjects} 
-        additionalSubjects={[]}  // Update if science has additional subjects
+        additionalSubjects={uniqueScienceAdditionalSubjects} 
     />;
   }
   
@@ -461,5 +493,3 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
 
   return null;
 }
-
-    
