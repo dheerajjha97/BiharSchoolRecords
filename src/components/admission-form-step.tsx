@@ -403,7 +403,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <span className="text-muted-foreground sm:text-sm">+91</span>
                       </div>
-                      <Input placeholder="9876543210" type="tel" className="pl-12" {...field} />
+                      <Input placeholder="9876543210" type="tel" maxLength={10} className="pl-12" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
