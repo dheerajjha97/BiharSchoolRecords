@@ -411,7 +411,42 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               )}
             />
             <FormField control={form.control} name="contactDetails.emailId" render={({ field }) => (<FormItem><FormLabel>Email ID</FormLabel><FormControl><Input placeholder="student@example.com" type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField control={form.control} name="contactDetails.aadharNumber" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Aadhar Number</FormLabel><FormControl><Input placeholder="12-digit Aadhar number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField
+              control={form.control}
+              name="contactDetails.aadharNumber"
+              render={({ field }) => {
+                const formatAadhar = (value: string) => {
+                  const cleaned = (value || '').replace(/\D/g, '');
+                  const parts = [];
+                  if (cleaned.length > 0) parts.push(cleaned.substring(0, 4));
+                  if (cleaned.length > 4) parts.push(cleaned.substring(4, 8));
+                  if (cleaned.length > 8) parts.push(cleaned.substring(8, 12));
+                  return parts.join('-');
+                };
+
+                const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const numericValue = e.target.value.replace(/\D/g, '');
+                  if (numericValue.length <= 12) {
+                    field.onChange(numericValue);
+                  }
+                };
+
+                return (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Aadhar Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="XXXX-XXXX-XXXX"
+                        {...field}
+                        value={formatAadhar(field.value)}
+                        onChange={handleChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <FormField
