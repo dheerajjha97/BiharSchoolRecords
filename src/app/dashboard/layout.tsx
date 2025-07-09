@@ -3,8 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { signOut } from 'firebase/auth';
-import { FileCog, LayoutDashboard, LogOut, PlusCircle, School, Users } from 'lucide-react';
+import { signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { FileCog, KeyRound, LayoutDashboard, LogOut, PlusCircle, School, Users } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { auth } from '@/lib/firebase';
 
@@ -26,6 +26,7 @@ import {
     MenubarContent,
     MenubarItem,
     MenubarMenu,
+    MenubarSeparator,
     MenubarTrigger,
 } from "@/components/ui/menubar"
 import { useToast } from '@/hooks/use-toast';
@@ -37,7 +38,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { school, loading } = useAuth();
+  const { user, school, loading } = useAuth();
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -51,6 +52,30 @@ export default function DashboardLayout({
       router.push('/login');
     } catch (error) {
       toast({ title: "Logout Failed", description: "Could not log you out. Please try again.", variant: "destructive" });
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!auth || !user?.email) {
+      toast({
+        title: "Password Reset Failed",
+        description: "Could not get your email address to send a reset link.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      toast({
+        title: "Password Reset Email Sent",
+        description: `Please check your inbox at ${user.email} for instructions to reset your password.`,
+      });
+    } catch (error: any) {
+        toast({
+            title: "Password Reset Failed",
+            description: "Could not send the password reset email. Please try again.",
+            variant: "destructive",
+        });
     }
   };
 
@@ -128,6 +153,11 @@ export default function DashboardLayout({
                         </Button>
                     </MenubarTrigger>
                     <MenubarContent align="end">
+                        <MenubarItem onClick={handlePasswordReset} className="cursor-pointer">
+                            <KeyRound className="mr-2 h-4 w-4" />
+                            <span>Reset Password</span>
+                        </MenubarItem>
+                        <MenubarSeparator />
                         <MenubarItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
                             <LogOut className="mr-2 h-4 w-4" />
                             <span>Logout</span>
