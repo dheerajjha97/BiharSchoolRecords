@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -32,7 +33,7 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <SidebarTrigger className="size-8 lg:hidden" />
+            {/* The trigger that was here has been moved to the main header for mobile view */}
             <Link href="/dashboard" className="flex items-center gap-3 font-bold text-xl text-primary p-2">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <School className="h-6 w-6" />
@@ -91,8 +92,16 @@ export default function DashboardLayout({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center justify-end p-2 border-b bg-card h-[52px]">
-            {/* Auth options removed */}
+        <header className="flex items-center justify-between p-2 border-b bg-card h-[52px]">
+            <div className="flex items-center gap-2">
+                <SidebarTrigger className="lg:hidden" />
+                <div className="font-bold text-lg lg:hidden">
+                    {loading ? <Skeleton className="h-5 w-32" /> : (school?.name || 'EduAssist')}
+                </div>
+            </div>
+            <div>
+                {/* Auth options removed */}
+            </div>
         </header>
         <main className="min-h-screen p-4 sm:p-6 md:p-8 bg-secondary/40">
             {children}
