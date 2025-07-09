@@ -123,7 +123,8 @@ export default function LoginPage() {
 
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-secondary/40 p-4">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4">
+      <div className="absolute top-0 left-0 right-0 h-96 bg-primary/5 -z-10" />
       <DebugEnvVars />
       <Card className="w-full max-w-sm">
         <CardHeader>
