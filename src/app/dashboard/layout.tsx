@@ -33,20 +33,23 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            {/* The trigger that was here has been moved to the main header for mobile view */}
-            <Link href="/dashboard" className="flex items-center gap-3 font-bold text-xl text-primary p-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <School className="h-6 w-6" />
-              </div>
-              <div className="group-data-[collapsible=icon]:hidden">
-                {loading ? (
-                    <div className="space-y-1">
-                        <Skeleton className="h-5 w-32" />
-                    </div>
-                ) : (
-                    <span>{school?.name || 'EduAssist'}</span>
-                )}
-              </div>
+            <Link href="/dashboard" className="flex items-center gap-3 p-2 w-full">
+                <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                    <School className="h-6 w-6 text-primary" />
+                </div>
+                <div className="group-data-[collapsible=icon]:hidden overflow-hidden">
+                    {loading ? (
+                        <div className="space-y-1">
+                            <Skeleton className="h-5 w-32" />
+                            <Skeleton className="h-3 w-40" />
+                        </div>
+                    ) : (
+                        <div>
+                        <div className="font-bold text-base text-primary">{school?.name || 'EduAssist'}</div>
+                        <div className="text-xs text-sidebar-foreground/70 truncate">{school?.address}</div>
+                        </div>
+                    )}
+                </div>
             </Link>
           </div>
         </SidebarHeader>
@@ -92,11 +95,21 @@ export default function DashboardLayout({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center justify-between p-2 border-b bg-card h-[52px]">
+        <header className="flex items-center justify-between p-2 border-b bg-card min-h-[60px]">
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="lg:hidden" />
-                <div className="font-bold text-lg lg:hidden">
-                    {loading ? <Skeleton className="h-5 w-32" /> : (school?.name || 'EduAssist')}
+                <div className="lg:hidden">
+                    {loading ? (
+                        <div className="space-y-1">
+                            <Skeleton className="h-5 w-32" />
+                            <Skeleton className="h-3 w-48" />
+                        </div>
+                    ) : (
+                        <div>
+                            <div className="font-bold text-base">{school?.name || 'EduAssist'}</div>
+                            <div className="text-xs text-muted-foreground">{school?.address}</div>
+                        </div>
+                    )}
                 </div>
             </div>
             <div>
