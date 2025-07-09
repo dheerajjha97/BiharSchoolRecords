@@ -109,6 +109,33 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
 };
 
 /**
+ * Gets the total count of all approved (non-pending) admission documents across all schools.
+ * @returns A promise that resolves to the total number of approved admissions.
+ */
+const getGlobalAdmissionCount = async (): Promise<number> => {
+    if (!db) {
+        console.warn(firebaseError || "Database not available. Cannot get admission count.");
+        return 0;
+    }
+    try {
+        // Querying the entire collection. This can be slow and costly at a very large scale.
+        const q = query(collection(db, "admissions"));
+        const snapshot = await getDocs(q);
+        
+        // A student is approved if their status is NOT 'pending'. This includes legacy data without a status.
+        const approvedCount = snapshot.docs.filter(doc => {
+            const data = doc.data() as FormValues;
+            return data.admissionDetails?.status !== 'pending';
+        }).length;
+
+        return approvedCount;
+    } catch (e) {
+        console.error("Error getting global admission count:", e);
+        return 0;
+    }
+};
+
+/**
  * Approves a pending admission, generating admission/roll numbers and updating the status.
  * @param id The document ID of the admission record.
  * @param udise The UDISE code of the school.
@@ -121,16 +148,16 @@ export const approveAdmission = async (id: string, udise: string, classSelection
     try {
         const docRef = doc(db, "admissions", id);
 
-        // Get counts to generate new numbers, now counting all approved (non-pending) students
-        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection);
-        const totalApprovedCount = await getAdmissionCount(udise);
+        // Get counts to generate new numbers
+        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection); // For school/class-specific roll number
+        const totalApprovedCount = await getGlobalAdmissionCount(); // For globally unique admission number
         
         // Generate numbers
         const rollNumber = String(approvedInClassCount + 1);
         const year = new Date().getFullYear().toString().slice(-2);
         const nextId = (totalApprovedCount + 1).toString().padStart(4, '0');
-        // Use the full UDISE to guarantee uniqueness across schools
-        const admissionNumber = `ADM/${udise}/${year}/${nextId}`;
+        // A shorter, simpler, globally unique admission number
+        const admissionNumber = `ADM/${year}/${nextId}`;
 
         // Update document
         await updateDoc(docRef, {
@@ -176,8 +203,8 @@ export const listenToAdmissions = (
         where('admissionDetails.udise', '==', udise),
     ];
     
-    if (status === 'pending') {
-        constraints.push(where('admissionDetails.status', '==', 'pending'));
+    if (status) {
+        constraints.push(where('admissionDetails.status', '==', status));
     }
 
     const q = query(collection(db, 'admissions'), ...constraints);
@@ -189,9 +216,8 @@ export const listenToAdmissions = (
         });
         
         if (status === 'approved') {
-            // A student is considered approved if their status is NOT 'pending'.
-            // This includes old records without a status field and new records with status 'approved'.
-            admissions = admissions.filter(s => s.admissionDetails.status !== 'pending');
+            // This is now handled by the Firestore query, but we keep this as a safeguard
+            admissions = admissions.filter(s => s.admissionDetails.status === 'approved');
         }
 
         // Sort the data on the client-side
@@ -210,7 +236,7 @@ export const listenToAdmissions = (
                  return (dateB as Date).getTime() - (dateA as Date).getTime();
             }
             
-            // Fallback sort if dates are not present
+            // Fallback sort if dates are not present or equal
             return (a.studentDetails?.nameEn || '').localeCompare(b.studentDetails?.nameEn || '');
         });
         
@@ -225,33 +251,6 @@ export const listenToAdmissions = (
 
     return unsubscribe;
 };
-
-/**
- * Gets the total count of all approved (non-pending) admission documents for a school.
- * @param udise The UDISE code of the school.
- * @returns A promise that resolves to the total number of approved admissions.
- */
-export const getAdmissionCount = async (udise: string): Promise<number> => {
-    if (!db || !udise) {
-        console.warn(firebaseError || "Database not available or UDISE not provided. Cannot get admission count.");
-        return 0;
-    }
-    try {
-        const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
-        const snapshot = await getDocs(q);
-        
-        const approvedCount = snapshot.docs.filter(doc => {
-            const data = doc.data() as FormValues;
-            return data.admissionDetails?.status !== 'pending';
-        }).length;
-
-        return approvedCount;
-
-    } catch (e) {
-        console.error("Error getting admission count:", e);
-        return 0;
-    }
-}
 
 /**
  * Gets the count of approved (non-pending) admissions for a specific class in a school.
