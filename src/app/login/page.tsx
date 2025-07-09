@@ -125,7 +125,11 @@ export default function LoginPage() {
         setIsOtpSent(true);
     } catch (e: any) {
         console.error("OTP Error", e);
-        setError(`Failed to send OTP. Please check the number or try again. Error: ${e.message}`);
+        if (e.code === 'auth/billing-not-enabled') {
+            setError("Phone sign-in is not enabled for this project. Please upgrade your Firebase project to the Blaze (pay-as-you-go) plan in the Firebase Console to use this feature.");
+        } else {
+            setError(`Failed to send OTP. Please check the number or try again. Error: ${e.message}`);
+        }
     } finally {
         setIsPhoneLoading(false);
     }
