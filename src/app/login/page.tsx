@@ -83,7 +83,11 @@ export default function LoginPage() {
         setError('Invalid UDISE code or password.');
       }
     } catch (err) {
-      setError('An error occurred during login. Please try again.');
+      let errorMessage = 'An error occurred during login. Please try again.';
+      if (err instanceof Error && /unavailable/i.test(err.message)) {
+          errorMessage = 'Could not connect to the database. Please check your internet connection.';
+      }
+      setError(errorMessage);
       console.error(err);
     } finally {
       setLoading(false);
@@ -101,7 +105,11 @@ export default function LoginPage() {
     } catch (err) {
       let errorMessage = 'An unexpected error occurred.';
       if (err instanceof Error) {
-        errorMessage = err.message;
+        if (/unavailable/i.test(err.message)) {
+            errorMessage = 'Could not connect to the database. Please check your internet connection.';
+        } else {
+            errorMessage = err.message;
+        }
       }
       setError(`Failed to save the new school. ${errorMessage}`);
       console.error(err);
@@ -152,7 +160,7 @@ export default function LoginPage() {
                 <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} disabled={!!firebaseError} />
                 <Label htmlFor="remember-me" className="text-sm font-normal">Remember me</Label>
             </div>
-            {error && error !== firebaseError && (
+            {error && !firebaseError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Login Failed</AlertTitle>
