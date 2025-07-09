@@ -18,7 +18,6 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { SheetTitle } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLayout({
@@ -32,7 +31,6 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <Sidebar>
-        <SheetTitle className="sr-only">Sidebar Navigation</SheetTitle>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <Link href="/dashboard" className="flex items-center gap-3 p-2 w-full">
