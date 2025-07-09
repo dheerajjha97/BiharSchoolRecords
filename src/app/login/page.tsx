@@ -19,6 +19,7 @@ import { firebaseError } from '@/lib/firebase';
 
 export default function LoginPage() {
   const [udise, setUdise] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showAddSchoolDialog, setShowAddSchoolDialog] = useState(false);
@@ -32,7 +33,13 @@ export default function LoginPage() {
       setError('Please enter a valid 11-digit UDISE code.');
       return;
     }
+    if (!password) {
+      setError('Please enter your password.');
+      return;
+    }
     setLoading(true);
+    setShowAddSchoolDialog(false);
+
 
     if (firebaseError) {
         setError(firebaseError);
@@ -42,12 +49,19 @@ export default function LoginPage() {
 
     try {
       const school = await getSchoolByUdise(udise);
-      if (school) {
+      
+      if (!school) {
+        setError(`School with UDISE code ${udise} not found.`);
+        setShowAddSchoolDialog(true);
+        setLoading(false);
+        return;
+      }
+
+      if (school.password === password) {
         await login(school.udise);
         router.push('/dashboard');
       } else {
-        setError(`School with UDISE code ${udise} not found.`);
-        setShowAddSchoolDialog(true);
+        setError('Invalid UDISE code or password.');
       }
     } catch (err) {
       setError('An error occurred during login. Please try again.');
@@ -79,7 +93,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your school's UDISE code to access the dashboard.</CardDescription>
+          <CardDescription>Enter your school's UDISE code and password to access the dashboard.</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
@@ -93,6 +107,17 @@ export default function LoginPage() {
                 onChange={(e) => setUdise(e.target.value)}
                 required
                 maxLength={11}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
             {error && !showAddSchoolDialog && (
