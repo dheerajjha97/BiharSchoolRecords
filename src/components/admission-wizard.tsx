@@ -47,19 +47,36 @@ const STEPS = [
 function AdmissionWizardContent() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [schoolFromUrl, setSchoolFromUrl] = useState<School | null>(null);
+  const [formForSchool, setFormForSchool] = useState<School | null>(null);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { school: loggedInSchool, loading: authLoading } = useAuth();
 
-  const udiseFromUrl = searchParams.get('udise');
-  const nameFromUrl = searchParams.get('name');
-  const addressFromUrl = searchParams.get('address');
-
-  // Determine which school the form is for. This is the central logic.
-  const formForSchool = loggedInSchool || schoolFromUrl;
+  useEffect(() => {
+    if (authLoading) {
+      // Still checking auth status, do nothing yet.
+      return;
+    }
+    
+    if (loggedInSchool) {
+      // User is logged in, use their school data.
+      setFormForSchool(loggedInSchool);
+    } else {
+      // User is not logged in, try to get school from URL.
+      const udise = searchParams.get('udise');
+      const name = searchParams.get('name');
+      const address = searchParams.get('address');
+      
+      if (udise && name && address) {
+        setFormForSchool({ udise, name, address });
+      } else {
+        // No logged-in user and no school info in URL.
+        setFormForSchool(null);
+      }
+    }
+  }, [authLoading, loggedInSchool, searchParams]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -91,17 +108,6 @@ function AdmissionWizardContent() {
     },
     mode: "onChange",
   });
-
-  // If user is not logged in, get school info from URL parameters.
-  useEffect(() => {
-    if (!loggedInSchool && udiseFromUrl && nameFromUrl && addressFromUrl) {
-      setSchoolFromUrl({
-        udise: udiseFromUrl,
-        name: nameFromUrl,
-        address: addressFromUrl,
-      });
-    }
-  }, [loggedInSchool, udiseFromUrl, nameFromUrl, addressFromUrl]);
   
   const handleClassChange = useCallback(async (value: string | undefined) => {
     if (!value || !['9', '11-arts', '11-science', '11-commerce'].includes(value)) {
@@ -116,7 +122,6 @@ function AdmissionWizardContent() {
       toast({ title: "Configuration Error", description: firebaseError, variant: "destructive" });
       return;
     }
-    // Use `formForSchool` which correctly identifies the school from either login or URL.
     if (!formForSchool?.udise) {
         toast({ title: "School Not Specified", description: "Cannot submit form without a specified school. This form may be missing a UDISE code.", variant: "destructive" });
         return;
@@ -131,7 +136,7 @@ function AdmissionWizardContent() {
         ...data,
         admissionDetails: {
           ...data.admissionDetails,
-          udise: formForSchool.udise, // This is the crucial fix.
+          udise: formForSchool.udise,
           status: 'pending',
           submittedAt: new Date(),
         },
@@ -146,7 +151,6 @@ function AdmissionWizardContent() {
       
       form.reset();
       
-      // Redirect to the same form page with a cache-busting timestamp to ensure a fresh state
       const url = new URL(window.location.href);
       url.searchParams.set('submitted', Date.now().toString());
       router.push(url.toString());
@@ -229,12 +233,7 @@ function AdmissionWizardContent() {
     );
   };
 
-  // This is our main loading/error gate.
-  const showLoading = authLoading && !formForSchool;
-  const showError = firebaseError || (!authLoading && !formForSchool);
-  const errorMessage = firebaseError || 'School not configured. Cannot display form without a valid school. Please log in or use a valid QR code.';
-
-  if (showLoading) {
+  if (authLoading) {
     return (
         <Card>
             <CardHeader>
@@ -250,6 +249,9 @@ function AdmissionWizardContent() {
         </Card>
     );
   }
+
+  const showError = firebaseError || !formForSchool;
+  const errorMessage = firebaseError || 'School not configured. Cannot display form. Please log in as a school administrator or use a valid QR code link that includes school details.';
 
   if (showError) {
      return (
