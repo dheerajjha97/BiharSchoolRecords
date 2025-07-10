@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,28 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { QrCode, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
 
-
-const classOptions = [
-  { value: '9', label: 'Class 9' },
-  { value: '11-arts', label: 'Class 11 - Arts' },
-  { value: '11-science', label: 'Class 11 - Science' },
-  { value: '11-commerce', label: 'Class 11 - Commerce' },
-];
-
 export default function GenerateQrCode() {
-  const [selectedClass, setSelectedClass] = useState('');
   const [qrUrl, setQrUrl] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [showPublicUrlWarning, setShowPublicUrlWarning] = useState(false);
@@ -49,60 +33,42 @@ export default function GenerateQrCode() {
     }
   }, []);
 
-
   useEffect(() => {
-    // QR code generation depends on having a selected class, a base URL, and a school UDISE
-    if (selectedClass && baseUrl && school?.udise) {
+    // QR code generation depends on having a base URL and a school UDISE
+    if (baseUrl && school?.udise) {
       const url = new URL(baseUrl);
       url.pathname = '/form';
-      url.searchParams.set('class', selectedClass);
       url.searchParams.set('udise', school.udise); // Add the school's UDISE to the URL
       url.searchParams.set('source', 'qr'); // Add source parameter
       setQrUrl(url.toString());
     } else {
       setQrUrl('');
     }
-  }, [selectedClass, baseUrl, school]);
+  }, [baseUrl, school]);
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCode className="h-5 w-5" />
-          Generate Admission QR Code
+          School Admission QR Code
         </CardTitle>
         <CardDescription>
-          Select a class to generate a QR code for your school's admission form.
+          Share this single QR code for your school's admission form. Students can select their class after scanning.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="class-select">Class / Stream</Label>
-          <Select onValueChange={setSelectedClass} value={selectedClass}>
-            <SelectTrigger id="class-select">
-              <SelectValue placeholder="Select a class..." />
-            </SelectTrigger>
-            <SelectContent>
-              {classOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {qrUrl && (
+        {qrUrl ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-lg border bg-muted/50 p-4">
             <QRCodeCanvas value={qrUrl} size={160} />
             <p className="text-center text-sm text-muted-foreground">
-              Scan this code to open the form for{' '}
-              {
-                classOptions.find((opt) => opt.value === selectedClass)
-                  ?.label
-              }
-              .
+              Scan this code to open the admission form for {school?.name}.
             </p>
           </div>
+        ) : (
+           <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-md bg-muted/50">
+                <p className="text-muted-foreground">QR Code will appear here.</p>
+           </div>
         )}
         {showPublicUrlWarning && (
             <Alert variant="destructive">
