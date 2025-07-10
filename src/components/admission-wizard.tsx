@@ -49,7 +49,7 @@ function AdmissionWizardContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [targetSchool, setTargetSchool] = useState<School | null>(null);
   const [schoolError, setSchoolError] = useState<string | null>(null);
-  const [isFetchingSchool, setIsFetchingSchool] = useState(true); // Start as true
+  const [isFetchingSchool, setIsFetchingSchool] = useState(true);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -94,6 +94,7 @@ function AdmissionWizardContent() {
 
   // Fetch school data if UDISE is in URL, or stop loading if not.
   useEffect(() => {
+    setIsFetchingSchool(true); // Always start fetching on param change
     if (firebaseError) {
       setSchoolError(firebaseError);
       setIsFetchingSchool(false);
@@ -101,7 +102,6 @@ function AdmissionWizardContent() {
     }
 
     if (udiseFromUrl) {
-      setIsFetchingSchool(true);
       setSchoolError(null);
       getSchoolByUdise(udiseFromUrl)
         .then(school => {
@@ -163,7 +163,9 @@ function AdmissionWizardContent() {
       
       form.reset();
       // Redirect to the same form page with a cache-busting timestamp to ensure a fresh state
-      router.push(`/form?udise=${formForSchool.udise}&submitted=${Date.now()}`);
+      const redirectUrl = udiseFromUrl ? `/form?udise=${udiseFromUrl}&submitted=${Date.now()}` : `/form?submitted=${Date.now()}`;
+      router.push(redirectUrl);
+
 
     } catch (error) {
        console.error("Submission failed:", error);
@@ -225,16 +227,6 @@ function AdmissionWizardContent() {
   const progressValue = (step / STEPS.length) * 100;
   
   const SchoolInfoHeader = () => {
-    if (schoolError && !formForSchool) { // Only show full error if we have no school info at all
-        return (
-            <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>School Loading Error</AlertTitle>
-                <AlertDescription>{schoolError}</AlertDescription>
-            </Alert>
-        );
-    }
-
     if (!formForSchool) {
         return null;
     }
@@ -255,7 +247,7 @@ function AdmissionWizardContent() {
   const isUnconfigured = !udiseFromUrl && !authLoading && !loggedInSchool;
 
   // This is our main loading/error gate.
-  if (authLoading || isFetchingSchool) {
+  if (authLoading || (udiseFromUrl && isFetchingSchool)) {
     return (
         <Card>
             <CardHeader>
@@ -312,7 +304,9 @@ function AdmissionWizardContent() {
         <Progress value={progressValue} className="mt-4" />
       </CardHeader>
       <CardContent>
-        <SchoolInfoHeader />
+        <div className="mt-4">
+            <SchoolInfoHeader />
+        </div>
         
         <Form {...form}>
         <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8 mt-8">
