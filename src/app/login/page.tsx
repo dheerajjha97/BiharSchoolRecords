@@ -78,7 +78,7 @@ export default function LoginPage() {
           localStorage.removeItem('remembered_udise');
           localStorage.removeItem('remembered_password');
         }
-        await login(school.udise);
+        await login(school);
         router.push('/dashboard');
       } else {
         setError('Invalid UDISE code or password.');
@@ -100,7 +100,7 @@ export default function LoginPage() {
     setError('');
     try {
       await saveSchool(school);
-      await login(school.udise);
+      await login(school);
       setShowAddSchoolDialog(false);
       router.push('/dashboard');
     } catch (err) {

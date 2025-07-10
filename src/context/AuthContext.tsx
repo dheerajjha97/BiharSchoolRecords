@@ -10,7 +10,7 @@ import { firebaseError } from '@/lib/firebase';
 interface AuthContextType {
   school: School | null;
   loading: boolean;
-  login: (udise: string) => Promise<void>;
+  login: (schoolData: School) => Promise<void>;
   logout: () => void;
 }
 
@@ -55,15 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkUser();
   }, []);
 
-  const login = useCallback(async (udise: string) => {
+  const login = useCallback(async (schoolData: School) => {
+    // No need to fetch data again, as it's passed directly.
     setLoading(true);
     try {
-        const schoolData = await getSchoolByUdise(udise);
-        if (schoolData) {
-            localStorage.setItem('udise_code', udise);
+        if (schoolData && schoolData.udise) {
+            localStorage.setItem('udise_code', schoolData.udise);
             setSchool(schoolData);
         } else {
-            throw new Error("School not found after trying to log in.");
+            throw new Error("Invalid school data provided to login function.");
         }
     } catch (error) {
         console.error("Login failed:", error);
