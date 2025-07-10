@@ -1,3 +1,4 @@
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
@@ -15,18 +16,21 @@ try {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   };
 
-  const allVarsPresent = Object.values(firebaseConfig).every(Boolean);
+  const allVarsPresent = Object.values(firebaseConfig).every(val => val && typeof val === 'string' && val.length > 0);
 
   if (allVarsPresent) {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     dbInstance = getFirestore(app);
   } else {
-    throw new Error("One or more Firebase environment variables are missing from .env.local.");
+    // This is a more specific error for developers.
+    const missingVars = Object.entries(firebaseConfig).filter(([, val]) => !val).map(([key]) => key);
+    throw new Error(`The following Firebase environment variables are missing or empty: ${missingVars.join(', ')}. Please check your .env.local file.`);
   }
 
 } catch (e: any) {
   console.error("Firebase initialization failed:", e.message);
-  firebaseError = `There is an issue with your Firebase configuration. Please check your .env.local file. The server must be restarted after any changes. Error details: ${e.message}`;
+  // This user-friendly error will be shown in the UI.
+  firebaseError = `There is an issue with your Firebase configuration. Please check your environment variables. The server must be restarted after any changes.`;
 }
 
 export const db = dbInstance;
