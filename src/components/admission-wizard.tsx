@@ -94,6 +94,12 @@ function AdmissionWizardContent() {
 
   // Fetch school data if UDISE is in URL, or stop loading if not.
   useEffect(() => {
+    if (firebaseError) {
+      setSchoolError(firebaseError);
+      setIsFetchingSchool(false);
+      return;
+    }
+
     if (udiseFromUrl) {
       setIsFetchingSchool(true);
       setSchoolError(null);
@@ -106,7 +112,7 @@ function AdmissionWizardContent() {
           }
         })
         .catch(() => {
-            setSchoolError('Could not retrieve school information.');
+            setSchoolError('Could not retrieve school information. Please check your connection.');
         })
         .finally(() => setIsFetchingSchool(false));
     } else {
@@ -156,7 +162,8 @@ function AdmissionWizardContent() {
       });
       
       form.reset();
-      router.push('/form');
+      // Redirect to the same form page with a cache-busting timestamp to ensure a fresh state
+      router.push(`/form?udise=${formForSchool.udise}&submitted=${Date.now()}`);
 
     } catch (error) {
        console.error("Submission failed:", error);
@@ -218,7 +225,7 @@ function AdmissionWizardContent() {
   const progressValue = (step / STEPS.length) * 100;
   
   const SchoolInfoHeader = () => {
-    if (schoolError) {
+    if (schoolError && !formForSchool) { // Only show full error if we have no school info at all
         return (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -253,6 +260,9 @@ function AdmissionWizardContent() {
         <Card>
             <CardHeader>
                 <CardTitle>New Admission Form</CardTitle>
+                 <CardDescription>
+                    Please wait while we prepare the form for you.
+                </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center p-10">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -347,12 +357,12 @@ function AdmissionWizardContent() {
             )}
             <div />
             {step < STEPS.length && (
-                <Button type="button" onClick={handleNext} disabled={isLoading || !!schoolError}>
+                <Button type="button" onClick={handleNext} disabled={isLoading || !formForSchool}>
                 Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
             {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isLoading || !!schoolError}>
+                <Button type="submit" variant="default" disabled={isLoading || !formForSchool}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                 {isLoading ? "Submitting..." : "Submit for Review"}
                 </Button>

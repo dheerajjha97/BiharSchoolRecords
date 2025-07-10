@@ -40,9 +40,10 @@ export default function GenerateQrCode() {
     // QR code generation depends on having a valid base URL and a school UDISE.
     if (baseUrl && school?.udise) {
       const url = new URL(baseUrl);
-      // Point to the new cache-busting redirect page
-      url.pathname = '/start-admission'; 
+      url.pathname = '/form'; 
       url.searchParams.set('udise', school.udise); // Add the school's UDISE to the URL
+      // Add a timestamp to bust caches
+      url.searchParams.set('v', Date.now().toString());
       setQrUrl(url.toString());
     } else {
       setQrUrl('');
