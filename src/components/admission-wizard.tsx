@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
@@ -55,6 +56,7 @@ function AdmissionWizardContent() {
   const { school: loggedInSchool } = useAuth(); // Logged-in admin's school
 
   const udiseFromUrl = searchParams.get('udise');
+  const classFromUrl = searchParams.get('class');
 
   // Determine which school the form is for: from URL (QR code) or from logged-in admin.
   const formForSchool = udiseFromUrl ? targetSchool : loggedInSchool;
@@ -120,11 +122,10 @@ function AdmissionWizardContent() {
 
   // Set class from URL query parameter
   useEffect(() => {
-    const classFromQuery = searchParams.get('class');
-    if (classFromQuery) {
-      handleClassChange(classFromQuery);
+    if (classFromUrl) {
+      handleClassChange(classFromUrl);
     }
-  }, [searchParams, handleClassChange]);
+  }, [classFromUrl, handleClassChange]);
 
   const processForm = async (data: FormValues) => {
     if (firebaseError) {
@@ -297,29 +298,32 @@ function AdmissionWizardContent() {
 
             {step === 1 && (
               <>
-                 <Card className="bg-muted/50 border-dashed">
-                  <CardContent className="p-6">
+                {/* Only show class selection if it's not provided in the URL */}
+                {!classFromUrl && (
+                  <Card className="bg-muted/50 border-dashed">
+                    <CardContent className="p-6">
                       <FormField
-                          control={form.control}
-                          name="admissionDetails.classSelection"
-                          render={({ field }) => (
+                        control={form.control}
+                        name="admissionDetails.classSelection"
+                        render={({ field }) => (
                           <FormItem>
-                              <FormLabel>Class / Stream</FormLabel>
-                              <Select onValueChange={handleClassChange} value={field.value || ""}>
-                                  <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
-                                  <SelectContent>
-                                      <SelectItem value="9">Class 9</SelectItem>
-                                      <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
-                                      <SelectItem value="11-science">Class 11 - Science</SelectItem>
-                                      <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
-                                  </SelectContent>
-                              </Select>
-                              <FormMessage />
+                            <FormLabel>Class / Stream</FormLabel>
+                            <Select onValueChange={handleClassChange} value={field.value || ""}>
+                              <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
+                              <SelectContent>
+                                <SelectItem value="9">Class 9</SelectItem>
+                                <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
+                                <SelectItem value="11-science">Class 11 - Science</SelectItem>
+                                <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
                           </FormItem>
-                          )}
+                        )}
                       />
-                  </CardContent>
-                 </Card>
+                    </CardContent>
+                  </Card>
+                )}
                  <AdmissionFormStep form={form} />
               </>
             )}
