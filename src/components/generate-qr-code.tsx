@@ -19,6 +19,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { QrCode, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useAuth } from '@/context/AuthContext';
 
 
 const classOptions = [
@@ -33,6 +34,7 @@ export default function GenerateQrCode() {
   const [qrUrl, setQrUrl] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [showPublicUrlWarning, setShowPublicUrlWarning] = useState(false);
+  const { school } = useAuth(); // Get the logged-in school's data
 
   useEffect(() => {
     // Use NEXT_PUBLIC_BASE_URL if available, otherwise fallback to window.location.origin
@@ -49,16 +51,18 @@ export default function GenerateQrCode() {
 
 
   useEffect(() => {
-    if (selectedClass && baseUrl) {
+    // QR code generation depends on having a selected class, a base URL, and a school UDISE
+    if (selectedClass && baseUrl && school?.udise) {
       const url = new URL(baseUrl);
       url.pathname = '/form';
       url.searchParams.set('class', selectedClass);
+      url.searchParams.set('udise', school.udise); // Add the school's UDISE to the URL
       url.searchParams.set('source', 'qr'); // Add source parameter
       setQrUrl(url.toString());
     } else {
       setQrUrl('');
     }
-  }, [selectedClass, baseUrl]);
+  }, [selectedClass, baseUrl, school]);
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow">
@@ -68,7 +72,7 @@ export default function GenerateQrCode() {
           Generate Admission QR Code
         </CardTitle>
         <CardDescription>
-          Select a class to generate a QR code for the admission form.
+          Select a class to generate a QR code for your school's admission form.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

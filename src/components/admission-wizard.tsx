@@ -7,16 +7,17 @@ import { useSearchParams, useRouter } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
 import { addAdmission } from "@/lib/admissions";
+import { getSchoolByUdise, type School } from "@/lib/school";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useSchoolData } from "@/hooks/use-school-data";
+import { useAuth } from '@/context/AuthContext';
 import { AdmissionFormStep } from "@/components/admission-form-step";
 import { SubjectSelectionStep } from "@/components/subject-selection-step";
 import { FormReviewStep } from "@/components/form-review-step";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Send, Loader2, Building, AlertCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { firebaseError } from "@/lib/firebase";
+import { Skeleton } from "./ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 
 const STEPS = [
@@ -43,11 +46,18 @@ const STEPS = [
 function AdmissionWizardContent() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [targetSchool, setTargetSchool] = useState<School | null>(null);
+  const [schoolError, setSchoolError] = useState<string | null>(null);
+
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { school } = useSchoolData();
+  const { school: loggedInSchool } = useAuth(); // Logged-in admin's school
+
+  const udiseFromUrl = searchParams.get('udise');
+
+  // Determine which school the form is for: from URL (QR code) or from logged-in admin.
+  const formForSchool = udiseFromUrl ? targetSchool : loggedInSchool;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -79,6 +89,26 @@ function AdmissionWizardContent() {
     },
     mode: "onChange",
   });
+
+  // Fetch school data if UDISE is in URL
+  useEffect(() => {
+    if (udiseFromUrl) {
+      setIsLoading(true);
+      setSchoolError(null);
+      getSchoolByUdise(udiseFromUrl)
+        .then(school => {
+          if (school) {
+            setTargetSchool(school);
+          } else {
+            setSchoolError(`The school with UDISE code ${udiseFromUrl} was not found.`);
+          }
+        })
+        .catch(() => {
+            setSchoolError('Could not retrieve school information.');
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }, [udiseFromUrl]);
   
   const handleClassChange = useCallback(async (value: string | undefined) => {
     if (!value || !['9', '11-arts', '11-science', '11-commerce'].includes(value)) {
@@ -105,10 +135,10 @@ function AdmissionWizardContent() {
       });
       return;
     }
-    if (!school?.udise) {
+    if (!formForSchool?.udise) {
         toast({
-            title: "School Not Configured",
-            description: "Cannot submit form without a configured school. Please log in as an administrator.",
+            title: "School Not Specified",
+            description: "Cannot submit form without a specified school. This form may be missing a UDISE code.",
             variant: "destructive",
         });
         return;
@@ -124,7 +154,7 @@ function AdmissionWizardContent() {
         ...data,
         admissionDetails: {
           ...data.admissionDetails,
-          udise: school.udise,
+          udise: formForSchool.udise,
           status: 'pending',
           submittedAt: new Date(),
         },
@@ -138,7 +168,7 @@ function AdmissionWizardContent() {
       });
       
       form.reset();
-      // After submission, stay on the form page, but maybe clear the query params
+      // After submission, stay on the form page, but clear the query params to allow a fresh form
       router.push('/form');
 
     } catch (error) {
@@ -205,6 +235,46 @@ function AdmissionWizardContent() {
   };
   
   const progressValue = (step / STEPS.length) * 100;
+  
+  const SchoolInfoHeader = () => {
+    if (schoolError) {
+        return (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>School Loading Error</AlertTitle>
+                <AlertDescription>{schoolError}</AlertDescription>
+            </Alert>
+        );
+    }
+
+    if (!formForSchool) {
+        // This can happen if udise is from url and is still loading
+        return (
+            <Card className="p-4 bg-muted/50 border-dashed">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-10 w-10" />
+                    <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </div>
+                </div>
+            </Card>
+        );
+    }
+
+    return (
+        <Card className="p-4 bg-muted/50 border-dashed">
+            <div className="flex items-center gap-4">
+                <Building className="h-8 w-8 text-muted-foreground" />
+                <div>
+                    <p className="font-semibold text-primary">{formForSchool.name}</p>
+                    <p className="text-sm text-muted-foreground">{formForSchool.address}</p>
+                </div>
+            </div>
+        </Card>
+    );
+  };
+
 
   return (
     <Card>
@@ -223,6 +293,8 @@ function AdmissionWizardContent() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8">
+            {udiseFromUrl && <SchoolInfoHeader />}
+
             {step === 1 && (
               <>
                  <Card className="bg-muted/50 border-dashed">
@@ -264,12 +336,12 @@ function AdmissionWizardContent() {
               )}
               <div />
               {step < STEPS.length && (
-                <Button type="button" onClick={handleNext} disabled={isLoading}>
+                <Button type="button" onClick={handleNext} disabled={isLoading || !!schoolError}>
                   Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
               {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isLoading}>
+                <Button type="submit" variant="default" disabled={isLoading || !!schoolError}>
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                   {isLoading ? "Submitting..." : "Submit for Review"}
                 </Button>
