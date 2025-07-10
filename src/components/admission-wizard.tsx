@@ -49,16 +49,16 @@ function AdmissionWizardContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [targetSchool, setTargetSchool] = useState<School | null>(null);
   const [schoolError, setSchoolError] = useState<string | null>(null);
-  const [isFetchingSchool, setIsFetchingSchool] = useState(false);
+  const [isFetchingSchool, setIsFetchingSchool] = useState(true); // Start as true
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { school: loggedInSchool, loading: authLoading } = useAuth(); // Logged-in admin's school
+  const { school: loggedInSchool, loading: authLoading } = useAuth();
 
   const udiseFromUrl = searchParams.get('udise');
 
-  // Determine which school the form is for: from URL (QR code) or from logged-in admin.
+  // Determine which school the form is for. This is the central logic.
   const formForSchool = udiseFromUrl ? targetSchool : loggedInSchool;
 
   const form = useForm<FormValues>({
@@ -92,7 +92,7 @@ function AdmissionWizardContent() {
     mode: "onChange",
   });
 
-  // Fetch school data if UDISE is in URL
+  // Fetch school data if UDISE is in URL, or stop loading if not.
   useEffect(() => {
     if (udiseFromUrl) {
       setIsFetchingSchool(true);
@@ -109,6 +109,8 @@ function AdmissionWizardContent() {
             setSchoolError('Could not retrieve school information.');
         })
         .finally(() => setIsFetchingSchool(false));
+    } else {
+        setIsFetchingSchool(false); // No UDISE in URL, so we are not fetching.
     }
   }, [udiseFromUrl]);
   
@@ -122,24 +124,16 @@ function AdmissionWizardContent() {
 
   const processForm = async (data: FormValues) => {
     if (firebaseError) {
-      toast({
-        title: "Configuration Error",
-        description: firebaseError,
-        variant: "destructive",
-      });
+      toast({ title: "Configuration Error", description: firebaseError, variant: "destructive" });
       return;
     }
+    // Use `formForSchool` which correctly identifies the school from either login or URL.
     if (!formForSchool?.udise) {
-        toast({
-            title: "School Not Specified",
-            description: "Cannot submit form without a specified school. This form may be missing a UDISE code.",
-            variant: "destructive",
-        });
+        toast({ title: "School Not Specified", description: "Cannot submit form without a specified school. This form may be missing a UDISE code.", variant: "destructive" });
         return;
     }
     setIsLoading(true);
     try {
-      // Prepend country code to mobile number before saving
       if (data.contactDetails.mobileNumber) {
         data.contactDetails.mobileNumber = `+91${data.contactDetails.mobileNumber}`;
       }
@@ -148,7 +142,7 @@ function AdmissionWizardContent() {
         ...data,
         admissionDetails: {
           ...data.admissionDetails,
-          udise: formForSchool.udise,
+          udise: formForSchool.udise, // This is the crucial fix.
           status: 'pending',
           submittedAt: new Date(),
         },
@@ -162,33 +156,26 @@ function AdmissionWizardContent() {
       });
       
       form.reset();
-      // After submission, stay on the form page, but clear the query params to allow a fresh form
       router.push('/form');
 
     } catch (error) {
-       console.error("Submission failed:", error); // Log the full error
+       console.error("Submission failed:", error);
        let description = "An unexpected error occurred. Please check the console for details and try again.";
        if (error instanceof Error) {
         description = error.message;
        }
-       toast({
-        title: "Submission Failed",
-        description: description,
-        variant: "destructive",
-      });
+       toast({ title: "Submission Failed", description: description, variant: "destructive" });
     } finally {
         setIsLoading(false);
     }
   };
 
   const onFormError = (errors: FieldErrors<FormValues>) => {
-    console.error("Form validation errors:", errors); // Log validation errors
+    console.error("Form validation errors:", errors);
     let targetStep = 1;
-    // If there's an error in any of the first step details, go to step 1
     if (errors.admissionDetails || errors.studentDetails || errors.contactDetails || errors.addressDetails || errors.bankDetails || errors.otherDetails || errors.prevSchoolDetails) {
         targetStep = 1;
     } 
-    // If there's an error in subjectDetails, it must be on step 2
     else if (errors.subjectDetails) {
         targetStep = 2;
     }
@@ -241,23 +228,8 @@ function AdmissionWizardContent() {
         );
     }
 
-    if (!formForSchool && (isFetchingSchool || authLoading)) {
-        // This can happen if udise is from url and is still loading or auth is loading
-        return (
-            <Card className="p-4 bg-muted/50 border-dashed">
-                <div className="flex items-center gap-4">
-                    <Skeleton className="h-10 w-10" />
-                    <div className="space-y-2 flex-1">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </div>
-                </div>
-            </Card>
-        );
-    }
-    
     if (!formForSchool) {
-        return null; // Don't show header if no school, the main component will show the error message.
+        return null;
     }
 
     return (
@@ -273,34 +245,23 @@ function AdmissionWizardContent() {
     );
   };
 
-  // Determine if we are in a state where we cannot proceed.
-  // This occurs if we are not logged in and not fetching school data from a URL.
   const isUnconfigured = !udiseFromUrl && !authLoading && !loggedInSchool;
 
-  // Show a loading state if we are fetching data from either auth or URL.
+  // This is our main loading/error gate.
   if (authLoading || isFetchingSchool) {
     return (
         <Card>
             <CardHeader>
                 <CardTitle>New Admission Form</CardTitle>
-                <CardDescription>Loading school information...</CardDescription>
             </CardHeader>
-            <CardContent>
-                <Card className="p-4 bg-muted/50 border-dashed">
-                    <div className="flex items-center gap-4">
-                        <Skeleton className="h-10 w-10" />
-                        <div className="space-y-2 flex-1">
-                            <Skeleton className="h-4 w-3/4" />
-                            <Skeleton className="h-4 w-1/2" />
-                        </div>
-                    </div>
-                </Card>
+            <CardContent className="flex flex-col items-center justify-center p-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="mt-4 text-muted-foreground">Loading school information...</p>
             </CardContent>
         </Card>
     );
   }
 
-  // Show an error state if fetching failed or if the form is unconfigured.
   if (schoolError || isUnconfigured) {
      return (
         <Card>
@@ -315,7 +276,7 @@ function AdmissionWizardContent() {
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>{schoolError ? 'School Loading Error' : 'School Not Configured'}</AlertTitle>
                     <AlertDescription>
-                        {schoolError || 'Cannot submit form without a configured school. Please log in as an administrator or use a valid school QR code/link.'}
+                        {schoolError || 'Cannot display form without a configured school. Please log in as an administrator or use a valid school QR code/link.'}
                     </AlertDescription>
                 </Alert>
             </CardContent>
