@@ -1,17 +1,24 @@
 
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardStats from '@/components/dashboard-stats';
 import RecentAdmissions from '@/components/recent-admissions';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
-import Link from 'next/link';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import GenerateQrCode from '@/components/generate-qr-code';
 import { useSchoolData } from '@/hooks/use-school-data';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
   const { school, loading } = useSchoolData();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const router = useRouter();
+
+  const handleFabClick = () => {
+    setIsNavigating(true);
+    router.push('/form');
+  };
 
   return (
     <>
@@ -38,13 +45,13 @@ export default function DashboardPage() {
       </div>
 
       <Button
-        asChild
+        onClick={handleFabClick}
+        disabled={isNavigating}
         className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-lg z-10"
         size="icon"
+        aria-label="New Admission"
       >
-        <Link href="/form" aria-label="New Admission">
-          <PlusCircle className="h-8 w-8" />
-        </Link>
+        {isNavigating ? <Loader2 className="h-8 w-8 animate-spin" /> : <PlusCircle className="h-8 w-8" />}
       </Button>
     </>
   );
