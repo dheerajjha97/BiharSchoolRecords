@@ -85,7 +85,9 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
       <div className="page">
         <header className="relative text-center w-full mb-4 break-inside-avoid">
             <div className="absolute left-0 top-0">
-                <Image src="/logo.jpg" alt="School Logo" width={80} height={80} data-ai-hint="school logo" />
+                <div className="pr-2.5"> {/* This pr-2.5 is equivalent to 10pt padding */}
+                    <Image src="/logo.jpg" alt="School Logo" width={80} height={80} data-ai-hint="school logo" />
+                </div>
             </div>
             <div>
                 <h1 className="text-4xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
