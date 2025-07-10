@@ -27,7 +27,7 @@ export async function translateName(input: TranslateNameInput): Promise<Translat
 
 const prompt = ai.definePrompt({
   name: 'translateNamePrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: googleAI.model('gemini-1.5-flash'),
   input: {schema: TranslateNameInputSchema},
   output: {schema: TranslateNameOutputSchema},
   prompt: `Translate the following English name to Hindi. Only return the translated name.
