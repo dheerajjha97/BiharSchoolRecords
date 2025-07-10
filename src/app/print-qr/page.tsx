@@ -19,6 +19,7 @@ function PrintableQrPage() {
       url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
       url.searchParams.set('source', 'qr');
+      url.searchParams.set('v', Date.now().toString()); // Cache-busting timestamp
       setQrUrl(url.toString());
     }
   }, [school]);
