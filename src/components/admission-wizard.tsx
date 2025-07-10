@@ -56,31 +56,29 @@ function AdmissionWizardContent() {
 
   useEffect(() => {
     // This effect determines which school the form is for.
-    // It waits for authentication to finish loading.
-    if (authLoading) {
-      return; // Wait until we know if a user is logged in or not.
-    }
-
-    // If a user is logged in, their school data takes precedence.
-    if (loggedInSchool) {
-      setFormForSchool(loggedInSchool);
-      return;
-    }
-
-    // If no user is logged in, check the URL for school data (from QR code).
+    // PRIORITY 1: Check for school data in URL params (from QR code).
     const udise = searchParams.get('udise');
     const name = searchParams.get('name');
     const address = searchParams.get('address');
     
     if (udise && name && address) {
-      // Create a school object from the URL parameters.
+      // If found, use this info directly and ignore auth state. This is for QR code users.
       setFormForSchool({ udise, name, address });
-    } else {
-      // If there's no logged-in user and no school info in the URL,
-      // then we cannot display the form.
-      setFormForSchool(null);
+      return;
     }
-  }, [authLoading, loggedInSchool, searchParams]);
+
+    // PRIORITY 2: If no data in URL, check auth state for a logged-in school.
+    // This will only run after the auth check is complete.
+    if (!authLoading) {
+      if (loggedInSchool) {
+        setFormForSchool(loggedInSchool);
+      } else {
+        // If not logged in and no URL params, there's no school to show the form for.
+        setFormForSchool(null);
+      }
+    }
+    // Only re-run when auth state changes. searchParams are handled on first load.
+  }, [authLoading, loggedInSchool]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -237,22 +235,27 @@ function AdmissionWizardContent() {
     );
   };
 
-  // While checking auth status, show a loading screen.
-  if (authLoading) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>New Admission Form</CardTitle>
-                 <CardDescription>
-                    Please wait while we prepare the form for you.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center p-10">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="mt-4 text-muted-foreground">Loading school information...</p>
-            </CardContent>
-        </Card>
-    );
+  // While checking auth status OR if we have URL params but haven't set the school yet, show loading.
+  if (authLoading || !formForSchool) {
+    // Exception: If we finished loading and determined there is no school, don't show spinner.
+    if (!authLoading && !loggedInSchool && !searchParams.get('udise')) {
+      // This is the error case, handled below.
+    } else {
+      return (
+          <Card>
+              <CardHeader>
+                  <CardTitle>New Admission Form</CardTitle>
+                  <CardDescription>
+                      Please wait while we prepare the form for you.
+                  </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center justify-center p-10">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="mt-4 text-muted-foreground">Loading school information...</p>
+              </CardContent>
+          </Card>
+      );
+    }
   }
 
   // After auth check, if there's a firebase error or no school could be determined, show an error.
