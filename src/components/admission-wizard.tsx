@@ -49,7 +49,7 @@ function AdmissionWizardContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [targetSchool, setTargetSchool] = useState<School | null>(null);
   const [schoolError, setSchoolError] = useState<string | null>(null);
-  const [isFetchingSchool, setIsFetchingSchool] = useState(false);
+  const [isFetchingSchool, setIsFetchingSchool] = useState(true);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -92,15 +92,15 @@ function AdmissionWizardContent() {
     mode: "onChange",
   });
 
-  // Fetch school data if UDISE is in URL, or stop loading if not.
+  // Fetch school data if UDISE is in URL. If user is logged in, this will be skipped.
   useEffect(() => {
     if (firebaseError) {
       setSchoolError(firebaseError);
       setIsFetchingSchool(false);
       return;
     }
-
-    if (udiseFromUrl) {
+    // Only fetch if a UDISE is in the URL AND there's no logged-in user.
+    if (udiseFromUrl && !loggedInSchool) {
       setIsFetchingSchool(true);
       setSchoolError(null);
       getSchoolByUdise(udiseFromUrl)
@@ -116,10 +116,10 @@ function AdmissionWizardContent() {
         })
         .finally(() => setIsFetchingSchool(false));
     } else {
-        // If no UDISE in URL, we rely on logged-in user context. No fetching needed here.
+        // If there's a logged-in user OR no UDISE in URL, no fetching is needed here.
         setIsFetchingSchool(false);
     }
-  }, [udiseFromUrl]);
+  }, [udiseFromUrl, loggedInSchool]);
   
   const handleClassChange = useCallback(async (value: string | undefined) => {
     if (!value || !['9', '11-arts', '11-science', '11-commerce'].includes(value)) {
@@ -245,10 +245,12 @@ function AdmissionWizardContent() {
     );
   };
 
-  const isUnconfigured = !udiseFromUrl && !authLoading && !loggedInSchool;
-
   // This is our main loading/error gate.
-  if (authLoading || isFetchingSchool) {
+  const showLoading = authLoading || isFetchingSchool;
+  const showError = schoolError || (firebaseError) || (!authLoading && !isFetchingSchool && !formForSchool);
+  const errorMessage = schoolError || firebaseError || 'School not configured. Cannot display form without a valid school. Please log in or use a valid QR code.';
+
+  if (showLoading) {
     return (
         <Card>
             <CardHeader>
@@ -265,22 +267,18 @@ function AdmissionWizardContent() {
     );
   }
 
-  if (schoolError || isUnconfigured) {
+  if (showError) {
      return (
         <Card>
             <CardHeader>
                 <CardTitle>New Admission Form</CardTitle>
-                <CardDescription>
-                    {isUnconfigured ? 'Please configure a school to begin.' : 'Could not load school information.'}
-                </CardDescription>
+                <CardDescription>Could not load admission form.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>{schoolError ? 'School Loading Error' : 'School Not Configured'}</AlertTitle>
-                    <AlertDescription>
-                        {schoolError || 'Cannot display form without a configured school. Please log in as an administrator or use a valid school QR code/link.'}
-                    </AlertDescription>
+                    <AlertTitle>Form Error</AlertTitle>
+                    <AlertDescription>{errorMessage}</AlertDescription>
                 </Alert>
             </CardContent>
         </Card>

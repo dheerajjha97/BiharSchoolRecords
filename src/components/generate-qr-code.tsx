@@ -42,8 +42,6 @@ export default function GenerateQrCode() {
       const url = new URL(baseUrl);
       url.pathname = '/form'; 
       url.searchParams.set('udise', school.udise); // Add the school's UDISE to the URL
-      // Add a timestamp to bust caches
-      url.searchParams.set('v', Date.now().toString());
       setQrUrl(url.toString());
     } else {
       setQrUrl('');
