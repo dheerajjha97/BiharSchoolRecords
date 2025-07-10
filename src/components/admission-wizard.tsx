@@ -254,18 +254,9 @@ function AdmissionWizardContent() {
             </Card>
         );
     }
-
+    
     if (!formForSchool) {
-        // This state is reached if no school is found, and not loading.
-        return (
-             <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>School Not Configured</AlertTitle>
-                <AlertDescription>
-                    Cannot submit form without a configured school. Please log in as an administrator or use a valid school QR code/link.
-                </AlertDescription>
-            </Alert>
-        )
+        return null; // Don't show header if no school, the main component will show the error message.
     }
 
     return (
@@ -280,6 +271,40 @@ function AdmissionWizardContent() {
         </Card>
     );
   };
+  
+  const showLoadingOrErrorState = !formForSchool && (isLoading || authLoading || schoolError || (!udiseFromUrl && !loggedInSchool));
+
+  if (showLoadingOrErrorState && !authLoading) { // Avoid flicker on initial load
+     return (
+        <Card>
+            <CardHeader>
+                <CardTitle>New Admission Form</CardTitle>
+                <CardDescription>Please configure a school to begin.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isLoading || authLoading ? (
+                     <Card className="p-4 bg-muted/50 border-dashed">
+                        <div className="flex items-center gap-4">
+                            <Skeleton className="h-10 w-10" />
+                            <div className="space-y-2 flex-1">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </div>
+                        </div>
+                    </Card>
+                ) : (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>{schoolError ? 'School Loading Error' : 'School Not Configured'}</AlertTitle>
+                        <AlertDescription>
+                            {schoolError || 'Cannot submit form without a configured school. Please log in as an administrator or use a valid school QR code/link.'}
+                        </AlertDescription>
+                    </Alert>
+                )}
+            </CardContent>
+        </Card>
+     )
+  }
 
 
   return (
@@ -289,7 +314,7 @@ function AdmissionWizardContent() {
             <div>
                 <CardTitle>New Admission Form</CardTitle>
                 <CardDescription>
-                    {formForSchool ? `Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}` : 'Please configure a school to begin.'}
+                    {formForSchool ? `Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}` : 'Loading school information...'}
                 </CardDescription>
             </div>
             {formForSchool && (
