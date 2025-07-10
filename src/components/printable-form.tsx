@@ -5,6 +5,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import type { FormValues } from '@/lib/form-schema';
 import type { School } from '@/lib/school';
+import { cn } from '@/lib/utils';
 
 // Helper component for a full-width row in a table
 // Reduced padding for compactness
@@ -34,7 +35,7 @@ const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
 
 // Helper component for a two-column row
 // Reduced padding for compactness
-const PrintTableDoubleRow = ({ label1, value1, label2, value2 }: { label1: string; value1: any; label2: string; value2: any; }) => {
+const PrintTableDoubleRow = ({ label1, value1, label2, value2, value1ClassName }: { label1: string; value1: any; label2: string; value2: any; value1ClassName?: string; }) => {
   const formatValue = (value: any) => {
     if (value === undefined || value === null || value === '') return '';
     if (value instanceof Date) return value.toLocaleDateString('en-GB');
@@ -43,10 +44,10 @@ const PrintTableDoubleRow = ({ label1, value1, label2, value2 }: { label1: strin
 
   return (
     <tr className="break-inside-avoid">
-      <td className="w-[20%] border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50">{label1}</td>
-      <td className="w-[30%] border border-black py-1 px-2 capitalize">{formatValue(value1)}</td>
-      <td className="w-[20%] border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50">{label2}</td>
-      <td className="w-[30%] border border-black py-1 px-2 capitalize">{formatValue(value2)}</td>
+      <td className="border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">{label1}</td>
+      <td className={cn("border border-black py-1 px-2 capitalize", value1ClassName)}>{formatValue(value1)}</td>
+      <td className="border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">{label2}</td>
+      <td className="border border-black py-1 px-2 capitalize">{formatValue(value2)}</td>
     </tr>
   );
 };
@@ -102,8 +103,11 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                 <table className="w-full border-collapse border border-black text-xs">
                     <tbody>
                         <PrintTableDoubleRow 
-                            label1="Admission No." value1={admissionDetails.admissionNumber} 
-                            label2="Admission Date" value2={admissionDetails.admissionDate} 
+                            label1="Admission No." 
+                            value1={admissionDetails.admissionNumber} 
+                            value1ClassName="font-bold text-red-600"
+                            label2="Admission Date" 
+                            value2={admissionDetails.admissionDate} 
                         />
                         <PrintTableDoubleRow 
                             label1="Class / Stream" value1={displayStream}
@@ -257,3 +261,5 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
     </div>
   );
 };
+
+    
