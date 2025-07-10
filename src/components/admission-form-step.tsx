@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { UseFormReturn, FieldPath } from "react-hook-form";
@@ -98,9 +99,9 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
       const response = await fetch(`https://ifsc.razorpay.com/${ifscCode}`);
       if (response.ok) {
         const data = await response.json();
-        if (data && data.BANK && data.BRANCH) {
+        if (data && data.BANK) {
             form.setValue("bankDetails.bankName", data.BANK.toUpperCase(), { shouldValidate: true });
-            form.setValue("bankDetails.branch", data.BRANCH.toUpperCase(), { shouldValidate: true });
+            form.setValue("bankDetails.branch", "", { shouldValidate: true }); // Keep branch manual
         } else {
             console.warn("Invalid IFSC code or data not found.");
             form.setValue("bankDetails.bankName", "", { shouldValidate: true });
