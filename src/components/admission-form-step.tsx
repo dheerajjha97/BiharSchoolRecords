@@ -25,6 +25,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { FormSection } from "@/components/form-section";
 import type { FormValues } from "@/lib/form-schema";
 import { Label } from "@/components/ui/label";
+import { translateName } from "@/ai/flows/name-translate-flow";
 
 interface AdmissionFormStepProps {
   form: UseFormReturn<FormValues>;
@@ -35,6 +36,23 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
   const [isFetchingPinDetails, setIsFetchingPinDetails] = useState(false);
   const [isFetchingBankDetails, setIsFetchingBankDetails] = useState(false);
   const [availableBlocks, setAvailableBlocks] = useState<string[]>([]);
+  const [translating, setTranslating] = useState<FieldPath<FormValues> | null>(null);
+  
+  const handleTranslation = async (name: string, targetField: FieldPath<FormValues>) => {
+    if (!name.trim()) return;
+    setTranslating(targetField);
+    try {
+      const result = await translateName({ name });
+      if (result.translatedName) {
+        form.setValue(targetField, result.translatedName, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error("Translation failed:", error);
+    } finally {
+      setTranslating(null);
+    }
+  };
+
 
   const handlePinCodeLookup = async (pinCode: string) => {
     // Reset blocks and form value when a new lookup starts
@@ -137,6 +155,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     placeholder="e.g., JOHN DOE" 
                     {...field}
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    onBlur={(e) => handleTranslation(e.target.value, "studentDetails.nameHi")}
                   />
                 </FormControl>
                 <FormMessage />
@@ -150,7 +169,10 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Student's Name (Hindi)</FormLabel>
                 <FormControl>
-                    <Input placeholder="e.g., जॉन डो" {...field} />
+                    <div className="relative">
+                        <Input placeholder="e.g., जॉन डो" {...field} />
+                        {translating === 'studentDetails.nameHi' && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                    </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -167,6 +189,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     placeholder="e.g., RICHARD DOE" 
                     {...field}
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    onBlur={(e) => handleTranslation(e.target.value, "studentDetails.fatherNameHi")}
                   />
                 </FormControl>
                 <FormMessage />
@@ -180,7 +203,10 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Father's Name (Hindi)</FormLabel>
                 <FormControl>
-                    <Input placeholder="e.g., रिचर्ड डो" {...field} />
+                    <div className="relative">
+                        <Input placeholder="e.g., रिचर्ड डो" {...field} />
+                        {translating === 'studentDetails.fatherNameHi' && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                    </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -197,6 +223,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                     placeholder="e.g., JANE DOE" 
                     {...field} 
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    onBlur={(e) => handleTranslation(e.target.value, "studentDetails.motherNameHi")}
                   />
                 </FormControl>
                 <FormMessage />
@@ -210,7 +237,10 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               <FormItem>
                 <FormLabel>Mother's Name (Hindi)</FormLabel>
                 <FormControl>
-                    <Input placeholder="e.g., जेन डो" {...field} />
+                    <div className="relative">
+                        <Input placeholder="e.g., जेन डो" {...field} />
+                         {translating === 'studentDetails.motherNameHi' && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                    </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
