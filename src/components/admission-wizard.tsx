@@ -53,7 +53,7 @@ function AdmissionWizardContent() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { school: loggedInSchool } = useAuth(); // Logged-in admin's school
+  const { school: loggedInSchool, loading: authLoading } = useAuth(); // Logged-in admin's school
 
   const udiseFromUrl = searchParams.get('udise');
 
@@ -240,8 +240,8 @@ function AdmissionWizardContent() {
         );
     }
 
-    if (!formForSchool) {
-        // This can happen if udise is from url and is still loading
+    if (!formForSchool && (isLoading || authLoading)) {
+        // This can happen if udise is from url and is still loading or auth is loading
         return (
             <Card className="p-4 bg-muted/50 border-dashed">
                 <div className="flex items-center gap-4">
@@ -253,6 +253,19 @@ function AdmissionWizardContent() {
                 </div>
             </Card>
         );
+    }
+
+    if (!formForSchool) {
+        // This state is reached if no school is found, and not loading.
+        return (
+             <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>School Not Configured</AlertTitle>
+                <AlertDescription>
+                    Cannot submit form without a configured school. Please log in as an administrator or use a valid school QR code/link.
+                </AlertDescription>
+            </Alert>
+        )
     }
 
     return (
@@ -275,73 +288,79 @@ function AdmissionWizardContent() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <CardTitle>New Admission Form</CardTitle>
-                <CardDescription>Step {step} of {STEPS.length}: {STEPS[step-1].name}</CardDescription>
+                <CardDescription>
+                    {formForSchool ? `Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}` : 'Please configure a school to begin.'}
+                </CardDescription>
             </div>
-            <p className="text-sm font-medium text-muted-foreground mt-2 sm:mt-0">
-                Progress: {Math.round(progressValue)}%
-            </p>
+            {formForSchool && (
+                <p className="text-sm font-medium text-muted-foreground mt-2 sm:mt-0">
+                    Progress: {Math.round(progressValue)}%
+                </p>
+            )}
         </div>
-        <Progress value={progressValue} className="mt-4" />
+        {formForSchool && <Progress value={progressValue} className="mt-4" />}
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8">
-            {udiseFromUrl && <SchoolInfoHeader />}
+        <SchoolInfoHeader />
+        
+        {formForSchool && (
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8 mt-8">
+                {step === 1 && (
+                <>
+                    <Card className="bg-muted/50 border-dashed">
+                    <CardContent className="p-6">
+                        <FormField
+                        control={form.control}
+                        name="admissionDetails.classSelection"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Class / Stream</FormLabel>
+                            <Select onValueChange={handleClassChange} value={field.value || ""}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                <SelectItem value="9">Class 9</SelectItem>
+                                <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
+                                <SelectItem value="11-science">Class 11 - Science</SelectItem>
+                                <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </CardContent>
+                    </Card>
+                    <AdmissionFormStep form={form} />
+                </>
+                )}
 
-            {step === 1 && (
-              <>
-                <Card className="bg-muted/50 border-dashed">
-                  <CardContent className="p-6">
-                    <FormField
-                      control={form.control}
-                      name="admissionDetails.classSelection"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Class / Stream</FormLabel>
-                          <Select onValueChange={handleClassChange} value={field.value || ""}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                              <SelectItem value="9">Class 9</SelectItem>
-                              <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
-                              <SelectItem value="11-science">Class 11 - Science</SelectItem>
-                              <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-                 <AdmissionFormStep form={form} />
-              </>
-            )}
+                {step === 2 && <SubjectSelectionStep form={form} />}
 
-            {step === 2 && <SubjectSelectionStep form={form} />}
+                {step === 3 && <FormReviewStep formData={form.getValues()} />}
 
-            {step === 3 && <FormReviewStep formData={form.getValues()} />}
-
-            <div className="flex justify-between pt-4">
-              {step > 1 && (
-                <Button type="button" variant="outline" onClick={handlePrev} disabled={isLoading}>
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                </Button>
-              )}
-              <div />
-              {step < STEPS.length && (
-                <Button type="button" onClick={handleNext} disabled={isLoading || !!schoolError}>
-                  Next <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-              {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isLoading || !!schoolError}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                  {isLoading ? "Submitting..." : "Submit for Review"}
-                </Button>
-              )}
-            </div>
-          </form>
-        </Form>
+                <div className="flex justify-between pt-4">
+                {step > 1 && (
+                    <Button type="button" variant="outline" onClick={handlePrev} disabled={isLoading}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                    </Button>
+                )}
+                <div />
+                {step < STEPS.length && (
+                    <Button type="button" onClick={handleNext} disabled={isLoading || !!schoolError}>
+                    Next <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
+                {step === STEPS.length && (
+                    <Button type="submit" variant="default" disabled={isLoading || !!schoolError}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                    {isLoading ? "Submitting..." : "Submit for Review"}
+                    </Button>
+                )}
+                </div>
+            </form>
+            </Form>
+        )}
       </CardContent>
     </Card>
   );
