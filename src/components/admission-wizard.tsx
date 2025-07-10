@@ -49,6 +49,7 @@ function AdmissionWizardContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [targetSchool, setTargetSchool] = useState<School | null>(null);
   const [schoolError, setSchoolError] = useState<string | null>(null);
+  const [isFetchingSchool, setIsFetchingSchool] = useState(false);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -94,7 +95,7 @@ function AdmissionWizardContent() {
   // Fetch school data if UDISE is in URL
   useEffect(() => {
     if (udiseFromUrl) {
-      setIsLoading(true);
+      setIsFetchingSchool(true);
       setSchoolError(null);
       getSchoolByUdise(udiseFromUrl)
         .then(school => {
@@ -107,7 +108,7 @@ function AdmissionWizardContent() {
         .catch(() => {
             setSchoolError('Could not retrieve school information.');
         })
-        .finally(() => setIsLoading(false));
+        .finally(() => setIsFetchingSchool(false));
     }
   }, [udiseFromUrl]);
   
@@ -240,7 +241,7 @@ function AdmissionWizardContent() {
         );
     }
 
-    if (!formForSchool && (isLoading || authLoading)) {
+    if (!formForSchool && (isFetchingSchool || authLoading)) {
         // This can happen if udise is from url and is still loading or auth is loading
         return (
             <Card className="p-4 bg-muted/50 border-dashed">
@@ -271,36 +272,52 @@ function AdmissionWizardContent() {
         </Card>
     );
   };
-  
-  const showLoadingOrErrorState = !formForSchool && (isLoading || authLoading || schoolError || (!udiseFromUrl && !loggedInSchool));
 
-  if (showLoadingOrErrorState && !authLoading) { // Avoid flicker on initial load
+  // Determine if we are in a state where we cannot proceed.
+  // This occurs if we are not logged in and not fetching school data from a URL.
+  const isUnconfigured = !udiseFromUrl && !authLoading && !loggedInSchool;
+
+  // Show a loading state if we are fetching data from either auth or URL.
+  if (authLoading || isFetchingSchool) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>New Admission Form</CardTitle>
+                <CardDescription>Loading school information...</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Card className="p-4 bg-muted/50 border-dashed">
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="h-10 w-10" />
+                        <div className="space-y-2 flex-1">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </div>
+                    </div>
+                </Card>
+            </CardContent>
+        </Card>
+    );
+  }
+
+  // Show an error state if fetching failed or if the form is unconfigured.
+  if (schoolError || isUnconfigured) {
      return (
         <Card>
             <CardHeader>
                 <CardTitle>New Admission Form</CardTitle>
-                <CardDescription>Please configure a school to begin.</CardDescription>
+                <CardDescription>
+                    {isUnconfigured ? 'Please configure a school to begin.' : 'Could not load school information.'}
+                </CardDescription>
             </CardHeader>
             <CardContent>
-                {isLoading || authLoading ? (
-                     <Card className="p-4 bg-muted/50 border-dashed">
-                        <div className="flex items-center gap-4">
-                            <Skeleton className="h-10 w-10" />
-                            <div className="space-y-2 flex-1">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </div>
-                        </div>
-                    </Card>
-                ) : (
-                    <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>{schoolError ? 'School Loading Error' : 'School Not Configured'}</AlertTitle>
-                        <AlertDescription>
-                            {schoolError || 'Cannot submit form without a configured school. Please log in as an administrator or use a valid school QR code/link.'}
-                        </AlertDescription>
-                    </Alert>
-                )}
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>{schoolError ? 'School Loading Error' : 'School Not Configured'}</AlertTitle>
+                    <AlertDescription>
+                        {schoolError || 'Cannot submit form without a configured school. Please log in as an administrator or use a valid school QR code/link.'}
+                    </AlertDescription>
+                </Alert>
             </CardContent>
         </Card>
      )
@@ -314,78 +331,74 @@ function AdmissionWizardContent() {
             <div>
                 <CardTitle>New Admission Form</CardTitle>
                 <CardDescription>
-                    {formForSchool ? `Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}` : 'Loading school information...'}
+                    {`Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}`}
                 </CardDescription>
             </div>
-            {formForSchool && (
-                <p className="text-sm font-medium text-muted-foreground mt-2 sm:mt-0">
-                    Progress: {Math.round(progressValue)}%
-                </p>
-            )}
+            <p className="text-sm font-medium text-muted-foreground mt-2 sm:mt-0">
+                Progress: {Math.round(progressValue)}%
+            </p>
         </div>
-        {formForSchool && <Progress value={progressValue} className="mt-4" />}
+        <Progress value={progressValue} className="mt-4" />
       </CardHeader>
       <CardContent>
         <SchoolInfoHeader />
         
-        {formForSchool && (
-            <Form {...form}>
-            <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8 mt-8">
-                {step === 1 && (
-                <>
-                    <Card className="bg-muted/50 border-dashed">
-                    <CardContent className="p-6">
-                        <FormField
-                        control={form.control}
-                        name="admissionDetails.classSelection"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Class / Stream</FormLabel>
-                            <Select onValueChange={handleClassChange} value={field.value || ""}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                <SelectItem value="9">Class 9</SelectItem>
-                                <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
-                                <SelectItem value="11-science">Class 11 - Science</SelectItem>
-                                <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    </CardContent>
-                    </Card>
-                    <AdmissionFormStep form={form} />
-                </>
-                )}
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8 mt-8">
+            {step === 1 && (
+            <>
+                <Card className="bg-muted/50 border-dashed">
+                <CardContent className="p-6">
+                    <FormField
+                    control={form.control}
+                    name="admissionDetails.classSelection"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Class / Stream</FormLabel>
+                        <Select onValueChange={handleClassChange} value={field.value || ""}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                            <SelectItem value="9">Class 9</SelectItem>
+                            <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
+                            <SelectItem value="11-science">Class 11 - Science</SelectItem>
+                            <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </CardContent>
+                </Card>
+                <AdmissionFormStep form={form} />
+            </>
+            )}
 
-                {step === 2 && <SubjectSelectionStep form={form} />}
+            {step === 2 && <SubjectSelectionStep form={form} />}
 
-                {step === 3 && <FormReviewStep formData={form.getValues()} />}
+            {step === 3 && <FormReviewStep formData={form.getValues()} />}
 
-                <div className="flex justify-between pt-4">
-                {step > 1 && (
-                    <Button type="button" variant="outline" onClick={handlePrev} disabled={isLoading}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                    </Button>
-                )}
-                <div />
-                {step < STEPS.length && (
-                    <Button type="button" onClick={handleNext} disabled={isLoading || !!schoolError}>
-                    Next <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                )}
-                {step === STEPS.length && (
-                    <Button type="submit" variant="default" disabled={isLoading || !!schoolError}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                    {isLoading ? "Submitting..." : "Submit for Review"}
-                    </Button>
-                )}
-                </div>
-            </form>
-            </Form>
-        )}
+            <div className="flex justify-between pt-4">
+            {step > 1 && (
+                <Button type="button" variant="outline" onClick={handlePrev} disabled={isLoading}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                </Button>
+            )}
+            <div />
+            {step < STEPS.length && (
+                <Button type="button" onClick={handleNext} disabled={isLoading || !!schoolError}>
+                Next <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            )}
+            {step === STEPS.length && (
+                <Button type="submit" variant="default" disabled={isLoading || !!schoolError}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                {isLoading ? "Submitting..." : "Submit for Review"}
+                </Button>
+            )}
+            </div>
+        </form>
+        </Form>
       </CardContent>
     </Card>
   );
@@ -394,7 +407,17 @@ function AdmissionWizardContent() {
 
 export default function AdmissionWizard() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <Card>
+        <CardHeader>
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-4 w-3/4 mt-2" />
+        </CardHeader>
+        <CardContent>
+            <Skeleton className="h-48 w-full" />
+        </CardContent>
+      </Card>
+    }>
       <AdmissionWizardContent />
     </Suspense>
   )
