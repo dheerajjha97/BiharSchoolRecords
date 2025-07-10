@@ -41,7 +41,9 @@ export default function GenerateQrCode() {
     if (baseUrl && school?.udise) {
       const url = new URL(baseUrl);
       url.pathname = '/form'; 
-      url.searchParams.set('udise', school.udise); // Add the school's UDISE to the URL
+      url.searchParams.set('udise', school.udise);
+      url.searchParams.set('name', school.name);
+      url.searchParams.set('address', school.address);
       setQrUrl(url.toString());
     } else {
       setQrUrl('');

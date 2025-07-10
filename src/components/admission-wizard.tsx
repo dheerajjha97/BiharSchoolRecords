@@ -8,7 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
 import { addAdmission } from "@/lib/admissions";
-import { getSchoolByUdise, type School } from "@/lib/school";
+import type { School } from "@/lib/school";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -47,9 +47,7 @@ const STEPS = [
 function AdmissionWizardContent() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [targetSchool, setTargetSchool] = useState<School | null>(null);
-  const [schoolError, setSchoolError] = useState<string | null>(null);
-  const [isFetchingSchool, setIsFetchingSchool] = useState(true);
+  const [schoolFromUrl, setSchoolFromUrl] = useState<School | null>(null);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -57,9 +55,11 @@ function AdmissionWizardContent() {
   const { school: loggedInSchool, loading: authLoading } = useAuth();
 
   const udiseFromUrl = searchParams.get('udise');
+  const nameFromUrl = searchParams.get('name');
+  const addressFromUrl = searchParams.get('address');
 
   // Determine which school the form is for. This is the central logic.
-  const formForSchool = udiseFromUrl ? targetSchool : loggedInSchool;
+  const formForSchool = loggedInSchool || schoolFromUrl;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -92,34 +92,16 @@ function AdmissionWizardContent() {
     mode: "onChange",
   });
 
-  // Fetch school data if UDISE is in URL. If user is logged in, this will be skipped.
+  // If user is not logged in, get school info from URL parameters.
   useEffect(() => {
-    if (firebaseError) {
-      setSchoolError(firebaseError);
-      setIsFetchingSchool(false);
-      return;
+    if (!loggedInSchool && udiseFromUrl && nameFromUrl && addressFromUrl) {
+      setSchoolFromUrl({
+        udise: udiseFromUrl,
+        name: nameFromUrl,
+        address: addressFromUrl,
+      });
     }
-    // Only fetch if a UDISE is in the URL AND there's no logged-in user.
-    if (udiseFromUrl && !loggedInSchool) {
-      setIsFetchingSchool(true);
-      setSchoolError(null);
-      getSchoolByUdise(udiseFromUrl)
-        .then(school => {
-          if (school) {
-            setTargetSchool(school);
-          } else {
-            setSchoolError(`The school with UDISE code ${udiseFromUrl} was not found.`);
-          }
-        })
-        .catch(() => {
-            setSchoolError('Could not retrieve school information. Please check your connection.');
-        })
-        .finally(() => setIsFetchingSchool(false));
-    } else {
-        // If there's a logged-in user OR no UDISE in URL, no fetching is needed here.
-        setIsFetchingSchool(false);
-    }
-  }, [udiseFromUrl, loggedInSchool]);
+  }, [loggedInSchool, udiseFromUrl, nameFromUrl, addressFromUrl]);
   
   const handleClassChange = useCallback(async (value: string | undefined) => {
     if (!value || !['9', '11-arts', '11-science', '11-commerce'].includes(value)) {
@@ -163,9 +145,11 @@ function AdmissionWizardContent() {
       });
       
       form.reset();
+      
       // Redirect to the same form page with a cache-busting timestamp to ensure a fresh state
-      const redirectUrl = udiseFromUrl ? `/form?udise=${udiseFromUrl}&submitted=${Date.now()}` : `/form?submitted=${Date.now()}`;
-      router.push(redirectUrl);
+      const url = new URL(window.location.href);
+      url.searchParams.set('submitted', Date.now().toString());
+      router.push(url.toString());
 
 
     } catch (error) {
@@ -246,9 +230,9 @@ function AdmissionWizardContent() {
   };
 
   // This is our main loading/error gate.
-  const showLoading = authLoading || isFetchingSchool;
-  const showError = schoolError || (firebaseError) || (!authLoading && !isFetchingSchool && !formForSchool);
-  const errorMessage = schoolError || firebaseError || 'School not configured. Cannot display form without a valid school. Please log in or use a valid QR code.';
+  const showLoading = authLoading && !formForSchool;
+  const showError = firebaseError || (!authLoading && !formForSchool);
+  const errorMessage = firebaseError || 'School not configured. Cannot display form without a valid school. Please log in or use a valid QR code.';
 
   if (showLoading) {
     return (

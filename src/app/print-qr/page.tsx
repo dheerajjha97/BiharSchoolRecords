@@ -18,6 +18,8 @@ function PrintableQrPage() {
       const url = new URL(publicUrl);
       url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
+      url.searchParams.set('name', school.name);
+      url.searchParams.set('address', school.address);
       setQrUrl(url.toString());
     }
   }, [school]);
