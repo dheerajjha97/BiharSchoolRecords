@@ -16,10 +16,9 @@ function PrintableQrPage() {
     const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (publicUrl && school?.udise) {
       const url = new URL(publicUrl);
-      url.pathname = '/form';
+      // Point to the new cache-busting redirect page
+      url.pathname = '/start-admission';
       url.searchParams.set('udise', school.udise);
-      url.searchParams.set('source', 'qr');
-      url.searchParams.set('v', Date.now().toString()); // Cache-busting timestamp
       setQrUrl(url.toString());
     }
   }, [school]);
