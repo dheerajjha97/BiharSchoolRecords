@@ -24,20 +24,20 @@ export default function GenerateQrCode() {
   const { school } = useAuth(); // Get the logged-in school's data
 
   useEffect(() => {
-    // Use NEXT_PUBLIC_BASE_URL if available, otherwise fallback to window.location.origin
+    // This effect runs on the client and sets the base URL from the environment variable.
     const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (publicUrl && publicUrl.startsWith('http')) {
       setBaseUrl(publicUrl);
       setShowPublicUrlWarning(false);
     } else {
-      setBaseUrl(window.location.origin);
-      // Show warning if the URL is not set, as it might be a temporary/private dev URL
+      // Show a warning if the public URL is not set or invalid, as QR codes will not work reliably.
       setShowPublicUrlWarning(true);
+      // We don't set a fallback URL because local URLs won't work on external devices.
     }
   }, []);
 
   useEffect(() => {
-    // QR code generation depends on having a base URL and a school UDISE
+    // QR code generation depends on having a valid base URL and a school UDISE.
     if (baseUrl && school?.udise) {
       const url = new URL(baseUrl);
       url.pathname = '/form';
@@ -70,7 +70,9 @@ export default function GenerateQrCode() {
           </div>
         ) : (
            <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-md bg-muted/50">
-                <p className="text-muted-foreground">QR Code will appear here.</p>
+                <p className="text-muted-foreground text-center p-4">
+                  {showPublicUrlWarning ? "Cannot generate QR code. Public URL is not configured." : "Loading QR Code..."}
+                </p>
            </div>
         )}
         {showPublicUrlWarning && (
@@ -78,13 +80,13 @@ export default function GenerateQrCode() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Action Required: Set Public URL</AlertTitle>
                 <AlertDescription>
-                    Your QR code may not work on other devices. To fix this, open the <code>.env.local</code> file, set <code>NEXT_PUBLIC_BASE_URL</code> to your app's public URL, and restart your server.
+                    Your QR code will not work. To fix this, open the <code>.env.local</code> file, set <code>NEXT_PUBLIC_BASE_URL</code> to your app's public URL, and restart your server.
                 </AlertDescription>
             </Alert>
         )}
       </CardContent>
        <CardFooter>
-        <Button className="w-full" asChild>
+        <Button className="w-full" asChild disabled={!qrUrl}>
             <Link href="/print-qr" target="_blank">
                 <Printer className="mr-2 h-4 w-4" />
                 Print QR Code

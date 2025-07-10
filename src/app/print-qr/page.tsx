@@ -9,25 +9,19 @@ import Image from 'next/image';
 
 function PrintableQrPage() {
   const { school, loading } = useAuth();
-  const [baseUrl, setBaseUrl] = React.useState('');
   const [qrUrl, setQrUrl] = React.useState('');
 
   useEffect(() => {
-    // This effect runs on the client and sets the base URL.
+    // This effect runs on the client and generates the QR URL once the base URL and school data are available.
     const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    setBaseUrl(publicUrl || window.location.origin);
-  }, []);
-
-  useEffect(() => {
-    // This effect generates the QR URL once the base URL and school data are available.
-    if (baseUrl && school?.udise) {
-      const url = new URL(baseUrl);
+    if (publicUrl && school?.udise) {
+      const url = new URL(publicUrl);
       url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
       url.searchParams.set('source', 'qr');
       setQrUrl(url.toString());
     }
-  }, [baseUrl, school]);
+  }, [school]);
   
   useEffect(() => {
     // This effect triggers the print dialog once the QR code has been rendered.
