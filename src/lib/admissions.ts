@@ -94,7 +94,17 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
     if (!data.admissionDetails?.udise) {
         throw new Error("UDISE code is missing from the admission data.");
     }
-    const sanitizedData = sanitizeForFirestore(data);
+
+    // Ensure submittedAt is set before sanitizing
+    const dataWithTimestamp = {
+      ...data,
+      admissionDetails: {
+        ...data.admissionDetails,
+        submittedAt: data.admissionDetails.submittedAt || new Date(),
+      }
+    };
+
+    const sanitizedData = sanitizeForFirestore(dataWithTimestamp);
     const docRef = await addDoc(collection(db, 'admissions'), sanitizedData);
     return docRef.id;
   } catch (e) {
@@ -338,3 +348,5 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
     return null;
   }
 };
+
+    
