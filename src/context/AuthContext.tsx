@@ -39,14 +39,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const storedUdise = localStorage.getItem('udise_code');
             if (storedUdise) {
+                // Only try to fetch school data if a UDISE code is actually stored.
                 const schoolData = await getSchoolByUdise(storedUdise);
-                setSchool(schoolData);
+                setSchool(schoolData); // This will be null if not found, which is correct.
             } else {
+                // If no UDISE is in storage, there's no logged-in user. Set school to null.
                 setSchool(null);
             }
         } catch (error) {
             console.error("Failed to load school data on init:", error);
             setSchool(null);
+            // Clear potentially invalid storage item on error
             localStorage.removeItem('udise_code');
         } finally {
             setLoading(false);
