@@ -14,7 +14,6 @@ const ptSans = PT_Sans({
 export const metadata: Metadata = {
   title: 'EduAssist Forms',
   description: 'Admission and Subject Selection Forms for Class 9 & Class 11 (Arts, Science, Commerce)',
-  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
