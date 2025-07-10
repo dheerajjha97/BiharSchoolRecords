@@ -8,6 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'zod';
 
 const TranslateNameInputSchema = z.object({
@@ -26,6 +27,7 @@ export async function translateName(input: TranslateNameInput): Promise<Translat
 
 const prompt = ai.definePrompt({
   name: 'translateNamePrompt',
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: {schema: TranslateNameInputSchema},
   output: {schema: TranslateNameOutputSchema},
   prompt: `Translate the following English name to Hindi. Only return the translated name.
