@@ -49,7 +49,7 @@ function AdmissionWizardContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [targetSchool, setTargetSchool] = useState<School | null>(null);
   const [schoolError, setSchoolError] = useState<string | null>(null);
-  const [isFetchingSchool, setIsFetchingSchool] = useState(true);
+  const [isFetchingSchool, setIsFetchingSchool] = useState(false);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -94,7 +94,6 @@ function AdmissionWizardContent() {
 
   // Fetch school data if UDISE is in URL, or stop loading if not.
   useEffect(() => {
-    setIsFetchingSchool(true); // Always start fetching on param change
     if (firebaseError) {
       setSchoolError(firebaseError);
       setIsFetchingSchool(false);
@@ -102,6 +101,7 @@ function AdmissionWizardContent() {
     }
 
     if (udiseFromUrl) {
+      setIsFetchingSchool(true);
       setSchoolError(null);
       getSchoolByUdise(udiseFromUrl)
         .then(school => {
@@ -116,7 +116,8 @@ function AdmissionWizardContent() {
         })
         .finally(() => setIsFetchingSchool(false));
     } else {
-        setIsFetchingSchool(false); // No UDISE in URL, so we are not fetching.
+        // If no UDISE in URL, we rely on logged-in user context. No fetching needed here.
+        setIsFetchingSchool(false);
     }
   }, [udiseFromUrl]);
   
@@ -247,7 +248,7 @@ function AdmissionWizardContent() {
   const isUnconfigured = !udiseFromUrl && !authLoading && !loggedInSchool;
 
   // This is our main loading/error gate.
-  if (authLoading || (udiseFromUrl && isFetchingSchool)) {
+  if (authLoading || isFetchingSchool) {
     return (
         <Card>
             <CardHeader>
