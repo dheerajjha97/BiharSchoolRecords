@@ -46,7 +46,7 @@ const STEPS = [
 
 function AdmissionWizardContent() {
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formForSchool, setFormForSchool] = useState<School | null>(null);
 
   const { toast } = useToast();
@@ -55,26 +55,30 @@ function AdmissionWizardContent() {
   const { school: loggedInSchool, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    // This effect determines which school the form is for.
+    // It waits for authentication to finish loading.
     if (authLoading) {
-      // Still checking auth status, do nothing yet.
+      return; // Wait until we know if a user is logged in or not.
+    }
+
+    // If a user is logged in, their school data takes precedence.
+    if (loggedInSchool) {
+      setFormForSchool(loggedInSchool);
       return;
     }
+
+    // If no user is logged in, check the URL for school data (from QR code).
+    const udise = searchParams.get('udise');
+    const name = searchParams.get('name');
+    const address = searchParams.get('address');
     
-    if (loggedInSchool) {
-      // User is logged in, use their school data.
-      setFormForSchool(loggedInSchool);
+    if (udise && name && address) {
+      // Create a school object from the URL parameters.
+      setFormForSchool({ udise, name, address });
     } else {
-      // User is not logged in, try to get school from URL.
-      const udise = searchParams.get('udise');
-      const name = searchParams.get('name');
-      const address = searchParams.get('address');
-      
-      if (udise && name && address) {
-        setFormForSchool({ udise, name, address });
-      } else {
-        // No logged-in user and no school info in URL.
-        setFormForSchool(null);
-      }
+      // If there's no logged-in user and no school info in the URL,
+      // then we cannot display the form.
+      setFormForSchool(null);
     }
   }, [authLoading, loggedInSchool, searchParams]);
 
@@ -126,7 +130,7 @@ function AdmissionWizardContent() {
         toast({ title: "School Not Specified", description: "Cannot submit form without a specified school. This form may be missing a UDISE code.", variant: "destructive" });
         return;
     }
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       if (data.contactDetails.mobileNumber) {
         data.contactDetails.mobileNumber = `+91${data.contactDetails.mobileNumber}`;
@@ -164,7 +168,7 @@ function AdmissionWizardContent() {
        }
        toast({ title: "Submission Failed", description: description, variant: "destructive" });
     } finally {
-        setIsLoading(false);
+        setIsSubmitting(false);
     }
   };
 
@@ -233,6 +237,7 @@ function AdmissionWizardContent() {
     );
   };
 
+  // While checking auth status, show a loading screen.
   if (authLoading) {
     return (
         <Card>
@@ -250,6 +255,7 @@ function AdmissionWizardContent() {
     );
   }
 
+  // After auth check, if there's a firebase error or no school could be determined, show an error.
   const showError = firebaseError || !formForSchool;
   const errorMessage = firebaseError || 'School not configured. Cannot display form. Please log in as a school administrator or use a valid QR code link that includes school details.';
 
@@ -330,20 +336,20 @@ function AdmissionWizardContent() {
 
             <div className="flex justify-between pt-4">
             {step > 1 && (
-                <Button type="button" variant="outline" onClick={handlePrev} disabled={isLoading}>
+                <Button type="button" variant="outline" onClick={handlePrev} disabled={isSubmitting}>
                 <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                 </Button>
             )}
             <div />
             {step < STEPS.length && (
-                <Button type="button" onClick={handleNext} disabled={isLoading || !formForSchool}>
+                <Button type="button" onClick={handleNext} disabled={isSubmitting || !formForSchool}>
                 Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
             {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isLoading || !formForSchool}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                {isLoading ? "Submitting..." : "Submit for Review"}
+                <Button type="submit" variant="default" disabled={isSubmitting || !formForSchool}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                {isSubmitting ? "Submitting..." : "Submit for Review"}
                 </Button>
             )}
             </div>
