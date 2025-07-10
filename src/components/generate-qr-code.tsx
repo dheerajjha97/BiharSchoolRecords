@@ -2,15 +2,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { QRCodeCanvas } from 'qrcode.react';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { QrCode, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { QrCode, AlertCircle, Printer } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
 
@@ -47,7 +50,7 @@ export default function GenerateQrCode() {
   }, [baseUrl, school]);
 
   return (
-    <Card className="shadow-md hover:shadow-lg transition-shadow">
+    <Card className="shadow-md hover:shadow-lg transition-shadow flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCode className="h-5 w-5" />
@@ -57,7 +60,7 @@ export default function GenerateQrCode() {
           Share this single QR code for your school's admission form. Students can select their class after scanning.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 flex-grow">
         {qrUrl ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-lg border bg-muted/50 p-4">
             <QRCodeCanvas value={qrUrl} size={160} />
@@ -80,6 +83,14 @@ export default function GenerateQrCode() {
             </Alert>
         )}
       </CardContent>
+       <CardFooter>
+        <Button className="w-full" asChild>
+            <Link href="/print-qr" target="_blank">
+                <Printer className="mr-2 h-4 w-4" />
+                Print QR Code
+            </Link>
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
