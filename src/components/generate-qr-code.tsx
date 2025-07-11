@@ -40,7 +40,7 @@ export default function GenerateQrCode() {
     // QR code generation depends on having a valid base URL and a school UDISE.
     if (baseUrl && school?.udise) {
       const url = new URL(baseUrl);
-      url.pathname = '/form'; 
+      url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
       url.searchParams.set('name', school.name);
       url.searchParams.set('address', school.address);

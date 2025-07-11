@@ -25,7 +25,7 @@ function PrintableQrPage() {
       setQrUrl(url.toString());
     }
   }, [school]);
-  
+
   useEffect(() => {
     // This effect triggers the print dialog once the QR code has been rendered.
     if (qrUrl && !loading) {
@@ -45,7 +45,7 @@ function PrintableQrPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="flex h-screen w-full items-center justify-center bg-white">
         <div className="a4-container flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-black">
@@ -56,7 +56,7 @@ function PrintableQrPage() {
                     <p className="text-lg">{school?.address}</p>
                  </div>
             </header>
-            
+
             <main className="flex flex-col items-center gap-6">
                 <QRCodeCanvas value={qrUrl} size={256} />
                 <div className="space-y-2">
