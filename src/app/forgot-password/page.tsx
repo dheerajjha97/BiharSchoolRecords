@@ -138,7 +138,7 @@ export default function ForgotPasswordPage() {
 
       toast({
         title: 'OTP Sent',
-        description: `An OTP has been sent to the registered ${target}. Please check your device.`,
+        description: `For demo, use: ${generatedOtp}`,
       });
     } catch (error) {
         console.error("Failed to send OTP:", error);
