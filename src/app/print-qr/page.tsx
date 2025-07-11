@@ -4,7 +4,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { QRCodeCanvas } from 'qrcode.react';
-import { Loader2, QrCode } from 'lucide-react';
+import { Loader2, QrCode, Link2 } from 'lucide-react';
 import Image from 'next/image';
 
 function PrintableQrPage() {
@@ -68,6 +68,10 @@ function PrintableQrPage() {
                     <p className="text-muted-foreground text-base">
                         Scan this code with your mobile to open the online admission form.
                     </p>
+                </div>
+                 <div className="mt-4 space-y-2 text-center">
+                    <p className="font-semibold flex items-center gap-2 justify-center"><Link2 /> Or use this link:</p>
+                    <p className="font-mono text-sm p-2 bg-gray-100 rounded-md border">{qrUrl}</p>
                 </div>
             </main>
 

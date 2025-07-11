@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, AlertCircle, Printer } from 'lucide-react';
+import { QrCode, AlertCircle, Printer, Link2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
 
@@ -67,12 +67,23 @@ export default function GenerateQrCode() {
       </CardHeader>
       <CardContent className="space-y-4 flex-grow">
         {qrUrl ? (
-          <div className="flex flex-col items-center justify-center gap-4 rounded-lg border bg-muted/50 p-4">
-            <QRCodeCanvas value={qrUrl} size={160} />
-            <p className="text-center text-sm text-muted-foreground">
-              Scan this code to open the admission form for {school?.name}.
-            </p>
-          </div>
+          <>
+            <div className="flex flex-col items-center justify-center gap-4 rounded-lg border bg-muted/50 p-4">
+              <QRCodeCanvas value={qrUrl} size={160} />
+              <p className="text-center text-sm text-muted-foreground">
+                Scan this code to open the admission form for {school?.name}.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
+                <Link2 className="h-4 w-4" />
+                Or share this link
+              </div>
+              <div className="text-xs font-mono p-2 bg-muted rounded-md break-all">
+                {qrUrl}
+              </div>
+            </div>
+          </>
         ) : (
            <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-md bg-muted/50">
                 <p className="text-muted-foreground text-center p-4">
