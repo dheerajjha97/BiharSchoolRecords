@@ -13,45 +13,51 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, AlertCircle, Printer, Link2 } from 'lucide-react';
+import { QrCode, AlertCircle, Printer, Link2, Copy, Check } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export default function GenerateQrCode() {
   const [qrUrl, setQrUrl] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [showPublicUrlWarning, setShowPublicUrlWarning] = useState(false);
-  const { school } = useAuth(); // Get the logged-in school's data
+  const [isCopied, setIsCopied] = useState(false);
+  const { school } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // This effect runs on the client and sets the base URL from the environment variable.
     const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (publicUrl && publicUrl.startsWith('http')) {
       setBaseUrl(publicUrl);
       setShowPublicUrlWarning(false);
     } else {
-      // Show a warning if the public URL is not set or invalid, as QR codes will not work reliably.
       setShowPublicUrlWarning(true);
-      // We don't set a fallback URL because local URLs won't work on external devices.
     }
   }, []);
 
   useEffect(() => {
-    // QR code generation depends on having a valid base URL and a school UDISE.
     if (baseUrl && school?.udise) {
       const url = new URL(baseUrl);
       url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
-      
-      // Cache-busting for development ONLY. In production, the URL is stable.
-      if (process.env.NODE_ENV === 'development') {
-        url.searchParams.set('v', Date.now().toString());
-      }
       setQrUrl(url.toString());
     } else {
       setQrUrl('');
     }
   }, [baseUrl, school]);
+
+  const handleCopy = () => {
+    if (!qrUrl) return;
+    navigator.clipboard.writeText(qrUrl).then(() => {
+      setIsCopied(true);
+      toast({ title: "Copied!", description: "The link has been copied to your clipboard." });
+      setTimeout(() => setIsCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      toast({ title: "Copy Failed", description: "Could not copy the link.", variant: "destructive" });
+    });
+  };
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow flex flex-col">
@@ -78,8 +84,12 @@ export default function GenerateQrCode() {
                 <Link2 className="h-4 w-4" />
                 Or share this link
               </div>
-              <div className="text-xs font-mono p-2 bg-muted rounded-md break-all">
-                {qrUrl}
+              <div className="flex items-center gap-2 font-mono text-xs p-2 bg-muted rounded-md break-all">
+                <span className="flex-grow">{qrUrl}</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
+                  {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  <span className="sr-only">Copy link</span>
+                </Button>
               </div>
             </div>
           </>

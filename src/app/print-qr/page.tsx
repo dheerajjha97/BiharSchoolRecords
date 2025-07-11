@@ -19,10 +19,6 @@ function PrintableQrPage() {
       url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
       
-      // Cache-busting for development ONLY. In production, the URL is stable.
-      if (process.env.NODE_ENV === 'development') {
-        url.searchParams.set('v', Date.now().toString());
-      }
       setQrUrl(url.toString());
     }
   }, [school]);
