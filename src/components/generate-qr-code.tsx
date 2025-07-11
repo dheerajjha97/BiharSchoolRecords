@@ -85,7 +85,9 @@ export default function GenerateQrCode() {
                 Or share this link
               </div>
               <div className="flex items-center gap-2 font-mono text-xs p-2 bg-muted rounded-md break-all">
-                <span className="flex-grow">{qrUrl}</span>
+                <Link href={qrUrl} target="_blank" rel="noopener noreferrer" className="flex-grow text-primary underline underline-offset-2 hover:text-primary/80">
+                  {qrUrl}
+                </Link>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
                   {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   <span className="sr-only">Copy link</span>

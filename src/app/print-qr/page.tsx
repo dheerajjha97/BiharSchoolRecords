@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Loader2, QrCode, Link2 } from 'lucide-react';
@@ -66,7 +67,9 @@ function PrintableQrPage() {
                 </div>
                  <div className="mt-4 space-y-2 text-center">
                     <p className="font-semibold flex items-center gap-2 justify-center"><Link2 /> Or use this link:</p>
-                    <p className="font-mono text-sm p-2 bg-gray-100 rounded-md border">{qrUrl}</p>
+                    <Link href={qrUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-sm p-2 bg-gray-100 rounded-md border text-blue-600 underline">
+                      {qrUrl}
+                    </Link>
                 </div>
             </main>
 
