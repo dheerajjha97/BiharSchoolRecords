@@ -36,8 +36,6 @@ const passwordSchema = z.object({
 
 type Step = 'enter-udise' | 'verify-otp' | 'reset-password' | 'success';
 
-const MOCK_OTP = '123456';
-
 const maskEmail = (email: string) => {
   const [user, domain] = email.split('@');
   if (!user || !domain) return email;
@@ -111,19 +109,34 @@ export default function ForgotPasswordPage() {
   };
 
   const handleSendOtp = (target: 'mobile' | 'email') => {
+    // Generate a random 6-digit OTP
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store it securely in session storage (cleared when the tab is closed)
+    sessionStorage.setItem('otp', generatedOtp);
+    sessionStorage.setItem('otp_timestamp', Date.now().toString());
+
     setOtpTarget(target);
     toast({
       title: 'OTP Sent (Simulated)',
-      description: `For this demo, please use the OTP: ${MOCK_OTP}`,
+      description: `An OTP has been sent to the registered ${target}. Please use ${generatedOtp} to proceed.`,
     });
   };
 
   const handleOtpVerify = ({ otp }: { otp: string }) => {
     setLoading(true);
-    if (otp === MOCK_OTP) {
+    const storedOtp = sessionStorage.getItem('otp');
+    const otpTimestamp = sessionStorage.getItem('otp_timestamp');
+
+    // OTP is valid for 5 minutes
+    const isOtpValid = storedOtp && otpTimestamp && (Date.now() - parseInt(otpTimestamp, 10) < 5 * 60 * 1000);
+
+    if (isOtpValid && otp === storedOtp) {
       setStep('reset-password');
+      sessionStorage.removeItem('otp'); // Clear OTP after successful verification
+      sessionStorage.removeItem('otp_timestamp');
     } else {
-      otpForm.setError('otp', { type: 'manual', message: 'Invalid OTP. Please try again.' });
+      otpForm.setError('otp', { type: 'manual', message: 'Invalid or expired OTP. Please try again.' });
     }
     setLoading(false);
   };
