@@ -44,8 +44,10 @@ export default function GenerateQrCode() {
       url.searchParams.set('udise', school.udise);
       url.searchParams.set('name', school.name);
       url.searchParams.set('address', school.address);
-      // Cache-busting parameter: Appends the current timestamp to ensure a fresh version is always loaded.
-      url.searchParams.set('v', Date.now().toString());
+      // Cache-busting for development ONLY. In production, the URL is stable.
+      if (process.env.NODE_ENV === 'development') {
+        url.searchParams.set('v', Date.now().toString());
+      }
       setQrUrl(url.toString());
     } else {
       setQrUrl('');
