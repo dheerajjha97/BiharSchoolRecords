@@ -18,8 +18,7 @@ function PrintableQrPage() {
       const url = new URL(publicUrl);
       url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
-      url.searchParams.set('name', school.name);
-      url.searchParams.set('address', school.address);
+      
       // Cache-busting for development ONLY. In production, the URL is stable.
       if (process.env.NODE_ENV === 'development') {
         url.searchParams.set('v', Date.now().toString());

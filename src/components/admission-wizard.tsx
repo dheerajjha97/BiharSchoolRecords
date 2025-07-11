@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { formSchema, type FormValues } from "@/lib/form-schema";
 import { addAdmission } from "@/lib/admissions";
 import type { School } from "@/lib/school";
+import { getSchoolByUdise } from "@/lib/school";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +49,8 @@ function AdmissionWizardContent() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formForSchool, setFormForSchool] = useState<School | null>(null);
+  const [isLoadingSchool, setIsLoadingSchool] = useState(true);
+  const [schoolError, setSchoolError] = useState<string | null>(null);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -55,30 +58,43 @@ function AdmissionWizardContent() {
   const { school: loggedInSchool, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // This effect determines which school the form is for.
-    // PRIORITY 1: Check for school data in URL params (from QR code).
-    const udise = searchParams.get('udise');
-    const name = searchParams.get('name');
-    const address = searchParams.get('address');
-    
-    if (udise && name && address) {
-      // If found, use this info directly and ignore auth state. This is for QR code users.
-      setFormForSchool({ udise, name, address });
-      return;
-    }
-
-    // PRIORITY 2: If no data in URL, check auth state for a logged-in school.
-    // This will only run after the auth check is complete.
-    if (!authLoading) {
-      if (loggedInSchool) {
+    const fetchSchoolInfo = async () => {
+      // Priority 1: Logged-in school
+      if (!authLoading && loggedInSchool) {
         setFormForSchool(loggedInSchool);
-      } else {
-        // If not logged in and no URL params, there's no school to show the form for.
-        setFormForSchool(null);
+        setIsLoadingSchool(false);
+        return;
       }
-    }
-    // Only re-run when auth state changes. searchParams are handled on first load.
-  }, [authLoading, loggedInSchool]);
+      
+      // Wait for auth to finish before proceeding for non-logged-in users
+      if (authLoading) return;
+
+      // Priority 2: UDISE from URL
+      const udise = searchParams.get('udise');
+      if (udise) {
+        try {
+          const schoolData = await getSchoolByUdise(udise);
+          if (schoolData) {
+            setFormForSchool(schoolData);
+          } else {
+            setSchoolError(`School with UDISE code ${udise} not found.`);
+          }
+        } catch (e) {
+            setSchoolError('Failed to load school information.');
+        } finally {
+            setIsLoadingSchool(false);
+        }
+        return;
+      }
+      
+      // No logged-in user and no UDISE in URL
+      setIsLoadingSchool(false);
+      setSchoolError('School not identified. Please use a valid QR code or log in.');
+    };
+
+    fetchSchoolInfo();
+  }, [authLoading, loggedInSchool, searchParams]);
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -235,12 +251,7 @@ function AdmissionWizardContent() {
     );
   };
 
-  // While checking auth status OR if we have URL params but haven't set the school yet, show loading.
-  if (authLoading || !formForSchool) {
-    // Exception: If we finished loading and determined there is no school, don't show spinner.
-    if (!authLoading && !loggedInSchool && !searchParams.get('udise')) {
-      // This is the error case, handled below.
-    } else {
+  if (isLoadingSchool) {
       return (
           <Card>
               <CardHeader>
@@ -255,12 +266,10 @@ function AdmissionWizardContent() {
               </CardContent>
           </Card>
       );
-    }
   }
 
-  // After auth check, if there's a firebase error or no school could be determined, show an error.
-  const showError = firebaseError || !formForSchool;
-  const errorMessage = firebaseError || 'School not configured. Cannot display form. Please log in as a school administrator or use a valid QR code link that includes school details.';
+  const showError = firebaseError || schoolError || !formForSchool;
+  const errorMessage = firebaseError || schoolError || 'An unknown error occurred.';
 
   if (showError) {
      return (
