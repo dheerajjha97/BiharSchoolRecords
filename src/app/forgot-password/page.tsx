@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, AlertCircle, KeyRound, Mail, Smartphone, CheckCircle } from 'lucide-react';
+import { sendOtp } from '@/ai/flows/send-otp-flow';
 
 const udiseSchema = z.object({
   udise: z.string().length(11, 'UDISE code must be 11 digits.'),
@@ -52,6 +53,7 @@ export default function ForgotPasswordPage() {
   const [school, setSchool] = useState<School | null>(null);
   const [otpTarget, setOtpTarget] = useState<'mobile' | 'email' | ''>('');
   const [loading, setLoading] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -108,19 +110,43 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const handleSendOtp = (target: 'mobile' | 'email') => {
-    // Generate a random 6-digit OTP
-    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Store it securely in session storage (cleared when the tab is closed)
-    sessionStorage.setItem('otp', generatedOtp);
-    sessionStorage.setItem('otp_timestamp', Date.now().toString());
+  const handleSendOtp = async (target: 'mobile' | 'email') => {
+    if (!school) return;
+    const destination = target === 'mobile' ? school.mobile : school.email;
+    if (!destination) {
+      toast({ title: 'Error', description: `No ${target} registered for this school.`, variant: 'destructive' });
+      return;
+    }
 
+    setIsSendingOtp(true);
     setOtpTarget(target);
-    toast({
-      title: 'OTP Sent (Simulated)',
-      description: `An OTP has been sent to the registered ${target}. Please use ${generatedOtp} to proceed.`,
-    });
+
+    try {
+      // Generate a random 6-digit OTP
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store it securely in session storage (cleared when the tab is closed)
+      sessionStorage.setItem('otp', generatedOtp);
+      sessionStorage.setItem('otp_timestamp', Date.now().toString());
+
+      // Call the Genkit flow to send the OTP
+      await sendOtp({
+        target,
+        destination,
+        otp: generatedOtp,
+      });
+
+      toast({
+        title: 'OTP Sent',
+        description: `An OTP has been sent to the registered ${target}. Please check your device.`,
+      });
+    } catch (error) {
+        console.error("Failed to send OTP:", error);
+        toast({ title: 'OTP Failed', description: 'Could not send OTP. Please try again later.', variant: 'destructive' });
+        setOtpTarget(''); // Reset selection on failure
+    } finally {
+        setIsSendingOtp(false);
+    }
   };
 
   const handleOtpVerify = ({ otp }: { otp: string }) => {
@@ -194,28 +220,30 @@ export default function ForgotPasswordPage() {
           {step === 'verify-otp' && school && (
              <Form {...otpForm}>
               <form onSubmit={otpForm.handleSubmit(handleOtpVerify)} className="space-y-6">
-                <RadioGroup onValueChange={(val: 'mobile' | 'email') => handleSendOtp(val)} className="space-y-2">
-                  {school.mobile && (
-                    <Label htmlFor="otp-mobile" className="flex items-center gap-4 rounded-md border p-4 hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-primary transition-colors cursor-pointer">
-                      <Smartphone className="h-6 w-6 text-muted-foreground" />
-                      <div className="flex-1">
-                          <p className="font-semibold">Send to Mobile</p>
-                          <p className="text-sm text-muted-foreground">{maskMobile(school.mobile)}</p>
-                      </div>
-                      <RadioGroupItem value="mobile" id="otp-mobile" />
-                    </Label>
-                  )}
-                   {school.email && (
-                    <Label htmlFor="otp-email" className="flex items-center gap-4 rounded-md border p-4 hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-primary transition-colors cursor-pointer">
-                      <Mail className="h-6 w-6 text-muted-foreground" />
-                      <div className="flex-1">
-                          <p className="font-semibold">Send to Email</p>
-                          <p className="text-sm text-muted-foreground">{maskEmail(school.email)}</p>
-                      </div>
-                      <RadioGroupItem value="email" id="otp-email" />
-                    </Label>
-                  )}
-                </RadioGroup>
+                <fieldset disabled={isSendingOtp}>
+                    <RadioGroup onValueChange={(val: 'mobile' | 'email') => handleSendOtp(val)} className="space-y-2">
+                    {school.mobile && (
+                        <Label htmlFor="otp-mobile" className="flex items-center gap-4 rounded-md border p-4 hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-primary transition-colors cursor-pointer">
+                        <Smartphone className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex-1">
+                            <p className="font-semibold">Send to Mobile</p>
+                            <p className="text-sm text-muted-foreground">{maskMobile(school.mobile)}</p>
+                        </div>
+                        <RadioGroupItem value="mobile" id="otp-mobile" />
+                        </Label>
+                    )}
+                    {school.email && (
+                        <Label htmlFor="otp-email" className="flex items-center gap-4 rounded-md border p-4 hover:bg-accent has-[input:checked]:bg-accent has-[input:checked]:border-primary transition-colors cursor-pointer">
+                        <Mail className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex-1">
+                            <p className="font-semibold">Send to Email</p>
+                            <p className="text-sm text-muted-foreground">{maskEmail(school.email)}</p>
+                        </div>
+                        <RadioGroupItem value="email" id="otp-email" />
+                        </Label>
+                    )}
+                    </RadioGroup>
+                </fieldset>
                 {otpTarget && (
                   <FormField
                     control={otpForm.control}
@@ -229,8 +257,8 @@ export default function ForgotPasswordPage() {
                     )}
                   />
                 )}
-                <Button type="submit" className="w-full" disabled={loading || !otpTarget}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" className="w-full" disabled={loading || !otpTarget || isSendingOtp}>
+                  {(loading || isSendingOtp) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Verify & Proceed
                 </Button>
               </form>
