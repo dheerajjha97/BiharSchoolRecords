@@ -58,71 +58,68 @@ export default function DashboardLayout({
         </SheetTrigger>
         <SheetContent 
             side="left" 
-            className="p-0 bg-sidebar text-sidebar-foreground"
+            className="p-0 bg-sidebar text-sidebar-foreground flex flex-col"
         >
-          <SheetHeader>
+          <SheetHeader className="p-2">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-          </SheetHeader>
-          <Sidebar>
-             <SidebarHeader>
-              <div className="flex items-center gap-2 p-2">
-                {loading ? (
-                    <div className="flex items-center gap-3 p-2 w-full">
-                        <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
-                        <div className="group-data-[collapsible=icon]:hidden min-w-0 flex-1 space-y-1.5">
-                            <Skeleton className="h-5 w-3/4" />
-                            <Skeleton className="h-3 w-full" />
-                        </div>
+             <div className="flex items-center gap-2">
+              {loading ? (
+                  <div className="flex items-center gap-3 p-2 w-full">
+                      <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                          <Skeleton className="h-5 w-3/4" />
+                      </div>
+                  </div>
+              ) : (
+                <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full" onClick={() => setOpen(false)}>
+                    <div className="flex-shrink-0">
+                        <Image src="/logo.jpg" alt="School Logo" width={32} height={32} className="rounded-md" />
                     </div>
-                ) : (
-                  <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full" onClick={() => setOpen(false)}>
-                      <div className="flex-shrink-0">
-                          <Image src="/logo.jpg" alt="School Logo" width={32} height={32} className="rounded-md" />
-                      </div>
-                      <div className="group-data-[collapsible=icon]:hidden min-w-0">
-                          <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
-                      </div>
-                  </Link>
-                )}
-              </div>
-            </SidebarHeader>
-             <SidebarContent className="p-2 pt-8">
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/dashboard'} onClick={() => setOpen(false)}>
-                    <Link href="/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/pending')} onClick={() => setOpen(false)}>
-                    <Link href="/dashboard/admissions/pending"><History /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/students')} onClick={() => setOpen(false)}>
-                    <Link href="/dashboard/students"><CheckCircle2 /><span>Approved Students</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/form'} onClick={() => setOpen(false)}>
-                    <Link href="/form"><PlusCircle /><span>New Admission</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-              <SidebarMenu className="mt-auto">
-                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'} onClick={() => setOpen(false)}>
-                    <Link href="/dashboard/profile"><Building /><span>School Profile</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname === '/dashboard/reset-password'} onClick={() => setOpen(false)}>
-                    <Link href="/dashboard/reset-password"><KeyRound /><span>Reset Password</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarContent>
-          </Sidebar>
+                    <div className="min-w-0">
+                        <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                    </div>
+                </Link>
+              )}
+            </div>
+          </SheetHeader>
+          <div className="flex-grow overflow-y-auto p-2">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard'} onClick={() => setOpen(false)}>
+                  <Link href="/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/pending')} onClick={() => setOpen(false)}>
+                  <Link href="/dashboard/admissions/pending"><History /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/students')} onClick={() => setOpen(false)}>
+                  <Link href="/dashboard/students"><CheckCircle2 /><span>Approved Students</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/form'} onClick={() => setOpen(false)}>
+                  <Link href="/form"><PlusCircle /><span>New Admission</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </div>
+          <div className="p-2 mt-auto">
+            <SidebarMenu>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'} onClick={() => setOpen(false)}>
+                  <Link href="/dashboard/profile"><Building /><span>School Profile</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/reset-password'} onClick={() => setOpen(false)}>
+                  <Link href="/dashboard/reset-password"><KeyRound /><span>Reset Password</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </div>
         </SheetContent>
       </Sheet>
   )
@@ -137,7 +134,6 @@ export default function DashboardLayout({
                     <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
                     <div className="group-data-[collapsible=icon]:hidden min-w-0 flex-1 space-y-1.5">
                         <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-3 w-full" />
                     </div>
                 </div>
             ) : (
