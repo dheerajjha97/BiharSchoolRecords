@@ -34,6 +34,7 @@ type SidebarContext = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
+  isDrawer: boolean
   toggleSidebar: () => void
 }
 
@@ -116,6 +117,7 @@ const SidebarProvider = React.forwardRef<
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? "expanded" : "collapsed"
+    const isDrawer = isMobile && openMobile
 
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
@@ -125,9 +127,19 @@ const SidebarProvider = React.forwardRef<
         isMobile,
         openMobile,
         setOpenMobile,
+        isDrawer,
         toggleSidebar,
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [
+        state,
+        open,
+        setOpen,
+        isMobile,
+        openMobile,
+        setOpenMobile,
+        isDrawer,
+        toggleSidebar,
+      ]
     )
 
     return (
@@ -327,12 +339,16 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  const { isDrawer } = useSidebar()
+
   return (
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-transform duration-300 ease-in-out",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        isDrawer &&
+          "translate-x-[var(--sidebar-width-mobile)] scale-[0.9] origin-[center_left] rounded-xl shadow-lg",
         className
       )}
       {...props}
@@ -340,6 +356,29 @@ const SidebarInset = React.forwardRef<
   )
 })
 SidebarInset.displayName = "SidebarInset"
+
+const SidebarBackdrop = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => {
+  const { isDrawer, toggleSidebar } = useSidebar()
+
+  return (
+    <div
+      ref={ref}
+      data-sidebar="backdrop"
+      className={cn(
+        "fixed inset-0 z-20 hidden bg-black/50 transition-all",
+        isDrawer && "block",
+        className
+      )}
+      onClick={toggleSidebar}
+      {...props}
+    />
+  )
+})
+SidebarBackdrop.displayName = "SidebarBackdrop"
+
 
 const SidebarInput = React.forwardRef<
   React.ElementRef<typeof Input>,
@@ -755,6 +794,7 @@ export {
   SidebarHeader,
   SidebarInput,
   SidebarInset,
+  SidebarBackdrop,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuBadge,
@@ -770,3 +810,5 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+    

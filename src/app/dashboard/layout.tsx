@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -19,6 +20,7 @@ import {
   SidebarInset,
   SidebarTrigger,
   SidebarMenuBadge,
+  SidebarBackdrop,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -178,6 +180,9 @@ export default function DashboardLayout({
             )}
         </main>
       </SidebarInset>
+      <SidebarBackdrop />
     </SidebarProvider>
   );
 }
+
+    
