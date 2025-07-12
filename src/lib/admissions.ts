@@ -157,24 +157,18 @@ const getSchoolAdmissionCount = async (udise: string, year?: number): Promise<nu
     try {
         const q = query(collection(db, "admissions"), 
             where('admissionDetails.udise', '==', udise),
+            where('admissionDetails.status', '==', 'approved')
         );
         const snapshot = await getDocs(q);
         
-        const approvedDocs = snapshot.docs.filter(doc => {
-            const data = doc.data() as FormValues;
-            // An admission is approved if its status is 'approved'.
-            return data.admissionDetails?.status === 'approved';
-        });
+        const approvedDocs = snapshot.docs.map(doc => convertTimestamps(doc.data()) as FormValues);
 
         if (year) {
             // If a year is provided, filter the approved documents by that year.
-            const yearlyCount = approvedDocs.filter(doc => {
-                const data = doc.data() as FormValues;
+            const yearlyCount = approvedDocs.filter(data => {
                 const admissionDate = data.admissionDetails?.admissionDate;
-                if (admissionDate && admissionDate instanceof Timestamp) {
-                    return admissionDate.toDate().getFullYear() === year;
-                }
-                if (admissionDate && admissionDate instanceof Date) {
+                // Check if admissionDate is a valid date
+                if (admissionDate && admissionDate instanceof Date && !isNaN(admissionDate.getTime())) {
                     return admissionDate.getFullYear() === year;
                 }
                 return false;
