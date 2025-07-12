@@ -143,33 +143,36 @@ const SidebarProvider = React.forwardRef<
     )
 
     return (
-      <TooltipProvider delayDuration={0}>
-        <div
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH,
-              "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-              "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE,
-              ...style,
-            } as React.CSSProperties
-          }
-          className={cn(
-            "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
-            className
-          )}
-          data-drawer={isDrawer}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      </TooltipProvider>
+      <SidebarContext.Provider value={contextValue}>
+        <TooltipProvider delayDuration={0}>
+          <div
+            style={
+              {
+                "--sidebar-width": SIDEBAR_WIDTH,
+                "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+                "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE,
+                ...style,
+              } as React.CSSProperties
+            }
+            className={cn(
+              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              className
+            )}
+            data-drawer={isDrawer}
+            ref={ref}
+            {...props}
+          >
+            {children}
+          </div>
+        </TooltipProvider>
+      </SidebarContext.Provider>
     )
   }
 )
 SidebarProvider.displayName = "SidebarProvider"
 
-const Sidebar = React.forwardRef<
+
+const SidebarImpl = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     side?: "left" | "right"
@@ -276,8 +279,22 @@ const Sidebar = React.forwardRef<
       </div>
     )
   }
-)
-Sidebar.displayName = "Sidebar"
+);
+SidebarImpl.displayName = "SidebarImpl";
+
+
+const Sidebar = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div"> & {
+    side?: "left" | "right"
+    variant?: "sidebar" | "floating" | "inset"
+    collapsible?: "offcanvas" | "icon" | "none"
+  }
+>(({ ...props }, ref) => {
+  return <SidebarImpl ref={ref} {...props} />
+});
+Sidebar.displayName = "Sidebar";
+
 
 const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
