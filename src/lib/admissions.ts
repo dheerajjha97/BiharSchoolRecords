@@ -144,35 +144,36 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
 
 
 /**
- * Gets a list of approved admissions for a specific school for a given year.
- * This is used to generate the annual serial number for the admission number.
+ * Gets a list of admissions for a specific school, optionally filtered by status.
  * @param udise The UDISE code of the school.
- * @param year The calendar year to count admissions for.
- * @returns A promise that resolves to the list of approved admissions in that year.
+ * @param options Optional parameters to filter the results, e.g., by status.
+ * @returns A promise that resolves to the list of admissions.
  */
-const getSchoolAdmissionCountForYear = async (udise: string, year: number): Promise<number> => {
+export const getAdmissionsByUdise = async (
+    udise: string, 
+    options?: { status?: 'approved' | 'pending' | 'rejected' }
+): Promise<(FormValues & { id: string })[]> => {
     if (!db) {
-        console.warn(firebaseError || "Database not available. Cannot get admission count.");
-        return 0;
+        console.warn(firebaseError || "Database not available. Cannot get admissions.");
+        return [];
     }
     try {
-        const startDate = new Date(year, 0, 1); // January 1st of the year
-        const endDate = new Date(year + 1, 0, 1); // January 1st of the next year
+        const constraints: QueryConstraint[] = [where('admissionDetails.udise', '==', udise)];
+        if (options?.status) {
+            constraints.push(where('admissionDetails.status', '==', options.status));
+        }
 
-        const q = query(collection(db, "admissions"), 
-            where('admissionDetails.udise', '==', udise),
-            where('admissionDetails.status', '==', 'approved'),
-            where('admissionDetails.admissionDate', '>=', startDate),
-            where('admissionDetails.admissionDate', '<', endDate)
-        );
-        const snapshot = await getCountFromServer(q);
-        return snapshot.data().count;
+        const q = query(collection(db, "admissions"), ...constraints);
+        const querySnapshot = await getDocs(q);
+        
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
 
     } catch (e) {
-        console.error("Error getting school admission count for year:", e);
-        return 0; // Return 0 on error to prevent breaking the approval process
+        console.error("Error getting school admissions:", e);
+        return [];
     }
 };
+
 
 /**
  * Approves a pending admission, generating admission/roll numbers and updating the status.
@@ -189,19 +190,27 @@ export const approveAdmission = async (id: string, udise: string, classSelection
     const docRef = doc(db, "admissions", id);
 
     try {
-        // Step 1: Get current counts for generating new numbers
+        // Step 1: Get all approved students to calculate new numbers reliably
+        const allApprovedStudents = await getAdmissionsByUdise(udise, { status: 'approved' });
+        
+        // Step 2: Calculate total approved for the given year
         const admissionYear = admissionDate.getFullYear();
         const yearSuffix = admissionYear.toString().slice(-2);
+        const totalApprovedInSchoolForYear = allApprovedStudents.filter(s => 
+            s.admissionDetails.admissionDate && s.admissionDetails.admissionDate.getFullYear() === admissionYear
+        ).length;
 
-        const totalApprovedInSchoolForYear = await getSchoolAdmissionCountForYear(udise, admissionYear);
-        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection);
+        // Step 3: Calculate total approved for the specific class
+        const approvedInClassCount = allApprovedStudents.filter(s => 
+            s.admissionDetails.classSelection === classSelection
+        ).length;
         
-        // Step 2: Generate new numbers
+        // Step 4: Generate new numbers
         const rollNumber = String(approvedInClassCount + 1);
         const nextAdmissionSerial = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
         const admissionNumber = `ADM/${yearSuffix}/${nextAdmissionSerial}`;
 
-        // Step 3: Add the update operation to the batch
+        // Step 5: Add the update operation to the batch
         batch.update(docRef, {
             'admissionDetails.status': 'approved',
             'admissionDetails.admissionDate': admissionDate,
@@ -209,7 +218,7 @@ export const approveAdmission = async (id: string, udise: string, classSelection
             'admissionDetails.admissionNumber': admissionNumber,
         });
 
-        // Step 4: Commit the batch
+        // Step 6: Commit the batch
         await batch.commit();
 
     } catch (e) {
@@ -363,4 +372,3 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
     return null;
   }
 };
-
