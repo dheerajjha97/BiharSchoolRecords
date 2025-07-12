@@ -361,7 +361,7 @@ const SidebarBackdrop = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
-  const { isDrawer, toggleSidebar } = useSidebar()
+  const { isDrawer, setOpenMobile } = useSidebar()
 
   return (
     <div
@@ -372,7 +372,7 @@ const SidebarBackdrop = React.forwardRef<
         isDrawer && "block",
         className
       )}
-      onClick={toggleSidebar}
+      onClick={() => setOpenMobile(false)}
       {...props}
     />
   )
@@ -810,5 +810,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-
-    
