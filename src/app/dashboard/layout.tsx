@@ -67,6 +67,28 @@ export default function DashboardLayout({
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           </SheetHeader>
           <Sidebar>
+             <SidebarHeader>
+              <div className="flex items-center gap-2 p-2">
+                {loading ? (
+                    <div className="flex items-center gap-3 p-2 w-full">
+                        <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
+                        <div className="group-data-[collapsible=icon]:hidden min-w-0 flex-1 space-y-1.5">
+                            <Skeleton className="h-5 w-3/4" />
+                            <Skeleton className="h-3 w-full" />
+                        </div>
+                    </div>
+                ) : (
+                  <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full" onClick={() => setOpen(false)}>
+                      <div className="flex-shrink-0">
+                          <Image src="/logo.jpg" alt="School Logo" width={32} height={32} className="rounded-md" />
+                      </div>
+                      <div className="group-data-[collapsible=icon]:hidden min-w-0">
+                          <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                      </div>
+                  </Link>
+                )}
+              </div>
+            </SidebarHeader>
              <SidebarContent className="p-2 pt-8">
               <SidebarMenu>
                 <SidebarMenuItem>

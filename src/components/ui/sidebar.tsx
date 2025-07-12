@@ -175,9 +175,6 @@ const Sidebar = React.forwardRef<
             "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
             className
           )}
-          style={{
-            background: 'linear-gradient(0deg, hsla(249, 80%, 30%, 1) 0%, hsla(251, 68%, 16%, 1) 100%)'
-          }}
           ref={ref}
           {...props}
         >
@@ -205,7 +202,7 @@ const Sidebar = React.forwardRef<
     return (
       <div
         ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
+        className="group peer hidden md:block bg-sidebar text-sidebar-foreground"
         data-state={state}
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
@@ -239,9 +236,6 @@ const Sidebar = React.forwardRef<
           <div
             data-sidebar="sidebar"
             className="flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
-            style={{
-              background: 'linear-gradient(0deg, hsla(249, 80%, 30%, 1) 0%, hsla(251, 68%, 16%, 1) 100%)'
-            }}
           >
             {children}
           </div>
