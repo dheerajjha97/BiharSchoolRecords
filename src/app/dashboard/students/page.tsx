@@ -7,13 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Printer } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer, FileDown, Sheet as SheetIcon } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useSchoolData } from '@/hooks/use-school-data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { firebaseError } from '@/lib/firebase';
 import { DebugEnvVars } from '@/components/debug-env-vars';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const classOptions = [
   { value: 'all', label: 'All Classes' },
@@ -71,6 +74,53 @@ function StudentsListContent() {
     return students.filter(student => student.admissionDetails.classSelection === classFilter);
   }, [students, classFilter]);
   
+  const handleDownloadExcel = () => {
+    const dataToExport = filteredStudents.map(s => ({
+        "Admission Number": s.admissionDetails.admissionNumber,
+        "Admission Date": s.admissionDetails.admissionDate ? new Date(s.admissionDetails.admissionDate).toLocaleDateString() : 'N/A',
+        "Roll Number": s.admissionDetails.rollNumber,
+        "Class": classDisplayNameMap[s.admissionDetails.classSelection],
+        "Name": s.studentDetails.nameEn,
+        "Father's Name": s.studentDetails.fatherNameEn,
+        "Mother's Name": s.studentDetails.motherNameEn,
+        "Mobile": s.contactDetails.mobileNumber,
+        "Aadhar": s.contactDetails.aadharNumber,
+        "Caste": s.studentDetails.caste
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+    XLSX.writeFile(workbook, "students.xlsx");
+  };
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    const tableColumn = ["Admission No", "Name", "Father's Name", "Class", "Roll No", "Mobile"];
+    const tableRows: any[] = [];
+
+    filteredStudents.forEach(student => {
+        const studentData = [
+            student.admissionDetails.admissionNumber,
+            student.studentDetails.nameEn,
+            student.studentDetails.fatherNameEn,
+            classDisplayNameMap[student.admissionDetails.classSelection],
+            student.admissionDetails.rollNumber,
+            student.contactDetails.mobileNumber,
+        ];
+        tableRows.push(studentData);
+    });
+
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        didDrawPage: (data) => {
+            doc.text(`Student List - ${school?.name || 'School'}`, data.settings.margin.left, 15);
+        },
+    });
+    doc.save('students.pdf');
+  }
+
   return (
     <>
       <div className="space-y-8">
@@ -94,9 +144,19 @@ function StudentsListContent() {
             <CardDescription>A complete list of all approved student admissions for {school?.name || 'this school'}.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex flex-col sm:flex-row gap-2 justify-end">
+              <div className="flex gap-2">
+                 <Button variant="outline" onClick={handleDownloadPdf} disabled={loading || filteredStudents.length === 0}>
+                   <FileDown className="mr-2 h-4 w-4"/>
+                   Download PDF
+                 </Button>
+                 <Button variant="outline" onClick={handleDownloadExcel} disabled={loading || filteredStudents.length === 0}>
+                   <SheetIcon className="mr-2 h-4 w-4"/>
+                   Download Excel
+                 </Button>
+              </div>
               <Select value={classFilter} onValueChange={setClassFilter}>
-                <SelectTrigger className="w-full md:w-[240px]">
+                <SelectTrigger className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Filter by class..." />
                 </SelectTrigger>
                 <SelectContent>
