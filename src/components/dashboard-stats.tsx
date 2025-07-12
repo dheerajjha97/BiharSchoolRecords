@@ -48,11 +48,11 @@ export default function DashboardStats() {
   }, [school, schoolLoading]);
 
   const statsData = [
-    { title: "Total Approved", value: stats.total.toLocaleString(), icon: Users, classId: "all" },
-    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9" },
-    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts" },
-    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science" },
-    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce" },
+    { title: "Total Approved", value: stats.total.toLocaleString(), icon: Users, classId: "all", color: "text-blue-500" },
+    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9", color: "text-green-500" },
+    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts", color: "text-orange-500" },
+    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science", color: "text-purple-500" },
+    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce", color: "text-red-500" },
   ];
 
   if (loading) {
@@ -79,7 +79,10 @@ export default function DashboardStats() {
         <Link href={`/dashboard/students?class=${stat.classId}`} key={stat.title} className="group">
           <Card className="shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between relative overflow-hidden rounded-xl p-5">
             <div className="z-10">
-              <CardTitle className="text-base font-bold text-muted-foreground">{stat.title}</CardTitle>
+              <div className="flex items-center gap-2">
+                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                <CardTitle className="text-base font-bold text-muted-foreground">{stat.title}</CardTitle>
+              </div>
               <p className="text-4xl font-bold mt-2 text-foreground">{stat.value}</p>
             </div>
             
@@ -88,8 +91,6 @@ export default function DashboardStats() {
                     View list <ArrowRight className="h-3 w-3" />
                 </p>
             </div>
-
-            <stat.icon className="absolute -bottom-5 -right-5 w-24 h-24 text-foreground/5 group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300" />
           </Card>
         </Link>
       ))}

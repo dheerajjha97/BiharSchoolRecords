@@ -70,43 +70,45 @@ export default function RecentAdmissions() {
                 </Button>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Student Name</TableHead>
-                            <TableHead className="hidden sm:table-cell">Admission No.</TableHead>
-                            <TableHead className="hidden md:table-cell">Class</TableHead>
-                            <TableHead className="text-right">Date</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
-                            Array.from({length: 5}).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                                    <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-[100px]" /></TableCell>
-                                    <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-[80px] rounded-full" /></TableCell>
-                                    <TableCell className="text-right"><Skeleton className="h-4 w-[90px] ml-auto" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : admissions.length > 0 ? admissions.map((admission) => (
-                            <TableRow key={admission.id}>
-                                <TableCell className="font-medium">{admission.studentDetails.nameEn}</TableCell>
-                                <TableCell className="hidden sm:table-cell">{admission.admissionDetails.admissionNumber}</TableCell>
-                                <TableCell className="hidden md:table-cell">
-                                    <Badge variant={classVariantMap[admission.admissionDetails.classSelection]}>
-                                        {classDisplayNameMap[admission.admissionDetails.classSelection] || admission.admissionDetails.classSelection}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">{admission.admissionDetails.admissionDate ? new Date(admission.admissionDetails.admissionDate).toLocaleDateString() : 'N/A'}</TableCell>
-                            </TableRow>
-                        )) : (
+                 <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">No approved admissions yet for this school.</TableCell>
+                                <TableHead>Student Name</TableHead>
+                                <TableHead className="hidden sm:table-cell">Admission No.</TableHead>
+                                <TableHead className="hidden md:table-cell">Class</TableHead>
+                                <TableHead className="text-right">Date</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                Array.from({length: 5}).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                                        <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-[100px]" /></TableCell>
+                                        <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-[80px] rounded-full" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-4 w-[90px] ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : admissions.length > 0 ? admissions.map((admission) => (
+                                <TableRow key={admission.id}>
+                                    <TableCell className="font-medium">{admission.studentDetails.nameEn}</TableCell>
+                                    <TableCell className="hidden sm:table-cell">{admission.admissionDetails.admissionNumber}</TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        <Badge variant={classVariantMap[admission.admissionDetails.classSelection]}>
+                                            {classDisplayNameMap[admission.admissionDetails.classSelection] || admission.admissionDetails.classSelection}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">{admission.admissionDetails.admissionDate ? new Date(admission.admissionDetails.admissionDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                </TableRow>
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">No approved admissions yet for this school.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </CardContent>
         </Card>
     );
