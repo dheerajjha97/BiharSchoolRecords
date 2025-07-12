@@ -193,11 +193,6 @@ const Sidebar = React.forwardRef<
             data-sidebar="sidebar"
             data-mobile="true"
             className="w-[--sidebar-width-mobile] p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                 background: 'linear-gradient(0deg, hsla(249, 80%, 30%, 1) 0%, hsla(251, 68%, 16%, 1) 100%)'
-              } as React.CSSProperties
-            }
             side={side}
           >
             <SheetTitle className="sr-only">Sidebar Navigation</SheetTitle>

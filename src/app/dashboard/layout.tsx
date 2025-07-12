@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -55,7 +56,13 @@ export default function DashboardLayout({
             <span className="sr-only">Toggle Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0">
+        <SheetContent 
+            side="left" 
+            className="p-0"
+            style={{
+                background: 'linear-gradient(0deg, hsla(249, 80%, 30%, 1) 0%, hsla(251, 68%, 16%, 1) 100%)'
+            }}
+        >
           <SheetHeader>
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           </SheetHeader>
