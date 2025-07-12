@@ -84,8 +84,8 @@ export default function DashboardLayout({
                 )}
               </div>
             </SidebarHeader>
-             <SidebarContent className="p-2 pt-8 flex-grow flex flex-col">
-              <SidebarMenu className="flex-grow">
+             <SidebarContent className="p-2 pt-8 flex flex-col">
+              <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === '/dashboard'} onClick={() => setOpen(false)}>
                     <Link href="/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
