@@ -18,16 +18,19 @@ import { AddSchoolDialog } from '@/components/add-school-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DebugEnvVars } from '@/components/debug-env-vars';
 import { firebaseError } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const [udise, setUdise] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingSchool, setCheckingSchool] = useState(false);
   const [error, setError] = useState('');
   const [showAddSchoolDialog, setShowAddSchoolDialog] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const rememberedUdise = localStorage.getItem('remembered_udise');
@@ -94,6 +97,38 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  const handleRegisterClick = async () => {
+    if (checkingSchool) return;
+
+    if (udise && udise.length === 11) {
+      setCheckingSchool(true);
+      try {
+        const schoolExists = await getSchoolByUdise(udise);
+        if (schoolExists) {
+          toast({
+            title: 'School Already Registered',
+            description: 'School with this UDISE is already registered. Please log in.',
+            variant: 'destructive',
+          });
+        } else {
+          setShowAddSchoolDialog(true);
+        }
+      } catch (err) {
+         toast({
+            title: 'Error',
+            description: 'Could not verify school status. Please try again.',
+            variant: 'destructive',
+          });
+      } finally {
+        setCheckingSchool(false);
+      }
+    } else {
+      // If no UDISE is entered, just open the dialog
+      setShowAddSchoolDialog(true);
+    }
+  };
+
 
   const handleSaveSchool = async (school: School) => {
     setLoading(true);
@@ -194,7 +229,8 @@ export default function LoginPage() {
                     </span>
                 </div>
             </div>
-            <Button variant="outline" className="w-full" type="button" onClick={() => setShowAddSchoolDialog(true)} disabled={!!firebaseError}>
+            <Button variant="outline" className="w-full" type="button" onClick={handleRegisterClick} disabled={!!firebaseError || checkingSchool}>
+                {checkingSchool && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Register a New School
             </Button>
         </div>
