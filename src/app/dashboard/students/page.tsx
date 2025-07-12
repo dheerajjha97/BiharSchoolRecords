@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Printer, FileDown, Sheet as SheetIcon, Loader2, Wand2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Printer, FileDown, Sheet as SheetIcon } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useAuth } from '@/context/AuthContext';
@@ -17,7 +17,6 @@ import { DebugEnvVars } from '@/components/debug-env-vars';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { fixDuplicateAdmissions } from '@/ai/flows/fix-duplicates-flow';
 import { useToast } from '@/hooks/use-toast';
 
 const classOptions = [
@@ -38,7 +37,6 @@ const classDisplayNameMap: { [key: string]: string } = {
 function StudentsListContent() {
   const [students, setStudents] = useState<(FormValues & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFixing, setIsFixing] = useState(false);
   const [classFilter, setClassFilter] = useState('all');
   const { school, loading: schoolLoading } = useAuth();
   const searchParams = useSearchParams();
@@ -125,36 +123,6 @@ function StudentsListContent() {
     doc.save('students.pdf');
   }
 
-  const handleFixDuplicates = async () => {
-    if (!school?.udise) return;
-    setIsFixing(true);
-    try {
-        const result = await fixDuplicateAdmissions({ udise: school.udise });
-        if (result.success) {
-            toast({
-                title: 'Success!',
-                description: result.message,
-            });
-        } else {
-             toast({
-                title: 'Operation Note',
-                description: result.message,
-                variant: 'default',
-            });
-        }
-    } catch (e) {
-        console.error(e);
-        const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-        toast({
-            title: 'An Error Occurred',
-            description: `Failed to fix duplicates. ${errorMessage}`,
-            variant: 'destructive',
-        });
-    } finally {
-        setIsFixing(false);
-    }
-  }
-
   return (
     <>
       <div className="space-y-8">
@@ -179,10 +147,6 @@ function StudentsListContent() {
                     <CardTitle>Approved Student List</CardTitle>
                     <CardDescription>A complete list of all approved student admissions for {school?.name || 'this school'}.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleFixDuplicates} disabled={isFixing}>
-                    {isFixing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                    Fix Duplicates
-                </Button>
             </div>
           </CardHeader>
           <CardContent>
