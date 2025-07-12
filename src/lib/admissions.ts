@@ -142,44 +142,33 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
 
 
 /**
- * Gets the count of approved admissions for a specific school.
- * If a year is provided, the count is filtered for that year.
- * This function queries all school documents and filters client-side to avoid composite indexes.
+ * Gets the count of approved admissions for a specific school for a given year.
+ * This is used to generate the annual serial number for the admission number.
  * @param udise The UDISE code of the school.
- * @param year Optional. The calendar year to count admissions for.
- * @returns A promise that resolves to the number of approved admissions.
+ * @param year The calendar year to count admissions for.
+ * @returns A promise that resolves to the number of approved admissions in that year.
  */
-const getSchoolAdmissionCount = async (udise: string, year?: number): Promise<number> => {
+const getSchoolAdmissionCountForYear = async (udise: string, year: number): Promise<number> => {
     if (!db) {
         console.warn(firebaseError || "Database not available. Cannot get admission count.");
         return 0;
     }
     try {
+        const startDate = new Date(year, 0, 1); // January 1st of the year
+        const endDate = new Date(year + 1, 0, 1); // January 1st of the next year
+
         const q = query(collection(db, "admissions"), 
             where('admissionDetails.udise', '==', udise),
-            where('admissionDetails.status', '==', 'approved')
+            where('admissionDetails.status', '==', 'approved'),
+            where('admissionDetails.admissionDate', '>=', startDate),
+            where('admissionDetails.admissionDate', '<', endDate)
         );
-        const snapshot = await getDocs(q);
-        
-        const approvedDocs = snapshot.docs.map(doc => convertTimestamps(doc.data()) as FormValues);
+        const snapshot = await getCountFromServer(q);
+        return snapshot.data().count;
 
-        if (year) {
-            // If a year is provided, filter the approved documents by that year.
-            const yearlyCount = approvedDocs.filter(data => {
-                const admissionDate = data.admissionDetails?.admissionDate;
-                // Check if admissionDate is a valid date
-                if (admissionDate && admissionDate instanceof Date && !isNaN(admissionDate.getTime())) {
-                    return admissionDate.getFullYear() === year;
-                }
-                return false;
-            }).length;
-            return yearlyCount;
-        }
-
-        return approvedDocs.length;
     } catch (e) {
-        console.error("Error getting school admission count:", e);
-        return 0;
+        console.error("Error getting school admission count for year:", e);
+        return 0; // Return 0 on error to prevent breaking the approval process
     }
 };
 
@@ -200,14 +189,14 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         const year = admissionYear.toString().slice(-2);
 
         // Get counts to generate new numbers
-        const totalApprovedInSchoolCountForYear = await getSchoolAdmissionCount(udise, admissionYear); // For school-specific admission number, count only for the current year.
-        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection); // For school/class-specific roll number
+        const totalApprovedInSchoolForYear = await getSchoolAdmissionCountForYear(udise, admissionYear);
+        const approvedInClassCount = await getClassAdmissionCount(udise, classSelection);
         
         // Generate numbers
         const rollNumber = String(approvedInClassCount + 1);
         
         // The serial number restarts every year for each school.
-        const nextId = (totalApprovedInSchoolCountForYear + 1).toString().padStart(4, '0');
+        const nextId = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
         const admissionNumber = `ADM/${year}/${nextId}`;
 
         // Update document
