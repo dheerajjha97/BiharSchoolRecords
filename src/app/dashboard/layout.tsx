@@ -11,6 +11,8 @@ import { usePendingAdmissionsCount } from '@/hooks/use-pending-admissions';
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
@@ -54,6 +56,9 @@ export default function DashboardLayout({
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0">
+          <SheetHeader>
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          </SheetHeader>
           <Sidebar>
              <SidebarContent className="p-2 pt-8">
               <SidebarMenu>
