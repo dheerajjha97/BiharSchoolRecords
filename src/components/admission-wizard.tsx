@@ -19,7 +19,7 @@ import { SubjectSelectionStep } from "@/components/subject-selection-step";
 import { FormReviewStep } from "@/components/form-review-step";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Send, Loader2, Building, AlertCircle, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Send, Loader2, Building, AlertCircle, Save, CheckCircle2, Check } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -368,47 +368,75 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
 
   return (
     <>
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>आवेदन सफलतापूर्वक जमा किया गया!</AlertDialogTitle>
-                <AlertDialogDescription className="text-left space-y-4 pt-4">
+       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+            <AlertDialogContent className="max-w-lg">
+                <AlertDialogHeader>
+                    <div className="flex items-center gap-3">
+                        <CheckCircle2 className="h-10 w-10 text-green-500" />
+                        <div className="flex-1">
+                            <AlertDialogTitle className="text-xl">आवेदन सफलतापूर्वक जमा किया गया!</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                कृपया आगे की प्रक्रिया के लिए नीचे दिए गए निर्देशों का पालन करें।
+                            </AlertDialogDescription>
+                        </div>
+                    </div>
+                </AlertDialogHeader>
+
+                <div className="py-4 space-y-4">
                     {submittedClass === '9' ? (
                         <>
-                            <p className="font-semibold">कक्षा 9 के लिए आवेदन के समय आवेदन प्रपत्र के साथ संलग्न किए जाने वाले आवश्यक प्रमाण-पत्र एवं शुल्क का विवरण निम्न प्रकार है:</p>
-                            <ol className="list-decimal list-inside space-y-1 text-sm">
-                                <li>पूर्व में अध्ययन विद्यालय द्वारा निर्गत विद्यालय स्थानांतरण प्रमाण-पत्र की मूल प्रति</li>
-                                <li>छात्र/छात्रा का पासपोर्ट साइज तीन फोटो</li>
-                                <li>छात्र/छात्रा का जन्म प्रमाण-पत्र की प्रति</li>
-                                <li>छात्र/छात्रा का जाति प्रमाण-पत्र की प्रति (आरक्षण सुविधा के लिए)</li>
-                                <li>छात्र/छात्रा का आधार कार्ड की प्रति</li>
-                                <li>छात्र/छात्रा का बैंक खाता पासबुक की प्रति</li>
-                            </ol>
-                            <p className="font-semibold">विद्यालय विकास शुल्क की राशि एवं छात्र शुल्क की राशि विद्यालय में जमा की जाएगी।</p>
+                            <Card className="bg-secondary/50">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">कक्षा 9: आवश्यक दस्तावेज़</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2 text-sm text-muted-foreground">
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>पूर्व विद्यालय द्वारा निर्गत स्थानांतरण प्रमाण-पत्र (मूल प्रति)</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>तीन पासपोर्ट साइज फोटो</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>जन्म प्रमाण-पत्र की प्रति</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>जाति प्रमाण-पत्र की प्रति (आरक्षण के लिए)</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>आधार कार्ड की प्रति</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>बैंक खाता पासबुक की प्रति</span></li>
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                            <p className="text-sm font-semibold text-center text-primary">विद्यालय विकास शुल्क एवं छात्र शुल्क की राशि विद्यालय में जमा की जाएगी।</p>
                         </>
                     ) : (
-                        <>
-                            <p className="font-semibold">कक्षा 11 के लिए आवेदन के समय आवेदन प्रपत्र के साथ संलग्न किए जाने वाले आवश्यक प्रमाण-पत्रों की विवरणी निम्न प्रकार है:</p>
-                            <ol className="list-decimal list-inside space-y-1 text-sm">
-                                <li>पूर्व में अध्ययन विद्यालय द्वारा निर्गत विद्यालय स्थानांतरण प्रमाण-पत्र की मूल प्रति</li>
-                                <li>छात्र/छात्रा का पासपोर्ट साइज तीन फ़ोटो</li>
-                                <li>OFSS आवेदन की मूल प्रति</li>
-                                <li>मैट्रिक / 10वीं परीक्षा उत्तीर्ण का प्रवेश पत्र / अंक पत्र / अस्थायी प्रमाण-पत्र की स्वप्रमाणित प्रति</li>
-                                <li>छात्र/छात्रा का आधार कार्ड की प्रति</li>
-                                <li>छात्र/छात्रा का बैंक खाता पासबुक की प्रति</li>
-                            </ol>
+                         <>
+                            <Card className="bg-secondary/50">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">कक्षा 11: आवश्यक दस्तावेज़</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-2 text-sm text-muted-foreground">
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>पूर्व विद्यालय द्वारा निर्गत स्थानांतरण प्रमाण-पत्र (मूल प्रति)</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>तीन पासपोर्ट साइज फोटो</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>OFSS आवेदन की मूल प्रति</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>मैट्रिक का प्रवेश पत्र, अंक पत्र, और अस्थायी प्रमाण-पत्र की प्रति</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>आधार कार्ड की प्रति</span></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 mt-0.5 text-primary" /><span>बैंक खाता पासबुक की प्रति</span></li>
+                                    </ul>
+                                </CardContent>
+                            </Card>
                         </>
                     )}
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogAction onClick={() => {
-                    setShowSuccessDialog(false);
-                    window.close();
-                }}>ठीक है</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+                </div>
+
+                <AlertDialogFooter>
+                    <AlertDialogAction 
+                        className="w-full"
+                        onClick={() => {
+                            setShowSuccessDialog(false);
+                            window.close();
+                        }}
+                    >
+                        <Check className="mr-2 h-4 w-4" />
+                        ठीक है, समझ गया
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         
         <Card>
         <CardHeader>
