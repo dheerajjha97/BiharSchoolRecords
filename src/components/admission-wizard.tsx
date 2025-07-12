@@ -37,6 +37,15 @@ import {
 import { firebaseError } from "@/lib/firebase";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 const STEPS = [
@@ -57,6 +66,7 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
   const [formForSchool, setFormForSchool] = useState<School | null>(null);
   const [isLoadingSchool, setIsLoadingSchool] = useState(true);
   const [schoolError, setSchoolError] = useState<string | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -66,6 +76,16 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
   
   const isEditMode = !!existingAdmission;
   const isDashboardMode = pathname.startsWith('/dashboard');
+
+  useEffect(() => {
+    if (searchParams.get('submitted') === 'true') {
+        setShowSuccessDialog(true);
+        // Clean up URL
+        const url = new URL(window.location.href);
+        url.searchParams.delete('submitted');
+        router.replace(url.toString(), { scroll: false });
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const fetchSchoolInfo = async () => {
@@ -205,12 +225,12 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
         };
 
         await addAdmission(dataWithUdise);
-        toast({
-          title: "Form Submitted Successfully!",
-          description: `The admission form for ${data.studentDetails.nameEn} has been submitted for review.`,
-        });
         
         if (isDashboardMode) {
+          toast({
+            title: "Form Submitted Successfully!",
+            description: `The admission form for ${data.studentDetails.nameEn} has been submitted for review.`,
+          });
           router.push('/dashboard/admissions/pending');
         } else {
           // Public form submission success: Reset form and add a query param
@@ -340,92 +360,120 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
 
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <CardTitle>{isEditMode ? 'Edit Admission Form' : 'New Admission Form'}</CardTitle>
-                <CardDescription>
-                    {`Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}`}
-                </CardDescription>
-            </div>
-            <p className="text-sm font-medium text-muted-foreground mt-2 sm:mt-0">
-                Progress: {Math.round(progressValue)}%
-            </p>
-        </div>
-        <Progress value={progressValue} className="mt-4" />
-      </CardHeader>
-      <CardContent>
-        <div className="mt-4">
-            <SchoolInfoHeader />
-        </div>
+    <>
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>आवेदन सफलतापूर्वक जमा किया गया!</AlertDialogTitle>
+                    <AlertDialogDescription className="text-left space-y-4 pt-4">
+                        <p className="font-semibold">कक्षा 9 के लिए आवेदन के समय आवेदन प्रपत्र के साथ संलग्न किए जाने वाले आवश्यक प्रमाण-पत्र एवं शुल्क का विवरण निम्न प्रकार है:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-sm">
+                            <li>पूर्व में अध्ययन विद्यालय द्वारा निर्गत विद्यालय स्थानांतरण प्रमाण-पत्र की मूल प्रति</li>
+                            <li>छात्र/छात्रा का पासपोर्ट साइज तीन फोटो</li>
+                            <li>छात्र/छात्रा का जन्म प्रमाण-पत्र की प्रति</li>
+                            <li>छात्र/छात्रा का जाति प्रमाण-पत्र की प्रति (आरक्षण सुविधा के लिए)</li>
+                            <li>छात्र/छात्रा का आधार कार्ड की प्रति</li>
+                            <li>छात्र/छात्रा का बैंक खाता पासबुक की प्रति</li>
+                        </ol>
+                        <p className="font-semibold">विद्यालय विकास शुल्क की राशि एवं छात्र शुल्क की राशि विद्यालय में जमा की जाएगी।</p>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => {
+                        setShowSuccessDialog(false);
+                        window.close();
+                    }}>ठीक है</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         
-        <Form {...form}>
-        <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8 mt-8">
-            {step === 1 && (
-            <>
-                <Card className="bg-muted/50 border-dashed">
-                <CardContent className="p-6">
-                    <FormField
-                    control={form.control}
-                    name="admissionDetails.classSelection"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Class / Stream</FormLabel>
-                        <Select onValueChange={handleClassChange} value={field.value || ""}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                            <SelectItem value="9">Class 9</SelectItem>
-                            <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
-                            <SelectItem value="11-science">Class 11 - Science</SelectItem>
-                            <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </CardContent>
-                </Card>
-                <AdmissionFormStep form={form} />
-            </>
-            )}
-
-            {step === 2 && <SubjectSelectionStep form={form} />}
-
-            {step === 3 && <FormReviewStep formData={form.getValues()} />}
-
-            <div className="flex justify-between pt-4">
-            {step > 1 && (
-                <Button type="button" variant="outline" onClick={handlePrev} disabled={isSubmitting}>
-                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                </Button>
-            )}
-            <div />
-            {step < STEPS.length && (
-                <Button type="button" onClick={handleNext} disabled={isSubmitting || !schoolToUse}>
-                Next <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-            )}
-            {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isSubmitting || !schoolToUse}>
-                  {isSubmitting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : isEditMode ? (
-                    <Save className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Send className="mr-2 h-4 w-4" />
-                  )}
-                  {isSubmitting
-                    ? isEditMode ? "Saving..." : "Submitting..."
-                    : isEditMode ? "Save Changes" : "Submit for Review"}
-                </Button>
-            )}
+        <Card>
+        <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <CardTitle>{isEditMode ? 'Edit Admission Form' : 'New Admission Form'}</CardTitle>
+                    <CardDescription>
+                        {`Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}`}
+                    </CardDescription>
+                </div>
+                <p className="text-sm font-medium text-muted-foreground mt-2 sm:mt-0">
+                    Progress: {Math.round(progressValue)}%
+                </p>
             </div>
-        </form>
-        </Form>
-      </CardContent>
-    </Card>
+            <Progress value={progressValue} className="mt-4" />
+        </CardHeader>
+        <CardContent>
+            <div className="mt-4">
+                <SchoolInfoHeader />
+            </div>
+            
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(processForm, onFormError)} className="space-y-8 mt-8">
+                {step === 1 && (
+                <>
+                    <Card className="bg-muted/50 border-dashed">
+                    <CardContent className="p-6">
+                        <FormField
+                        control={form.control}
+                        name="admissionDetails.classSelection"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Class / Stream</FormLabel>
+                            <Select onValueChange={handleClassChange} value={field.value || ""}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a class / stream" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                <SelectItem value="9">Class 9</SelectItem>
+                                <SelectItem value="11-arts">Class 11 - Arts</SelectItem>
+                                <SelectItem value="11-science">Class 11 - Science</SelectItem>
+                                <SelectItem value="11-commerce">Class 11 - Commerce</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </CardContent>
+                    </Card>
+                    <AdmissionFormStep form={form} />
+                </>
+                )}
+
+                {step === 2 && <SubjectSelectionStep form={form} />}
+
+                {step === 3 && <FormReviewStep formData={form.getValues()} />}
+
+                <div className="flex justify-between pt-4">
+                {step > 1 && (
+                    <Button type="button" variant="outline" onClick={handlePrev} disabled={isSubmitting}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                    </Button>
+                )}
+                <div />
+                {step < STEPS.length && (
+                    <Button type="button" onClick={handleNext} disabled={isSubmitting || !schoolToUse}>
+                    Next <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
+                {step === STEPS.length && (
+                    <Button type="submit" variant="default" disabled={isSubmitting || !schoolToUse}>
+                    {isSubmitting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : isEditMode ? (
+                        <Save className="mr-2 h-4 w-4" />
+                    ) : (
+                        <Send className="mr-2 h-4 w-4" />
+                    )}
+                    {isSubmitting
+                        ? isEditMode ? "Saving..." : "Submitting..."
+                        : isEditMode ? "Save Changes" : "Submit for Review"}
+                    </Button>
+                )}
+                </div>
+            </form>
+            </Form>
+        </CardContent>
+        </Card>
+    </>
   );
 }
 
