@@ -17,7 +17,7 @@ export default function DashboardPage() {
 
   const handleFabClick = () => {
     setIsNavigating(true);
-    router.push('/form');
+    router.push('/dashboard/form');
   };
 
   return (
