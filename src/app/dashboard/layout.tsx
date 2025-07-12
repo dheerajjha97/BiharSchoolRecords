@@ -60,7 +60,7 @@ export default function DashboardLayout({
             side="left" 
             className="p-0 bg-sidebar text-sidebar-foreground flex flex-col"
         >
-          <SheetHeader className="p-2">
+          <SheetHeader className="p-2 border-b">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
              <div className="flex items-center gap-2">
               {loading ? (
@@ -77,12 +77,13 @@ export default function DashboardLayout({
                     </div>
                     <div className="min-w-0">
                         <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                        <p className="text-xs text-muted-foreground truncate">{school?.address}</p>
                     </div>
                 </Link>
               )}
             </div>
           </SheetHeader>
-          <div className="flex-grow overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto p-2">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard'} onClick={() => setOpen(false)}>
@@ -106,7 +107,7 @@ export default function DashboardLayout({
               </SidebarMenuItem>
             </SidebarMenu>
           </div>
-          <div className="p-2 mt-auto">
+          <div className="p-2 mt-auto border-t">
             <SidebarMenu>
                <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'} onClick={() => setOpen(false)}>
