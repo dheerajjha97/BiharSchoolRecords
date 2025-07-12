@@ -497,6 +497,9 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                           field.onBlur();
                           handlePinCodeLookup(e.target.value);
                         }}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={6}
                       />
                       {isFetchingPinDetails && (
                         <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />
