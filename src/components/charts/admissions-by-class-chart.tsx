@@ -4,9 +4,17 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell, ZAxis } from 'recharts';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useAuth } from '@/context/AuthContext';
+
+const classDisplayNameMap: { [key: string]: { name: string, color: string } } = {
+    '9': { name: 'Class 9', color: 'hsl(var(--chart-1))' },
+    '11-arts': { name: 'Arts', color: 'hsl(var(--chart-2))' },
+    '11-science': { name: 'Science', color: 'hsl(var(--chart-3))' },
+    '11-commerce': { name: 'Commerce', color: 'hsl(var(--chart-4))' },
+};
+
 
 export default function AdmissionsByClassChart() {
   const [chartData, setChartData] = useState<any[]>([]);
@@ -28,15 +36,16 @@ export default function AdmissionsByClassChart() {
     setLoading(true);
     const unsubscribe = listenToAdmissions(school.udise, (students) => {
       const classCounts = {
-        'Class 9': students.filter(s => s.admissionDetails.classSelection === '9').length,
-        'Arts': students.filter(s => s.admissionDetails.classSelection === '11-arts').length,
-        'Science': students.filter(s => s.admissionDetails.classSelection === '11-science').length,
-        'Commerce': students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
+        '9': students.filter(s => s.admissionDetails.classSelection === '9').length,
+        '11-arts': students.filter(s => s.admissionDetails.classSelection === '11-arts').length,
+        '11-science': students.filter(s => s.admissionDetails.classSelection === '11-science').length,
+        '11-commerce': students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
       };
       
-      const dataForChart = Object.keys(classCounts).map(name => ({
-        name,
-        total: classCounts[name as keyof typeof classCounts],
+      const dataForChart = Object.keys(classCounts).map(classKey => ({
+        name: classDisplayNameMap[classKey as keyof typeof classDisplayNameMap].name,
+        total: classCounts[classKey as keyof typeof classCounts],
+        fill: classDisplayNameMap[classKey as keyof typeof classDisplayNameMap].color,
       }));
 
       setChartData(dataForChart);
@@ -68,7 +77,15 @@ export default function AdmissionsByClassChart() {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+          <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+            <defs>
+              {chartData.map((entry, index) => (
+                <linearGradient key={`gradient-${index}`} id={`color-${entry.name.replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={entry.fill} stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor={entry.fill} stopOpacity={0.2}/>
+                </linearGradient>
+              ))}
+            </defs>
              <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis 
               dataKey="name" 
@@ -92,7 +109,12 @@ export default function AdmissionsByClassChart() {
                     borderRadius: 'var(--radius)'
                 }}
             />
-            <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                 <LabelList dataKey="total" position="top" offset={5} fontSize={12} fill="hsl(var(--foreground))" />
+                 {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={`url(#color-${entry.name.replace(/\s/g, '')})`} />
+                ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
