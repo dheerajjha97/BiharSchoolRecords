@@ -84,8 +84,8 @@ export default function DashboardLayout({
                 )}
               </div>
             </SidebarHeader>
-             <SidebarContent className="p-2 pt-8">
-              <SidebarMenu>
+             <SidebarContent className="p-2 pt-8 flex-grow flex flex-col">
+              <SidebarMenu className="flex-grow">
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === '/dashboard'} onClick={() => setOpen(false)}>
                     <Link href="/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
@@ -106,6 +106,8 @@ export default function DashboardLayout({
                     <Link href="/form"><PlusCircle /><span>New Admission</span></Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+              </SidebarMenu>
+              <SidebarMenu className="mt-auto">
                  <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'} onClick={() => setOpen(false)}>
                     <Link href="/dashboard/profile"><Building /><span>School Profile</span></Link>
