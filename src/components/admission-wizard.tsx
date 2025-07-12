@@ -4,7 +4,7 @@
 import { useState, useEffect, Suspense, useCallback } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
 import { addAdmission, updateAdmission } from "@/lib/admissions";
@@ -61,29 +61,32 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const { school: loggedInSchool, loading: authLoading } = useAuth();
   
   const isEditMode = !!existingAdmission;
+  const isDashboardMode = pathname.startsWith('/dashboard');
 
   useEffect(() => {
     const fetchSchoolInfo = async () => {
       let udiseToUse: string | undefined | null = null;
       
-      // If editing, the admission record itself contains the UDISE.
-      if (isEditMode) {
+      // If in dashboard, the logged-in school is always the context.
+      if (isDashboardMode) {
+        if (!authLoading && loggedInSchool) {
+          setFormForSchool(loggedInSchool);
+          setIsLoadingSchool(false);
+          return;
+        }
+        // Wait for auth to load when in dashboard mode
+        if (authLoading) return;
+      }
+      
+      // If editing an existing admission, its UDISE code takes precedence
+      if (isEditMode && existingAdmission?.admissionDetails.udise) {
         udiseToUse = existingAdmission.admissionDetails.udise;
       } 
-      // Priority 1: Logged-in school
-      else if (!authLoading && loggedInSchool) {
-        setFormForSchool(loggedInSchool);
-        setIsLoadingSchool(false);
-        return;
-      }
-      // Wait for auth to finish before proceeding for non-logged-in users
-      else if (authLoading) {
-        return;
-      }
-      // Priority 2: UDISE from URL for new admissions
+      // For new public forms, use the UDISE from the URL
       else {
          udiseToUse = searchParams.get('udise');
       }
@@ -106,11 +109,14 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
       
       // No school context found
       setIsLoadingSchool(false);
-      setSchoolError('School not identified. Please use a valid QR code or log in.');
+      // Only show error if not in dashboard (where auth will handle redirects)
+      if (!isDashboardMode) {
+        setSchoolError('School not identified. Please use a valid QR code or log in.');
+      }
     };
 
     fetchSchoolInfo();
-  }, [authLoading, loggedInSchool, searchParams, isEditMode, existingAdmission]);
+  }, [authLoading, loggedInSchool, searchParams, isEditMode, existingAdmission, isDashboardMode]);
 
 
   const form = useForm<FormValues>({
@@ -202,10 +208,16 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
           title: "Form Submitted Successfully!",
           description: `The admission form for ${data.studentDetails.nameEn} has been submitted for review.`,
         });
-        form.reset();
-        const url = new URL(window.location.href);
-        url.searchParams.set('submitted', Date.now().toString());
-        router.push(url.toString());
+        
+        if (isDashboardMode) {
+          router.push('/dashboard/admissions/pending');
+        } else {
+          // Public form submission success
+          form.reset();
+          const url = new URL(window.location.href);
+          url.searchParams.set('submitted', Date.now().toString());
+          router.push(url.toString());
+        }
       }
 
     } catch (error) {
@@ -302,7 +314,7 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
       );
   }
 
-  const showError = firebaseError || schoolError || !formForSchool;
+  const showError = firebaseError || schoolError || (!formForSchool && !isDashboardMode);
   const errorMessage = firebaseError || schoolError || 'An unknown error occurred.';
 
   if (showError) {

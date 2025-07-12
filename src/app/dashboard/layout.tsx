@@ -101,8 +101,8 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/form'} onClick={() => setOpen(false)}>
-                  <Link href="/form"><PlusCircle /><span>New Admission</span></Link>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/form'} onClick={() => setOpen(false)}>
+                  <Link href="/dashboard/form"><PlusCircle /><span>New Admission</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -167,8 +167,8 @@ export default function DashboardLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/form'} tooltip="New Admission">
-                <Link href="/form"><PlusCircle /><span>New Admission</span></Link>
+              <SidebarMenuButton asChild isActive={pathname === '/dashboard/form'} tooltip="New Admission">
+                <Link href="/dashboard/form"><PlusCircle /><span>New Admission</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
