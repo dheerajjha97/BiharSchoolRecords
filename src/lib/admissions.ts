@@ -142,16 +142,16 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
 
 
 /**
- * Gets the count of approved admissions for a specific school for a given year.
+ * Gets a list of approved admissions for a specific school for a given year.
  * This is used to generate the annual serial number for the admission number.
  * @param udise The UDISE code of the school.
  * @param year The calendar year to count admissions for.
- * @returns A promise that resolves to the number of approved admissions in that year.
+ * @returns A promise that resolves to the list of approved admissions in that year.
  */
-const getSchoolAdmissionCountForYear = async (udise: string, year: number): Promise<number> => {
+const getSchoolAdmissionCountForYear = async (udise: string, year: number): Promise<any[]> => {
     if (!db) {
         console.warn(firebaseError || "Database not available. Cannot get admission count.");
-        return 0;
+        return [];
     }
     try {
         const startDate = new Date(year, 0, 1); // January 1st of the year
@@ -163,12 +163,12 @@ const getSchoolAdmissionCountForYear = async (udise: string, year: number): Prom
             where('admissionDetails.admissionDate', '>=', startDate),
             where('admissionDetails.admissionDate', '<', endDate)
         );
-        const snapshot = await getCountFromServer(q);
-        return snapshot.data().count;
+        const snapshot = await getDocs(q);
+        return snapshot.docs;
 
     } catch (e) {
         console.error("Error getting school admission count for year:", e);
-        return 0; // Return 0 on error to prevent breaking the approval process
+        return []; // Return empty array on error to prevent breaking the approval process
     }
 };
 
@@ -189,7 +189,7 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         const year = admissionYear.toString().slice(-2);
 
         // Get counts to generate new numbers
-        const totalApprovedInSchoolForYear = await getSchoolAdmissionCountForYear(udise, admissionYear);
+        const totalApprovedInSchoolForYear = (await getSchoolAdmissionCountForYear(udise, admissionYear)).length;
         const approvedInClassCount = await getClassAdmissionCount(udise, classSelection);
         
         // Generate numbers
@@ -283,7 +283,7 @@ export const listenToAdmissions = (
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
             const aHasDate = dateA && dateA instanceof Date && !isNaN(dateA.getTime());
-            const bHasDate = dateB && dateB instanceof Date && !isNaN(dateB.getTime());
+            const bHasDate = dateB && dateB instanceof Date && !isNaN(bHasDate.getTime());
 
             if (aHasDate && !bHasDate) return -1;
             if (!aHasDate && bHasDate) return 1;
