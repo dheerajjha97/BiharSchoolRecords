@@ -284,7 +284,7 @@ export const listenToAdmissions = (
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
             const aHasDate = dateA && dateA instanceof Date && !isNaN(dateA.getTime());
-            const bHasDate = dateB && dateB instanceof Date && !isNaN(bHasDate.getTime());
+            const bHasDate = dateB && dateB instanceof Date && !isNaN(dateB.getTime());
 
             if (aHasDate && !bHasDate) return -1;
             if (!aHasDate && bHasDate) return 1;
