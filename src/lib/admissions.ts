@@ -1,4 +1,5 @@
 
+
 import { db, firebaseError } from './firebase';
 import {
   collection,
@@ -149,10 +150,10 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
  * @param year The calendar year to count admissions for.
  * @returns A promise that resolves to the list of approved admissions in that year.
  */
-const getSchoolAdmissionCountForYear = async (udise: string, year: number): Promise<any[]> => {
+const getSchoolAdmissionCountForYear = async (udise: string, year: number): Promise<number> => {
     if (!db) {
         console.warn(firebaseError || "Database not available. Cannot get admission count.");
-        return [];
+        return 0;
     }
     try {
         const startDate = new Date(year, 0, 1); // January 1st of the year
@@ -164,17 +165,18 @@ const getSchoolAdmissionCountForYear = async (udise: string, year: number): Prom
             where('admissionDetails.admissionDate', '>=', startDate),
             where('admissionDetails.admissionDate', '<', endDate)
         );
-        const snapshot = await getDocs(q);
-        return snapshot.docs;
+        const snapshot = await getCountFromServer(q);
+        return snapshot.data().count;
 
     } catch (e) {
         console.error("Error getting school admission count for year:", e);
-        return []; // Return empty array on error to prevent breaking the approval process
+        return 0; // Return 0 on error to prevent breaking the approval process
     }
 };
 
 /**
  * Approves a pending admission, generating admission/roll numbers and updating the status.
+ * This function uses a Firestore batch write to ensure atomicity.
  * @param id The document ID of the admission record.
  * @param udise The UDISE code of the school.
  * @param classSelection The class of the student.
@@ -183,30 +185,32 @@ const getSchoolAdmissionCountForYear = async (udise: string, year: number): Prom
 export const approveAdmission = async (id: string, udise: string, classSelection: string, admissionDate: Date): Promise<void> => {
     if (!db) { throw new Error(firebaseError || "Database not available."); }
     
+    const batch = writeBatch(db);
+    const docRef = doc(db, "admissions", id);
+
     try {
-        const docRef = doc(db, "admissions", id);
-
+        // Step 1: Get current counts for generating new numbers
         const admissionYear = admissionDate.getFullYear();
-        const year = admissionYear.toString().slice(-2);
+        const yearSuffix = admissionYear.toString().slice(-2);
 
-        // Get counts to generate new numbers
-        const totalApprovedInSchoolForYear = (await getSchoolAdmissionCountForYear(udise, admissionYear)).length;
+        const totalApprovedInSchoolForYear = await getSchoolAdmissionCountForYear(udise, admissionYear);
         const approvedInClassCount = await getClassAdmissionCount(udise, classSelection);
         
-        // Generate numbers
+        // Step 2: Generate new numbers
         const rollNumber = String(approvedInClassCount + 1);
-        
-        // The serial number restarts every year for each school.
-        const nextId = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
-        const admissionNumber = `ADM/${year}/${nextId}`;
+        const nextAdmissionSerial = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
+        const admissionNumber = `ADM/${yearSuffix}/${nextAdmissionSerial}`;
 
-        // Update document
-        await updateDoc(docRef, {
+        // Step 3: Add the update operation to the batch
+        batch.update(docRef, {
             'admissionDetails.status': 'approved',
             'admissionDetails.admissionDate': admissionDate,
             'admissionDetails.rollNumber': rollNumber,
             'admissionDetails.admissionNumber': admissionNumber,
         });
+
+        // Step 4: Commit the batch
+        await batch.commit();
 
     } catch (e) {
         console.error("Error approving admission:", e);
@@ -359,3 +363,4 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
     return null;
   }
 };
+
