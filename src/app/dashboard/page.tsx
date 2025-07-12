@@ -21,7 +21,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <>
+    <div className="relative">
+       <div aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full bg-background">
+          <div className="absolute bottom-auto left-auto right-0 top-0 h-[500px] w-[500px] -translate-x-[20%] translate-y-[20%] rounded-full bg-[rgba(109,40,217,0.05)] opacity-50 blur-[80px]"></div>
+        </div>
+
       <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div>
@@ -53,6 +57,6 @@ export default function DashboardPage() {
       >
         {isNavigating ? <Loader2 className="h-8 w-8 animate-spin" /> : <PlusCircle className="h-8 w-8" />}
       </Button>
-    </>
+    </div>
   );
 }

@@ -59,13 +59,13 @@ export default function DashboardStats() {
     return (
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, index) => (
-           <div key={index} className="h-[160px] bg-card rounded-xl p-5 flex flex-col justify-between border">
+           <div key={index} className="h-[160px] bg-card/60 rounded-xl p-5 flex flex-col justify-between border">
                 <div>
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-10 w-1/2 mt-3" />
+                    <Skeleton className="h-5 w-3/4 bg-muted/40" />
+                    <Skeleton className="h-10 w-1/2 mt-3 bg-muted/40" />
                 </div>
                 <div>
-                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-4 w-1/3 bg-muted/40" />
                 </div>
            </div>
         ))}
@@ -77,7 +77,7 @@ export default function DashboardStats() {
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
       {statsData.map((stat) => (
         <Link href={`/dashboard/students?class=${stat.classId}`} key={stat.title} className="group">
-          <Card className="shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between relative overflow-hidden rounded-xl p-5">
+          <Card className="bg-card/60 backdrop-blur-sm shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between relative overflow-hidden rounded-xl p-5">
             <div className="z-10">
               <div className="flex items-center gap-2">
                 <stat.icon className={`h-6 w-6 ${stat.color}`} />
