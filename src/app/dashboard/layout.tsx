@@ -60,9 +60,11 @@ export default function DashboardLayout({
             side="left" 
             className="p-0 bg-sidebar text-sidebar-foreground"
         >
+          <SheetHeader>
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          </SheetHeader>
           <Sidebar>
              <SidebarHeader>
-              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <div className="flex items-center gap-2 p-2">
                 {loading ? (
                     <div className="flex items-center gap-3 p-2 w-full">
