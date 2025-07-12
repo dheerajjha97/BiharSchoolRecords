@@ -51,7 +51,7 @@ export default function DashboardLayout({
   const MobileNav = () => (
     <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground">
+          <Button variant="ghost" size="icon" className="md:hidden">
             <Menu />
             <span className="sr-only">Toggle Menu</span>
           </Button>
@@ -59,6 +59,7 @@ export default function DashboardLayout({
         <SheetContent 
             side="left" 
             className="p-0 bg-sidebar text-sidebar-foreground"
+            onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <Sidebar>
              <SidebarHeader>
@@ -187,7 +188,7 @@ export default function DashboardLayout({
         </SidebarHeader>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center justify-between p-4 h-16 bg-primary text-primary-foreground shadow-md sticky top-0 z-10">
+        <header className="flex items-center justify-between p-4 h-16 bg-card border-b shadow-sm sticky top-0 z-10">
             <div className="flex items-center gap-4">
                 <MobileNav />
                 <div className="hidden md:block">
@@ -196,7 +197,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm hidden sm:inline">{school?.udise}</span>
-              <Button variant="ghost" size="icon" onClick={logout} aria-label="Logout" className="text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground">
+              <Button variant="ghost" size="icon" onClick={logout} aria-label="Logout">
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
