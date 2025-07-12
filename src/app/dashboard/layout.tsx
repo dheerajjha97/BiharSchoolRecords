@@ -77,7 +77,7 @@ export default function DashboardLayout({
                     </div>
                     <div className="min-w-0">
                         <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
-                        <p className="text-xs text-muted-foreground truncate">{school?.address}</p>
+                        <p className="text-xs text-muted-foreground whitespace-normal">{school?.address}</p>
                     </div>
                 </Link>
               )}
