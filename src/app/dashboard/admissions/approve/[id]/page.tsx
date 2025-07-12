@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 import type { FormValues } from '@/lib/form-schema';
 import { getAdmissionById, approveAdmission, rejectAdmission } from '@/lib/admissions';
-import { useSchoolData } from '@/hooks/use-school-data';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ type ApprovalFormValues = z.infer<typeof approvalSchema>;
 function ApprovalPageContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { school } = useSchoolData();
+  const { school } = useAuth();
   const { toast } = useToast();
   
   const [studentData, setStudentData] = useState<FormValues | null>(null);

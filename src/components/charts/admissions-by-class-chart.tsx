@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { listenToAdmissions } from '@/lib/admissions';
-import { useSchoolData } from '@/hooks/use-school-data';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AdmissionsByClassChart() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { school, loading: schoolLoading } = useSchoolData();
+  const { school, loading: schoolLoading } = useAuth();
 
   useEffect(() => {
     if (schoolLoading) {

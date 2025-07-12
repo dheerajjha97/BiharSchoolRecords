@@ -8,11 +8,11 @@ import RecentAdmissions from '@/components/recent-admissions';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import GenerateQrCode from '@/components/generate-qr-code';
-import { useSchoolData } from '@/hooks/use-school-data';
+import { useAuth } from '@/context/AuthContext';
 import AdmissionsByClassChart from '@/components/charts/admissions-by-class-chart';
 
 export default function DashboardPage() {
-  const { school, loading } = useSchoolData();
+  const { school, loading } = useAuth();
   const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
 

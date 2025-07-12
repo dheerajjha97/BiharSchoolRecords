@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from "@/lib/admissions";
-import { useSchoolData } from "@/hooks/use-school-data";
+import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -34,7 +34,7 @@ const classDisplayNameMap: { [key: string]: string } = {
 export default function RecentAdmissions() {
     const [admissions, setAdmissions] = useState<(FormValues & {id: string})[]>([]);
     const [loading, setLoading] = useState(true);
-    const { school, loading: schoolLoading } = useSchoolData();
+    const { school, loading: schoolLoading } = useAuth();
 
     useEffect(() => {
         if (schoolLoading) {
