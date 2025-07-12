@@ -268,7 +268,7 @@ export const rejectAdmission = async (id: string): Promise<void> => {
 export const listenToAdmissions = (
     udise: string | undefined, 
     callback: (admissions: (FormValues & { id: string })[]) => void, 
-    options?: { count?: number; status?: 'approved' | 'pending' }
+    options?: { count?: number; status?: 'approved' | 'pending' | 'rejected' }
 ): Unsubscribe => {
     if (!db || !udise) {
         console.warn(firebaseError || "Database not available or UDISE not provided. Cannot listen to admissions.");
@@ -294,7 +294,7 @@ export const listenToAdmissions = (
         let students = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
         
         // Sort the data on the client-side
-        const sortField = status === 'pending' ? 'submittedAt' : 'admissionDate';
+        const sortField = (status === 'pending' || status === 'rejected') ? 'submittedAt' : 'admissionDate';
         students.sort((a, b) => {
             const dateA = a.admissionDetails?.[sortField] as Date | undefined;
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;

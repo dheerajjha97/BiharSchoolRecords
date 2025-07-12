@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu, FileWarning, XCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePendingAdmissionsCount } from '@/hooks/use-pending-admissions';
 
@@ -92,7 +92,12 @@ export default function DashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/pending')} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard/admissions/pending"><History /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
+                  <Link href="/dashboard/admissions/pending"><FileWarning /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/rejected')} onClick={() => setOpen(false)}>
+                  <Link href="/dashboard/admissions/rejected"><XCircle /><span>Rejected Applications</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
@@ -158,9 +163,14 @@ export default function DashboardLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/pending')} tooltip="Pending Admissions">
-                <Link href="/dashboard/admissions/pending"><History /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
+                <Link href="/dashboard/admissions/pending"><FileWarning /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/rejected')} tooltip="Rejected Applications">
+                  <Link href="/dashboard/admissions/rejected"><XCircle /><span>Rejected Applications</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
              <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/students')} tooltip="Approved Students">
                 <Link href="/dashboard/students"><CheckCircle2 /><span>Approved Students</span></Link>
