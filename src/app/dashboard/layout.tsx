@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { MobileSidebar } from '@/components/mobile-sidebar';
 
 
 export default function DashboardLayout({
@@ -147,7 +149,7 @@ export default function DashboardLayout({
       <SidebarInset>
         <header className="flex items-center justify-between p-2 border-b bg-card min-h-[60px]">
             <div className="flex items-center gap-2">
-                <SidebarTrigger className="lg:hidden" />
+                <MobileSidebar />
                 <div className="lg:hidden">
                   {loading ? (
                     <div className="space-y-1.5">
