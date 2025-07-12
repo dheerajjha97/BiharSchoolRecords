@@ -30,7 +30,7 @@ const studentDetailsSchema = z.object({
 const contactDetailsSchema = z.object({
     mobileNumber: z.string().regex(/^\d{10}$/, "Please enter a valid 10-digit mobile number."),
     emailId: z.string().email("Please enter a valid email address."),
-    aadharNumber: z.string().regex(/^\d{12}$/, "Please enter a valid 12-digit Aadhar number."),
+    aadharNumber: z.string().trim().regex(/^\d{12}$/, "Please enter a valid 12-digit Aadhar number."),
 });
 
 const addressDetailsSchema = z.object({

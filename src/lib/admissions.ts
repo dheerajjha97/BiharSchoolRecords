@@ -96,6 +96,18 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
         throw new Error("UDISE code is missing from the admission data.");
     }
 
+    // Check for Aadhar uniqueness for the given school
+    const aadharQuery = query(
+        collection(db, 'admissions'),
+        where('admissionDetails.udise', '==', data.admissionDetails.udise),
+        where('contactDetails.aadharNumber', '==', data.contactDetails.aadharNumber)
+    );
+    const aadharSnapshot = await getDocs(aadharQuery);
+    if (!aadharSnapshot.empty) {
+        throw new Error("This Aadhar number is already registered for another student in this school.");
+    }
+
+
     // Ensure submittedAt is set before sanitizing
     const dataWithTimestamp = {
       ...data,
@@ -113,7 +125,7 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
     // Provide a more detailed error message for easier debugging.
     let errorMessage = "Failed to save admission data.";
     if (e instanceof Error) {
-        errorMessage += ` Reason: ${e.message}`;
+        errorMessage = e.message; // Use the specific error from the check
     }
     throw new Error(errorMessage);
   }
@@ -129,6 +141,23 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
     throw new Error(firebaseError || "Database not available. Update failed.");
   }
   try {
+    if (!data.admissionDetails?.udise) {
+        throw new Error("UDISE code is missing from the admission data.");
+    }
+
+    // Check for Aadhar uniqueness, excluding the current document
+    const aadharQuery = query(
+      collection(db, 'admissions'),
+      where('admissionDetails.udise', '==', data.admissionDetails.udise),
+      where('contactDetails.aadharNumber', '==', data.contactDetails.aadharNumber)
+    );
+    const aadharSnapshot = await getDocs(aadharQuery);
+    // If we find any documents, we need to make sure it's not the one we're currently editing
+    const conflictingDoc = aadharSnapshot.docs.find(doc => doc.id !== id);
+    if (conflictingDoc) {
+      throw new Error("This Aadhar number is already registered for another student in this school.");
+    }
+
     const docRef = doc(db, 'admissions', id);
     const sanitizedData = sanitizeForFirestore(data);
     await updateDoc(docRef, sanitizedData);
@@ -136,7 +165,7 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
     console.error(`Error updating document ${id} in Firestore:`, e);
     let errorMessage = "Failed to update admission data.";
     if (e instanceof Error) {
-        errorMessage += ` Reason: ${e.message}`;
+        errorMessage = e.message;
     }
     throw new Error(errorMessage);
   }
@@ -144,24 +173,27 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
 
 
 /**
- * Gets a list of admissions for a specific school, optionally filtered by status.
+ * Gets a list of approved admissions for a specific school and year.
+ * This is used to reliably calculate the next admission number.
  * @param udise The UDISE code of the school.
- * @param options Optional parameters to filter the results, e.g., by status.
- * @returns A promise that resolves to the list of admissions.
+ * @param year The admission year to filter by.
+ * @returns A promise that resolves to the list of approved admissions for that year.
  */
-export const getAdmissionsByUdise = async (
-    udise: string, 
-    options?: { status?: 'approved' | 'pending' | 'rejected' }
-): Promise<(FormValues & { id: string })[]> => {
+export const getApprovedAdmissionsForYear = async (udise: string, year: number): Promise<(FormValues & { id: string })[]> => {
     if (!db) {
         console.warn(firebaseError || "Database not available. Cannot get admissions.");
         return [];
     }
     try {
-        const constraints: QueryConstraint[] = [where('admissionDetails.udise', '==', udise)];
-        if (options?.status) {
-            constraints.push(where('admissionDetails.status', '==', options.status));
-        }
+        const startDate = new Date(year, 0, 1); // Jan 1st of the year
+        const endDate = new Date(year, 11, 31, 23, 59, 59); // Dec 31st of the year
+
+        const constraints: QueryConstraint[] = [
+            where('admissionDetails.udise', '==', udise),
+            where('admissionDetails.status', '==', 'approved'),
+            where('admissionDetails.admissionDate', '>=', startDate),
+            where('admissionDetails.admissionDate', '<=', endDate)
+        ];
 
         const q = query(collection(db, "admissions"), ...constraints);
         const querySnapshot = await getDocs(q);
@@ -169,7 +201,7 @@ export const getAdmissionsByUdise = async (
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
 
     } catch (e) {
-        console.error("Error getting school admissions:", e);
+        console.error("Error getting school admissions for year:", e);
         return [];
     }
 };
@@ -191,17 +223,20 @@ export const approveAdmission = async (id: string, udise: string, classSelection
 
     try {
         // Step 1: Get all approved students to calculate new numbers reliably
-        const allApprovedStudents = await getAdmissionsByUdise(udise, { status: 'approved' });
+        const allApprovedStudents = await getDocs(query(collection(db, "admissions"), where('admissionDetails.udise', '==', udise), where('admissionDetails.status', '==', 'approved')));
+        
+        const approvedStudentsData = allApprovedStudents.docs.map(doc => convertTimestamps(doc.data()) as FormValues);
         
         // Step 2: Calculate total approved for the given year
         const admissionYear = admissionDate.getFullYear();
         const yearSuffix = admissionYear.toString().slice(-2);
-        const totalApprovedInSchoolForYear = allApprovedStudents.filter(s => 
+        
+        const totalApprovedInSchoolForYear = approvedStudentsData.filter(s => 
             s.admissionDetails.admissionDate && s.admissionDetails.admissionDate.getFullYear() === admissionYear
         ).length;
 
         // Step 3: Calculate total approved for the specific class
-        const approvedInClassCount = allApprovedStudents.filter(s => 
+        const approvedInClassCount = approvedStudentsData.filter(s => 
             s.admissionDetails.classSelection === classSelection
         ).length;
         
@@ -291,8 +326,8 @@ export const listenToAdmissions = (
         let students = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
         
         // Sort the data on the client-side
-        const sortField = (status === 'pending' || status === 'rejected') ? 'submittedAt' : 'admissionDate';
         students.sort((a, b) => {
+            const sortField = (status === 'pending' || status === 'rejected') ? 'submittedAt' : 'admissionDate';
             const dateA = a.admissionDetails?.[sortField] as Date | undefined;
             const dateB = b.admissionDetails?.[sortField] as Date | undefined;
             
@@ -372,3 +407,4 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
     return null;
   }
 };
+
