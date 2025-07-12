@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckSquare } from 'lucide-react';
+import { ArrowLeft, CheckSquare, Pencil } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useSchoolData } from '@/hooks/use-school-data';
@@ -132,11 +132,17 @@ function PendingAdmissionsContent() {
                         <TableCell>{student.admissionDetails.submittedAt ? new Date(student.admissionDetails.submittedAt).toLocaleDateString() : 'N/A'}</TableCell>
                         <TableCell>{classDisplayNameMap[student.admissionDetails.classSelection]}</TableCell>
                         <TableCell>{student.studentDetails.fatherNameEn}</TableCell>
-                        <TableCell className="text-right">
-                          <Button asChild>
+                        <TableCell className="text-right space-x-2">
+                           <Button asChild variant="outline" size="sm">
+                            <Link href={`/dashboard/admissions/edit/${student.id}`}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                            </Link>
+                          </Button>
+                          <Button asChild size="sm">
                             <Link href={`/dashboard/admissions/approve/${student.id}`}>
                                 <CheckSquare className="mr-2 h-4 w-4" />
-                                Review & Approve
+                                Review
                             </Link>
                           </Button>
                         </TableCell>

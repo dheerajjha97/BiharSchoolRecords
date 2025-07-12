@@ -119,6 +119,30 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
 };
 
 /**
+ * Updates an existing admission record in Firestore.
+ * @param id The document ID of the admission to update.
+ * @param data The updated form data.
+ */
+export const updateAdmission = async (id: string, data: FormValues): Promise<void> => {
+  if (!db) {
+    throw new Error(firebaseError || "Database not available. Update failed.");
+  }
+  try {
+    const docRef = doc(db, 'admissions', id);
+    const sanitizedData = sanitizeForFirestore(data);
+    await updateDoc(docRef, sanitizedData);
+  } catch (e) {
+    console.error(`Error updating document ${id} in Firestore:`, e);
+    let errorMessage = "Failed to update admission data.";
+    if (e instanceof Error) {
+        errorMessage += ` Reason: ${e.message}`;
+    }
+    throw new Error(errorMessage);
+  }
+};
+
+
+/**
  * Gets the count of approved admissions for a specific school.
  * If a year is provided, the count is filtered for that year.
  * This function queries all school documents and filters client-side to avoid composite indexes.
@@ -348,5 +372,3 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
     return null;
   }
 };
-
-    

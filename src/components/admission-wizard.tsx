@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import { formSchema, type FormValues } from "@/lib/form-schema";
-import { addAdmission } from "@/lib/admissions";
+import { addAdmission, updateAdmission } from "@/lib/admissions";
 import type { School } from "@/lib/school";
 import { getSchoolByUdise } from "@/lib/school";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import { SubjectSelectionStep } from "@/components/subject-selection-step";
 import { FormReviewStep } from "@/components/form-review-step";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Send, Loader2, Building, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Send, Loader2, Building, AlertCircle, Save } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -45,7 +45,13 @@ const STEPS = [
   { id: 3, name: "Review & Submit" },
 ];
 
-function AdmissionWizardContent() {
+interface AdmissionWizardProps {
+  existingAdmission?: (FormValues & { id: string }) | null;
+  onUpdateSuccess?: () => void;
+}
+
+
+function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: AdmissionWizardProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formForSchool, setFormForSchool] = useState<School | null>(null);
@@ -56,28 +62,39 @@ function AdmissionWizardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { school: loggedInSchool, loading: authLoading } = useAuth();
+  
+  const isEditMode = !!existingAdmission;
 
   useEffect(() => {
     const fetchSchoolInfo = async () => {
+      let udiseToUse: string | undefined | null = null;
+      
+      // If editing, the admission record itself contains the UDISE.
+      if (isEditMode) {
+        udiseToUse = existingAdmission.admissionDetails.udise;
+      } 
       // Priority 1: Logged-in school
-      if (!authLoading && loggedInSchool) {
+      else if (!authLoading && loggedInSchool) {
         setFormForSchool(loggedInSchool);
         setIsLoadingSchool(false);
         return;
       }
-      
       // Wait for auth to finish before proceeding for non-logged-in users
-      if (authLoading) return;
+      else if (authLoading) {
+        return;
+      }
+      // Priority 2: UDISE from URL for new admissions
+      else {
+         udiseToUse = searchParams.get('udise');
+      }
 
-      // Priority 2: UDISE from URL
-      const udise = searchParams.get('udise');
-      if (udise) {
+      if (udiseToUse) {
         try {
-          const schoolData = await getSchoolByUdise(udise);
+          const schoolData = await getSchoolByUdise(udiseToUse);
           if (schoolData) {
             setFormForSchool(schoolData);
           } else {
-            setSchoolError(`School with UDISE code ${udise} not found.`);
+            setSchoolError(`School with UDISE code ${udiseToUse} not found.`);
           }
         } catch (e) {
             setSchoolError('Failed to load school information.');
@@ -87,18 +104,18 @@ function AdmissionWizardContent() {
         return;
       }
       
-      // No logged-in user and no UDISE in URL
+      // No school context found
       setIsLoadingSchool(false);
       setSchoolError('School not identified. Please use a valid QR code or log in.');
     };
 
     fetchSchoolInfo();
-  }, [authLoading, loggedInSchool, searchParams]);
+  }, [authLoading, loggedInSchool, searchParams, isEditMode, existingAdmission]);
 
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: existingAdmission ? existingAdmission : {
       admissionDetails: {
         admissionNumber: "",
         rollNumber: "",
@@ -140,39 +157,56 @@ function AdmissionWizardContent() {
       toast({ title: "Configuration Error", description: firebaseError, variant: "destructive" });
       return;
     }
-    if (!formForSchool?.udise) {
-        toast({ title: "School Not Specified", description: "Cannot submit form without a specified school. This form may be missing a UDISE code.", variant: "destructive" });
-        return;
-    }
+    
     setIsSubmitting(true);
     try {
       if (data.contactDetails.mobileNumber) {
-        data.contactDetails.mobileNumber = `+91${data.contactDetails.mobileNumber}`;
+        // Remove country code if present, then re-add to ensure consistency.
+        const cleanNumber = data.contactDetails.mobileNumber.replace(/^\+91/, '');
+        data.contactDetails.mobileNumber = `+91${cleanNumber}`;
       }
-
-      const dataWithUdise: FormValues = {
-        ...data,
-        admissionDetails: {
-          ...data.admissionDetails,
-          udise: formForSchool.udise,
-          status: 'pending',
-          submittedAt: new Date(),
-        },
-      };
-
-      await addAdmission(dataWithUdise);
-
-      toast({
-        title: "Form Submitted Successfully!",
-        description: `The admission form for ${data.studentDetails.nameEn} has been submitted for review.`,
-      });
       
-      form.reset();
-      
-      const url = new URL(window.location.href);
-      url.searchParams.set('submitted', Date.now().toString());
-      router.push(url.toString());
+      if (isEditMode) {
+        // --- UPDATE LOGIC ---
+        await updateAdmission(existingAdmission.id, data);
+        toast({
+          title: "Form Updated Successfully!",
+          description: `The admission form for ${data.studentDetails.nameEn} has been updated.`,
+        });
+        if (onUpdateSuccess) {
+          onUpdateSuccess();
+        } else {
+          router.push('/dashboard/admissions/pending');
+        }
 
+      } else {
+        // --- ADD LOGIC ---
+        if (!formForSchool?.udise) {
+            toast({ title: "School Not Specified", description: "Cannot submit form without a specified school.", variant: "destructive" });
+            setIsSubmitting(false);
+            return;
+        }
+
+        const dataWithUdise: FormValues = {
+          ...data,
+          admissionDetails: {
+            ...data.admissionDetails,
+            udise: formForSchool.udise,
+            status: 'pending',
+            submittedAt: new Date(),
+          },
+        };
+
+        await addAdmission(dataWithUdise);
+        toast({
+          title: "Form Submitted Successfully!",
+          description: `The admission form for ${data.studentDetails.nameEn} has been submitted for review.`,
+        });
+        form.reset();
+        const url = new URL(window.location.href);
+        url.searchParams.set('submitted', Date.now().toString());
+        router.push(url.toString());
+      }
 
     } catch (error) {
        console.error("Submission failed:", error);
@@ -255,7 +289,7 @@ function AdmissionWizardContent() {
       return (
           <Card>
               <CardHeader>
-                  <CardTitle>New Admission Form</CardTitle>
+                  <CardTitle>{isEditMode ? 'Edit Admission Form' : 'New Admission Form'}</CardTitle>
                   <CardDescription>
                       Please wait while we prepare the form for you.
                   </CardDescription>
@@ -275,7 +309,7 @@ function AdmissionWizardContent() {
      return (
         <Card>
             <CardHeader>
-                <CardTitle>New Admission Form</CardTitle>
+                <CardTitle>{isEditMode ? 'Edit Admission Form' : 'New Admission Form'}</CardTitle>
                 <CardDescription>Could not load admission form.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -295,7 +329,7 @@ function AdmissionWizardContent() {
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <CardTitle>New Admission Form</CardTitle>
+                <CardTitle>{isEditMode ? 'Edit Admission Form' : 'New Admission Form'}</CardTitle>
                 <CardDescription>
                     {`Step ${step} of ${STEPS.length}: ${STEPS[step-1].name}`}
                 </CardDescription>
@@ -360,8 +394,16 @@ function AdmissionWizardContent() {
             )}
             {step === STEPS.length && (
                 <Button type="submit" variant="default" disabled={isSubmitting || !formForSchool}>
-                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                {isSubmitting ? "Submitting..." : "Submit for Review"}
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : isEditMode ? (
+                    <Save className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Send className="mr-2 h-4 w-4" />
+                  )}
+                  {isSubmitting
+                    ? isEditMode ? "Saving..." : "Submitting..."
+                    : isEditMode ? "Save Changes" : "Submit for Review"}
                 </Button>
             )}
             </div>
@@ -373,7 +415,7 @@ function AdmissionWizardContent() {
 }
 
 
-export default function AdmissionWizard() {
+export default function AdmissionWizard({ existingAdmission, onUpdateSuccess }: AdmissionWizardProps) {
   return (
     <Suspense fallback={
       <Card>
@@ -386,7 +428,7 @@ export default function AdmissionWizard() {
         </CardContent>
       </Card>
     }>
-      <AdmissionWizardContent />
+      <AdmissionWizardContent existingAdmission={existingAdmission} onUpdateSuccess={onUpdateSuccess} />
     </Suspense>
   )
 }
