@@ -58,14 +58,8 @@ export default function DashboardLayout({
         </SheetTrigger>
         <SheetContent 
             side="left" 
-            className="p-0"
-            style={{
-                background: 'linear-gradient(0deg, hsla(249, 80%, 30%, 1) 0%, hsla(251, 68%, 16%, 1) 100%)'
-            }}
+            className="p-0 bg-sidebar text-sidebar-foreground"
         >
-          <SheetHeader>
-            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-          </SheetHeader>
           <Sidebar>
              <SidebarHeader>
               <div className="flex items-center gap-2 p-2">
