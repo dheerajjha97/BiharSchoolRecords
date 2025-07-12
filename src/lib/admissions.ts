@@ -1,4 +1,3 @@
-
 import { db, firebaseError } from './firebase';
 import {
   collection,
@@ -163,8 +162,8 @@ const getSchoolAdmissionCount = async (udise: string, year?: number): Promise<nu
         
         const approvedDocs = snapshot.docs.filter(doc => {
             const data = doc.data() as FormValues;
-            // An admission is approved if its status is not 'pending'. This includes old records without a status field.
-            return data.admissionDetails?.status !== 'pending';
+            // An admission is approved if its status is 'approved'.
+            return data.admissionDetails?.status === 'approved';
         });
 
         if (year) {
@@ -235,6 +234,28 @@ export const approveAdmission = async (id: string, udise: string, classSelection
     }
 };
 
+/**
+ * Rejects a pending admission by updating its status.
+ * @param id The document ID of the admission record.
+ */
+export const rejectAdmission = async (id: string): Promise<void> => {
+    if (!db) { throw new Error(firebaseError || "Database not available."); }
+
+    try {
+        const docRef = doc(db, "admissions", id);
+        await updateDoc(docRef, {
+            'admissionDetails.status': 'rejected'
+        });
+    } catch (e) {
+        console.error("Error rejecting admission:", e);
+        let errorMessage = "Failed to reject admission.";
+        if (e instanceof Error) {
+            errorMessage += ` Reason: ${e.message}`;
+        }
+        throw new Error(errorMessage);
+    }
+}
+
 
 /**
  * Listens for real-time updates to the admissions collection for a specific school.
@@ -262,28 +283,15 @@ export const listenToAdmissions = (
         where('admissionDetails.udise', '==', udise),
     ];
     
-    // For 'pending' status, we can filter directly in the query as it's efficient.
-    if (status === 'pending') {
-        constraints.push(where('admissionDetails.status', '==', 'pending'));
+    // We can filter by status directly in the query as it's efficient.
+    if (status) {
+        constraints.push(where('admissionDetails.status', '==', status));
     }
     
-    // For 'approved' status, we fetch ALL documents for the school and filter client-side.
-    // This avoids needing a Firestore composite index for a `!= 'pending'` query and
-    // correctly includes old records that might not have a 'status' field.
     const q = query(collection(db, 'admissions'), ...constraints);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        let allFetchedStudents = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
-        
-        let students: (FormValues & { id: string })[] = [];
-
-        if (status === 'approved') {
-            students = allFetchedStudents.filter(s => s.admissionDetails.status !== 'pending');
-        } else if (status === 'pending') {
-            students = allFetchedStudents; // Query was already filtered
-        } else {
-            students = allFetchedStudents;
-        }
+        let students = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
         
         // Sort the data on the client-side
         const sortField = status === 'pending' ? 'submittedAt' : 'admissionDate';
@@ -318,7 +326,7 @@ export const listenToAdmissions = (
 };
 
 /**
- * Gets the count of approved (non-pending) admissions for a specific class in a school.
+ * Gets the count of approved admissions for a specific class in a school.
  * @param udise The UDISE code of the school.
  * @param classSelection The class to filter by (e.g., '9', '11-arts').
  * @returns A promise that resolves to the number of approved admissions in that class.
@@ -331,16 +339,11 @@ export const getClassAdmissionCount = async (udise: string, classSelection: stri
     try {
         const q = query(collection(db, 'admissions'), 
             where('admissionDetails.udise', '==', udise),
-            where('admissionDetails.classSelection', '==', classSelection)
+            where('admissionDetails.classSelection', '==', classSelection),
+            where('admissionDetails.status', '==', 'approved')
         );
-        const snapshot = await getDocs(q);
-
-        const approvedInClassCount = snapshot.docs.filter(doc => {
-            const data = doc.data() as FormValues;
-            return data.admissionDetails?.status !== 'pending';
-        }).length;
-        
-        return approvedInClassCount;
+        const snapshot = await getCountFromServer(q);
+        return snapshot.data().count;
     } catch(e) {
         console.error("Error getting class admission count:", e);
         return 0;

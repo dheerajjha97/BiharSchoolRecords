@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import type { FormValues } from '@/lib/form-schema';
-import { getAdmissionById, approveAdmission } from '@/lib/admissions';
+import { getAdmissionById, approveAdmission, rejectAdmission } from '@/lib/admissions';
 import { useSchoolData } from '@/hooks/use-school-data';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,6 +19,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, AlertTriangle, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { FormReviewStep } from '@/components/form-review-step';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 const approvalSchema = z.object({
   admissionDate: z.date({ required_error: 'Admission date is required to approve.' }),
@@ -35,6 +47,7 @@ function ApprovalPageContent() {
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(true);
   const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const form = useForm<ApprovalFormValues>({
@@ -53,6 +66,8 @@ function ApprovalPageContent() {
             setStudentData(data);
             if (data.admissionDetails.status === 'approved') {
                  setError('This admission has already been approved.');
+            } else if (data.admissionDetails.status === 'rejected') {
+                 setError('This admission has already been rejected.');
             }
           } else {
             setError('Admission record not found.');
@@ -99,6 +114,35 @@ function ApprovalPageContent() {
       setIsApproving(false);
     }
   };
+  
+  const handleReject = async () => {
+    if (!studentData || !params.id) return;
+    
+    setIsRejecting(true);
+    try {
+        await rejectAdmission(params.id as string);
+        toast({
+            title: 'Admission Rejected',
+            description: `The form for ${studentData.studentDetails.nameEn} has been rejected.`,
+            variant: 'destructive'
+        });
+        router.push('/dashboard/admissions/pending');
+    } catch(e) {
+        console.error(e);
+        let errorMessage = 'An unexpected error occurred during rejection.';
+        if (e instanceof Error) {
+            errorMessage = e.message;
+        }
+        toast({
+            title: 'Rejection Failed',
+            description: errorMessage,
+            variant: 'destructive',
+        });
+    } finally {
+        setIsRejecting(false);
+    }
+  }
+
 
   if (loading) {
     return <Skeleton className="w-full h-96" />;
@@ -141,7 +185,7 @@ function ApprovalPageContent() {
         <Card>
             <CardHeader>
                 <CardTitle>Approval Action</CardTitle>
-                <CardDescription>Please set the official admission date and approve the form.</CardDescription>
+                <CardDescription>Please set the official admission date and approve the form, or reject it.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -158,15 +202,34 @@ function ApprovalPageContent() {
                     )}
                     />
                     <div className="flex-shrink-0 pt-8 space-x-2">
-                        <Button type="submit" disabled={isApproving}>
+                        <Button type="submit" disabled={isApproving || isRejecting}>
                             {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             <CheckCircle2 className="mr-2 h-4 w-4" />
                             Approve & Print
                         </Button>
-                         <Button type="button" variant="destructive" disabled>
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Reject
-                        </Button>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button type="button" variant="destructive" disabled={isApproving || isRejecting}>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Reject
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action will mark the admission for {studentData.studentDetails.nameEn} as rejected. You can find rejected applications in a separate list later. Are you sure you want to proceed?
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel disabled={isRejecting}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleReject} disabled={isRejecting} className="bg-destructive hover:bg-destructive/90">
+                                    {isRejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Yes, Reject Admission
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                 </form>
                 </Form>
