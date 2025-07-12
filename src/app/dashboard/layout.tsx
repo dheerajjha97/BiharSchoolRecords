@@ -86,28 +86,28 @@ export default function DashboardLayout({
           <div className="flex-1 overflow-y-auto p-2">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard'} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
+                  <Link href="/dashboard" onClick={() => setOpen(false)}><LayoutDashboard /><span>Dashboard</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/pending')} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard/admissions/pending"><FileWarning /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/pending')}>
+                  <Link href="/dashboard/admissions/pending" onClick={() => setOpen(false)}><FileWarning /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
                <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/rejected')} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard/admissions/rejected"><XCircle /><span>Rejected Applications</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/rejected')}>
+                  <Link href="/dashboard/admissions/rejected" onClick={() => setOpen(false)}><XCircle /><span>Rejected Applications</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/students')} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard/students"><CheckCircle2 /><span>Approved Students</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/students')}>
+                  <Link href="/dashboard/students" onClick={() => setOpen(false)}><CheckCircle2 /><span>Approved Students</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/form'} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard/form"><PlusCircle /><span>New Admission</span></Link>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/form'}>
+                  <Link href="/dashboard/form" onClick={() => setOpen(false)}><PlusCircle /><span>New Admission</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -115,13 +115,13 @@ export default function DashboardLayout({
           <div className="p-2 mt-auto border-t">
             <SidebarMenu>
                <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard/profile"><Building /><span>School Profile</span></Link>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'}>
+                  <Link href="/dashboard/profile" onClick={() => setOpen(false)}><Building /><span>School Profile</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/reset-password'} onClick={() => setOpen(false)}>
-                  <Link href="/dashboard/reset-password"><KeyRound /><span>Reset Password</span></Link>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/reset-password'}>
+                  <Link href="/dashboard/reset-password" onClick={() => setOpen(false)}><KeyRound /><span>Reset Password</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
