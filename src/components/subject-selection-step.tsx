@@ -2,6 +2,7 @@
 "use client";
 
 import type { UseFormReturn } from "react-hook-form";
+import { useEffect } from "react";
 import {
   FormControl,
   FormDescription,
@@ -318,6 +319,20 @@ const Class11SubjectSelection = ({ form, compulsoryGroup1Subjects, compulsoryGro
 
 export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
   const classSelection = form.watch("admissionDetails.classSelection");
+  const totalMarks = form.watch("subjectDetails.class8TotalMarks");
+  const obtainedMarks = form.watch("subjectDetails.class8ObtainedMarks");
+
+  useEffect(() => {
+    const total = parseFloat(totalMarks || '0');
+    const obtained = parseFloat(obtainedMarks || '0');
+
+    if (total > 0 && obtained > 0 && obtained <= total) {
+      const percentage = (obtained / total) * 100;
+      form.setValue("subjectDetails.class8Percentage", percentage.toFixed(2));
+    } else {
+      form.setValue("subjectDetails.class8Percentage", "");
+    }
+  }, [totalMarks, obtainedMarks, form]);
 
   if (classSelection === "9") {
     const milSelection = form.watch("subjectDetails.mil");
@@ -448,7 +463,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
                 <FormItem>
                   <FormLabel>Percentage (%)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., 90" type="number" {...field} />
+                    <Input placeholder="Auto-calculated" type="number" {...field} readOnly />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

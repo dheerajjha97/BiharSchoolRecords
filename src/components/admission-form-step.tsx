@@ -471,6 +471,8 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
                         {...field}
                         value={formatAadhar(field.value)}
                         onChange={handleChange}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                       />
                     </FormControl>
                     <FormMessage />
@@ -573,7 +575,7 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
 
       <FormSection title="Bank Account Details">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="bankDetails.accountNo" render={({ field }) => (<FormItem><FormLabel>Account Number</FormLabel><FormControl><Input placeholder="Bank Account Number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="bankDetails.accountNo" render={({ field }) => (<FormItem><FormLabel>Account Number</FormLabel><FormControl><Input placeholder="Bank Account Number" {...field} inputMode="numeric" pattern="[0-9]*" /></FormControl><FormMessage /></FormItem>)} />
             <FormField
               control={form.control}
               name="bankDetails.ifsc"
