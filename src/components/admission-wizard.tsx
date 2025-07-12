@@ -67,6 +67,7 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
   const [isLoadingSchool, setIsLoadingSchool] = useState(true);
   const [schoolError, setSchoolError] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [submittedClass, setSubmittedClass] = useState<string | null>(null);
 
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -78,11 +79,16 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
   const isDashboardMode = pathname.startsWith('/dashboard');
 
   useEffect(() => {
-    if (searchParams.get('submitted') === 'true') {
+    const submitted = searchParams.get('submitted') === 'true';
+    const classValue = searchParams.get('class');
+
+    if (submitted && classValue) {
+        setSubmittedClass(classValue);
         setShowSuccessDialog(true);
         // Clean up URL
         const url = new URL(window.location.href);
         url.searchParams.delete('submitted');
+        url.searchParams.delete('class');
         router.replace(url.toString(), { scroll: false });
     }
   }, [searchParams, router]);
@@ -233,10 +239,11 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
           });
           router.push('/dashboard/admissions/pending');
         } else {
-          // Public form submission success: Reset form and add a query param
+          // Public form submission success: Reset form and add query params
           form.reset();
           const url = new URL(window.location.href);
           url.searchParams.set('submitted', 'true');
+          url.searchParams.set('class', dataWithUdise.admissionDetails.classSelection);
           router.push(url.toString(), { scroll: false });
         }
       }
@@ -362,30 +369,46 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
   return (
     <>
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>आवेदन सफलतापूर्वक जमा किया गया!</AlertDialogTitle>
-                    <AlertDialogDescription className="text-left space-y-4 pt-4">
-                        <p className="font-semibold">कक्षा 9 के लिए आवेदन के समय आवेदन प्रपत्र के साथ संलग्न किए जाने वाले आवश्यक प्रमाण-पत्र एवं शुल्क का विवरण निम्न प्रकार है:</p>
-                        <ol className="list-decimal list-inside space-y-1 text-sm">
-                            <li>पूर्व में अध्ययन विद्यालय द्वारा निर्गत विद्यालय स्थानांतरण प्रमाण-पत्र की मूल प्रति</li>
-                            <li>छात्र/छात्रा का पासपोर्ट साइज तीन फोटो</li>
-                            <li>छात्र/छात्रा का जन्म प्रमाण-पत्र की प्रति</li>
-                            <li>छात्र/छात्रा का जाति प्रमाण-पत्र की प्रति (आरक्षण सुविधा के लिए)</li>
-                            <li>छात्र/छात्रा का आधार कार्ड की प्रति</li>
-                            <li>छात्र/छात्रा का बैंक खाता पासबुक की प्रति</li>
-                        </ol>
-                        <p className="font-semibold">विद्यालय विकास शुल्क की राशि एवं छात्र शुल्क की राशि विद्यालय में जमा की जाएगी।</p>
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogAction onClick={() => {
-                        setShowSuccessDialog(false);
-                        window.close();
-                    }}>ठीक है</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>आवेदन सफलतापूर्वक जमा किया गया!</AlertDialogTitle>
+                <AlertDialogDescription className="text-left space-y-4 pt-4">
+                    {submittedClass === '9' ? (
+                        <>
+                            <p className="font-semibold">कक्षा 9 के लिए आवेदन के समय आवेदन प्रपत्र के साथ संलग्न किए जाने वाले आवश्यक प्रमाण-पत्र एवं शुल्क का विवरण निम्न प्रकार है:</p>
+                            <ol className="list-decimal list-inside space-y-1 text-sm">
+                                <li>पूर्व में अध्ययन विद्यालय द्वारा निर्गत विद्यालय स्थानांतरण प्रमाण-पत्र की मूल प्रति</li>
+                                <li>छात्र/छात्रा का पासपोर्ट साइज तीन फोटो</li>
+                                <li>छात्र/छात्रा का जन्म प्रमाण-पत्र की प्रति</li>
+                                <li>छात्र/छात्रा का जाति प्रमाण-पत्र की प्रति (आरक्षण सुविधा के लिए)</li>
+                                <li>छात्र/छात्रा का आधार कार्ड की प्रति</li>
+                                <li>छात्र/छात्रा का बैंक खाता पासबुक की प्रति</li>
+                            </ol>
+                            <p className="font-semibold">विद्यालय विकास शुल्क की राशि एवं छात्र शुल्क की राशि विद्यालय में जमा की जाएगी।</p>
+                        </>
+                    ) : (
+                        <>
+                            <p className="font-semibold">कक्षा 11 के लिए आवेदन के समय आवेदन प्रपत्र के साथ संलग्न किए जाने वाले आवश्यक प्रमाण-पत्रों की विवरणी निम्न प्रकार है:</p>
+                            <ol className="list-decimal list-inside space-y-1 text-sm">
+                                <li>पूर्व में अध्ययन विद्यालय द्वारा निर्गत विद्यालय स्थानांतरण प्रमाण-पत्र की मूल प्रति</li>
+                                <li>छात्र/छात्रा का पासपोर्ट साइज तीन फ़ोटो</li>
+                                <li>OFSS आवेदन की मूल प्रति</li>
+                                <li>मैट्रिक / 10वीं परीक्षा उत्तीर्ण का प्रवेश पत्र / अंक पत्र / अस्थायी प्रमाण-पत्र की स्वप्रमाणित प्रति</li>
+                                <li>छात्र/छात्रा का आधार कार्ड की प्रति</li>
+                                <li>छात्र/छात्रा का बैंक खाता पासबुक की प्रति</li>
+                            </ol>
+                        </>
+                    )}
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogAction onClick={() => {
+                    setShowSuccessDialog(false);
+                    window.close();
+                }}>ठीक है</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
         
         <Card>
         <CardHeader>
