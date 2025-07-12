@@ -1,16 +1,12 @@
 
 import type {NextConfig} from 'next';
 
-const withPWA = require('@ducanh2912/next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-});
-
-
 const nextConfig: NextConfig = {
   /* config options here */
+  generateBuildId: async () => {
+    // This adds a timestamp to the build ID, effectively busting the cache on each new build.
+    return new Date().getTime().toString();
+  },
   env: {
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   },
@@ -38,4 +34,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

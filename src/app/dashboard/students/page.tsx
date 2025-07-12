@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Pencil, Printer, FileDown, Sheet as SheetIcon } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
-import { useSchoolData } from '@/hooks/use-school-data';
+import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { firebaseError } from '@/lib/firebase';
 import { DebugEnvVars } from '@/components/debug-env-vars';
@@ -37,7 +37,7 @@ function StudentsListContent() {
   const [students, setStudents] = useState<(FormValues & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [classFilter, setClassFilter] = useState('all');
-  const { school, loading: schoolLoading } = useSchoolData();
+  const { school, loading: schoolLoading } = useAuth();
   const searchParams = useSearchParams();
 
   useEffect(() => {

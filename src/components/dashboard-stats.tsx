@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, Palette, FlaskConical, Landmark, ArrowRight } from "lucide-react";
 import { listenToAdmissions } from '@/lib/admissions';
-import { useSchoolData } from '@/hooks/use-school-data';
+import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardStats() {
@@ -17,7 +17,7 @@ export default function DashboardStats() {
     commerce: 0,
   });
   const [loading, setLoading] = useState(true);
-  const { school, loading: schoolLoading } = useSchoolData();
+  const { school, loading: schoolLoading } = useAuth();
 
   useEffect(() => {
     if (schoolLoading) {
@@ -48,11 +48,11 @@ export default function DashboardStats() {
   }, [school, schoolLoading]);
 
   const statsData = [
-    { title: "Total Approved", value: stats.total.toLocaleString(), icon: Users, classId: "all", color: "text-blue-500" },
-    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9", color: "text-green-500" },
-    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts", color: "text-orange-500" },
-    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science", color: "text-purple-500" },
-    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce", color: "text-red-500" },
+    { title: "Total Approved", value: stats.total.toLocaleString(), icon: Users, classId: "all", color: "text-chart-1" },
+    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9", color: "text-chart-2" },
+    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts", color: "text-chart-3" },
+    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science", color: "text-chart-4" },
+    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce", color: "text-chart-5" },
   ];
 
   if (loading) {
