@@ -187,7 +187,8 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
 
       } else {
         // --- ADD LOGIC ---
-        if (!formForSchool?.udise) {
+        const schoolToUse = isDashboardMode ? loggedInSchool : formForSchool;
+        if (!schoolToUse?.udise) {
             toast({ title: "School Not Specified", description: "Cannot submit form without a specified school.", variant: "destructive" });
             setIsSubmitting(false);
             return;
@@ -197,7 +198,7 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
           ...data,
           admissionDetails: {
             ...data.admissionDetails,
-            udise: formForSchool.udise,
+            udise: schoolToUse.udise,
             status: 'pending',
             submittedAt: new Date(),
           },
@@ -212,11 +213,11 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
         if (isDashboardMode) {
           router.push('/dashboard/admissions/pending');
         } else {
-          // Public form submission success
+          // Public form submission success: Reset form and add a query param
           form.reset();
           const url = new URL(window.location.href);
-          url.searchParams.set('submitted', Date.now().toString());
-          router.push(url.toString());
+          url.searchParams.set('submitted', 'true');
+          router.push(url.toString(), { scroll: false });
         }
       }
 
@@ -280,7 +281,8 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
   const progressValue = (step / STEPS.length) * 100;
   
   const SchoolInfoHeader = () => {
-    if (!formForSchool) {
+    const schoolToDisplay = isDashboardMode ? loggedInSchool : formForSchool;
+    if (!schoolToDisplay) {
         return null;
     }
 
@@ -289,8 +291,8 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
             <div className="flex items-center gap-4">
                 <Building className="h-8 w-8 text-muted-foreground" />
                 <div>
-                    <p className="font-semibold text-primary">{formForSchool.name}</p>
-                    <p className="text-sm text-muted-foreground">{formForSchool.address}</p>
+                    <p className="font-semibold text-primary">{schoolToDisplay.name}</p>
+                    <p className="text-sm text-muted-foreground">{schoolToDisplay.address}</p>
                 </div>
             </div>
         </Card>
@@ -314,7 +316,8 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
       );
   }
 
-  const showError = firebaseError || schoolError || (!formForSchool && !isDashboardMode);
+  const schoolToUse = isDashboardMode ? loggedInSchool : formForSchool;
+  const showError = firebaseError || schoolError || (!schoolToUse && !isDashboardMode);
   const errorMessage = firebaseError || schoolError || 'An unknown error occurred.';
 
   if (showError) {
@@ -400,12 +403,12 @@ function AdmissionWizardContent({ existingAdmission, onUpdateSuccess }: Admissio
             )}
             <div />
             {step < STEPS.length && (
-                <Button type="button" onClick={handleNext} disabled={isSubmitting || !formForSchool}>
+                <Button type="button" onClick={handleNext} disabled={isSubmitting || !schoolToUse}>
                 Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             )}
             {step === STEPS.length && (
-                <Button type="submit" variant="default" disabled={isSubmitting || !formForSchool}>
+                <Button type="submit" variant="default" disabled={isSubmitting || !schoolToUse}>
                   {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : isEditMode ? (
