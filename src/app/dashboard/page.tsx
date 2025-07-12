@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import GenerateQrCode from '@/components/generate-qr-code';
 import { useSchoolData } from '@/hooks/use-school-data';
+import AdmissionsByClassChart from '@/components/charts/admissions-by-class-chart';
 
 export default function DashboardPage() {
   const { school, loading } = useSchoolData();
@@ -42,7 +43,8 @@ export default function DashboardPage() {
           <div className="lg:col-span-2">
             <RecentAdmissions />
           </div>
-          <div>
+          <div className="space-y-8">
+            <AdmissionsByClassChart />
             <GenerateQrCode />
           </div>
         </div>
