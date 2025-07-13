@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Printer, FileDown, Sheet as SheetIcon } from 'lucide-react';
+import { Pencil, Printer, FileDown, Sheet as SheetIcon } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useAuth } from '@/context/AuthContext';
@@ -176,6 +176,7 @@ function StudentsListContent() {
                     <TableHead>Student Name</TableHead>
                     <TableHead>Admission No.</TableHead>
                     <TableHead>Class</TableHead>
+                    <TableHead>Roll No.</TableHead>
                     <TableHead>Father's Name</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -184,7 +185,7 @@ function StudentsListContent() {
                   {loading ? (
                      Array.from({ length: 5 }).map((_, i) => (
                         <TableRow key={i}>
-                            <TableCell colSpan={5}>
+                            <TableCell colSpan={6}>
                                 <Skeleton className="h-6 w-full" />
                             </TableCell>
                         </TableRow>
@@ -195,6 +196,7 @@ function StudentsListContent() {
                         <TableCell className="font-medium">{student.studentDetails.nameEn}</TableCell>
                         <TableCell>{student.admissionDetails.admissionNumber}</TableCell>
                         <TableCell>{classDisplayNameMap[student.admissionDetails.classSelection]}</TableCell>
+                        <TableCell>{student.admissionDetails.rollNumber}</TableCell>
                         <TableCell>{student.studentDetails.fatherNameEn}</TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button variant="ghost" size="icon" disabled>
@@ -212,7 +214,7 @@ function StudentsListContent() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center">
+                      <TableCell colSpan={6} className="h-24 text-center">
                         {firebaseError ? "Could not load data due to configuration error." : "No approved students found for this school."}
                       </TableCell>
                     </TableRow>
