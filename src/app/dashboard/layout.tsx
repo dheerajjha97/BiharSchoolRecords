@@ -48,6 +48,10 @@ export default function DashboardLayout({
     }
   }, [loading, school, router]);
 
+  const handleLinkClick = () => {
+    setOpen(false);
+  };
+
   const MobileNav = () => (
     <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
@@ -71,7 +75,7 @@ export default function DashboardLayout({
                       </div>
                   </div>
               ) : (
-                <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full" onClick={() => setOpen(false)}>
+                <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 w-full" onClick={handleLinkClick}>
                     <div className="flex-shrink-0">
                         <Image src="/logo.jpg" alt="School Logo" width={32} height={32} className="rounded-md" />
                     </div>
@@ -85,43 +89,43 @@ export default function DashboardLayout({
           </SheetHeader>
           <div className="flex-1 overflow-y-auto p-2">
             <SidebarMenu>
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
-                  <Link href="/dashboard" onClick={() => setOpen(false)}><LayoutDashboard /><span>Dashboard</span></Link>
+                  <Link href="/dashboard"><LayoutDashboard /><span>Dashboard</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/pending')}>
-                  <Link href="/dashboard/admissions/pending" onClick={() => setOpen(false)}><FileWarning /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
+                  <Link href="/dashboard/admissions/pending"><FileWarning /><span>Pending Admissions</span>{pendingCount > 0 && <SidebarMenuBadge>{pendingCount}</SidebarMenuBadge>}</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-               <SidebarMenuItem>
+               <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admissions/rejected')}>
-                  <Link href="/dashboard/admissions/rejected" onClick={() => setOpen(false)}><XCircle /><span>Rejected Applications</span></Link>
+                  <Link href="/dashboard/admissions/rejected"><XCircle /><span>Rejected Applications</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/students')}>
-                  <Link href="/dashboard/students" onClick={() => setOpen(false)}><CheckCircle2 /><span>Approved Students</span></Link>
+                  <Link href="/dashboard/students"><CheckCircle2 /><span>Approved Students</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/form'}>
-                  <Link href="/dashboard/form" onClick={() => setOpen(false)}><PlusCircle /><span>New Admission</span></Link>
+                  <Link href="/dashboard/form"><PlusCircle /><span>New Admission</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </div>
           <div className="p-2 mt-auto border-t">
             <SidebarMenu>
-               <SidebarMenuItem>
+               <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'}>
-                  <Link href="/dashboard/profile" onClick={() => setOpen(false)}><Building /><span>School Profile</span></Link>
+                  <Link href="/dashboard/profile"><Building /><span>School Profile</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/reset-password'}>
-                  <Link href="/dashboard/reset-password" onClick={() => setOpen(false)}><KeyRound /><span>Reset Password</span></Link>
+                  <Link href="/dashboard/reset-password"><KeyRound /><span>Reset Password</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
