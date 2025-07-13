@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -132,12 +133,6 @@ function StudentsListContent() {
             <h1 className="text-3xl font-bold tracking-tight">Approved Students</h1>
             <p className="text-muted-foreground">View, edit, and manage approved student records.</p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
         </header>
 
         <Card>
