@@ -7,6 +7,26 @@ import type { FormValues } from '@/lib/form-schema';
 import type { School } from '@/lib/school';
 import { cn } from '@/lib/utils';
 
+// Helper function to format Aadhar number
+const formatAadharPrint = (aadhar: string) => {
+  if (!aadhar || typeof aadhar !== 'string') return '';
+  const cleaned = aadhar.replace(/\D/g, '');
+  if (cleaned.length !== 12) return aadhar; // Return original if not 12 digits
+  return `${cleaned.substring(0, 4)}-${cleaned.substring(4, 8)}-${cleaned.substring(8, 12)}`;
+};
+
+// Helper function to format Mobile number
+const formatMobilePrint = (mobile: string) => {
+    if (!mobile || typeof mobile !== 'string') return '';
+    const cleaned = mobile.replace(/\D/g, '');
+    const numberWithoutCode = cleaned.length > 10 ? cleaned.slice(-10) : cleaned;
+    if (numberWithoutCode.length === 10) {
+        return `+91 ${numberWithoutCode}`;
+    }
+    return mobile; // Return original if not a standard mobile number
+};
+
+
 // Helper component for a full-width row in a table
 // Reduced padding for compactness
 const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
@@ -142,8 +162,8 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
             <tbody>
                 <SectionTitle title="2. Contact & Address Details" />
-                <PrintTableDoubleRow label1="Mobile Number" value1={contactDetails.mobileNumber} label2="Email ID" value2={contactDetails.emailId} />
-                <PrintTableRow label="Aadhar Number" value={contactDetails.aadharNumber} />
+                <PrintTableDoubleRow label1="Mobile Number" value1={formatMobilePrint(contactDetails.mobileNumber)} label2="Email ID" value2={contactDetails.emailId} />
+                <PrintTableRow label="Aadhar Number" value={formatAadharPrint(contactDetails.aadharNumber)} />
                 <PrintTableRow label="Full Address" value={addressString} />
                 <PrintTableRow label="Area Type" value={addressDetails.area} />
             </tbody>
