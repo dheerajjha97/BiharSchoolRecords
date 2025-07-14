@@ -119,7 +119,7 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                     <Section title="Subject Selection (Class 9)">
                         <ReviewItem label="MIL" value={subjectDetails.mil} />
                         <ReviewItem label="SIL" value={subjectDetails.mil === 'hindi' ? 'Sanskrit' : 'Hindi'} />
-                        <ReviewItem label="Other Subjects" value="Mathematics, Social Science, English" />
+                        <ReviewItem label="Compulsory Subjects" value="Mathematics, Science, Social Science, English" />
                     </Section>
                     <Section title="Class 8 Details">
                         <ReviewItem label="Passing Year" value={subjectDetails.class8PassingYear} />

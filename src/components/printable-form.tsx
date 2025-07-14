@@ -187,7 +187,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                     <PrintTableRow label="Medium" value={subjectDetails.medium} />
                     <PrintTableRow label="MIL (Modern Indian Language)" value={subjectDetails.mil} />
                     <PrintTableRow label="SIL (Second Indian Language)" value={silSubject} />
-                    <PrintTableRow label="Compulsory Subjects" value="Mathematics, Social Science, English" />
+                    <PrintTableRow label="Compulsory Subjects" value="Mathematics, Science, Social Science, English" />
                 </tbody>
             </table>
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">

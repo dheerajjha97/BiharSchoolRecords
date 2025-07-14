@@ -397,7 +397,7 @@ export function SubjectSelectionStep({ form }: SubjectSelectionStepProps) {
           <FormItem>
             <FormLabel>4. Compulsory Subjects</FormLabel>
             <p className="text-sm font-medium text-muted-foreground pt-2">
-              Mathematics, Social Science, English
+              Mathematics, Science, Social Science, English
             </p>
           </FormItem>
         </FormSection>
