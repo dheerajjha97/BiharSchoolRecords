@@ -16,6 +16,7 @@ import {
   QueryConstraint,
   writeBatch,
   updateDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import type { FormValues } from './form-schema';
 
@@ -95,16 +96,17 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
     if (!data.admissionDetails?.udise) {
         throw new Error("UDISE code is missing from the admission data.");
     }
-
-    // Check for Aadhar uniqueness for the given school
-    const aadharQuery = query(
-        collection(db, 'admissions'),
-        where('admissionDetails.udise', '==', data.admissionDetails.udise),
-        where('contactDetails.aadharNumber', '==', data.contactDetails.aadharNumber)
-    );
-    const aadharSnapshot = await getDocs(aadharQuery);
-    if (!aadharSnapshot.empty) {
-        throw new Error("This Aadhar number is already registered for another student in this school.");
+    if (data.contactDetails.aadharNumber) {
+        // Check for Aadhar uniqueness for the given school
+        const aadharQuery = query(
+            collection(db, 'admissions'),
+            where('admissionDetails.udise', '==', data.admissionDetails.udise),
+            where('contactDetails.aadharNumber', '==', data.contactDetails.aadharNumber)
+        );
+        const aadharSnapshot = await getDocs(aadharQuery);
+        if (!aadharSnapshot.empty) {
+            throw new Error("This Aadhar number is already registered for another student in this school.");
+        }
     }
 
 
@@ -144,19 +146,22 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
     if (!data.admissionDetails?.udise) {
         throw new Error("UDISE code is missing from the admission data.");
     }
-
-    // Check for Aadhar uniqueness, excluding the current document
-    const aadharQuery = query(
-      collection(db, 'admissions'),
-      where('admissionDetails.udise', '==', data.admissionDetails.udise),
-      where('contactDetails.aadharNumber', '==', data.contactDetails.aadharNumber)
-    );
-    const aadharSnapshot = await getDocs(aadharQuery);
-    // If we find any documents, we need to make sure it's not the one we're currently editing
-    const conflictingDoc = aadharSnapshot.docs.find(doc => doc.id !== id);
-    if (conflictingDoc) {
-      throw new Error("This Aadhar number is already registered for another student in this school.");
+    
+    if (data.contactDetails.aadharNumber) {
+        // Check for Aadhar uniqueness, excluding the current document
+        const aadharQuery = query(
+          collection(db, 'admissions'),
+          where('admissionDetails.udise', '==', data.admissionDetails.udise),
+          where('contactDetails.aadharNumber', '==', data.contactDetails.aadharNumber)
+        );
+        const aadharSnapshot = await getDocs(aadharQuery);
+        // If we find any documents, we need to make sure it's not the one we're currently editing
+        const conflictingDoc = aadharSnapshot.docs.find(doc => doc.id !== id);
+        if (conflictingDoc) {
+          throw new Error("This Aadhar number is already registered for another student in this school.");
+        }
     }
+
 
     const docRef = doc(db, 'admissions', id);
     const sanitizedData = sanitizeForFirestore(data);
@@ -408,3 +413,23 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
   }
 };
 
+
+/**
+ * Fetches all admission document IDs for a given school.
+ * Used for batch deletion operations.
+ * @param udise The UDISE code of the school.
+ * @returns A promise that resolves to an array of document IDs.
+ */
+export const getAllAdmissionIdsForSchool = async (udise: string): Promise<string[]> => {
+    if (!db) {
+        throw new Error(firebaseError || "Database not available.");
+    }
+    try {
+        const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => doc.id);
+    } catch (e) {
+        console.error("Error getting all admission IDs for school:", e);
+        throw new Error("Failed to retrieve admission records for deletion.");
+    }
+};
