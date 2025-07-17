@@ -51,6 +51,9 @@ export default function FormPage() {
         <DebugEnvVars />
         <AdmissionWizard />
       </div>
+      <footer className="py-4 text-center text-sm text-muted-foreground">
+        Crafted with ❤️ by Dheeraj Jha
+      </footer>
     </main>
   );
 }

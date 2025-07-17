@@ -203,29 +203,34 @@ export default function DashboardLayout({
         </SidebarHeader>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center justify-between p-4 h-16 bg-card border-b shadow-sm sticky top-0 z-10">
-            <div className="flex items-center gap-4">
-                <MobileNav />
-                <div className="hidden md:block">
-                  <h1 className="text-xl font-bold">{school?.name || 'EduAssist'}</h1>
-                </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm hidden sm:inline">{school?.udise}</span>
-              <Button variant="ghost" size="icon" onClick={logout} aria-label="Logout">
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
-        </header>
-        <main className="flex-1 p-4 sm:p-6 md:p-8 bg-secondary/40">
-            {(loading || !school) ? (
-                <div className="flex items-center justify-center h-full">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-            ) : (
-                children
-            )}
-        </main>
+        <div className="flex flex-col min-h-screen">
+          <header className="flex items-center justify-between p-4 h-16 bg-card border-b shadow-sm sticky top-0 z-10">
+              <div className="flex items-center gap-4">
+                  <MobileNav />
+                  <div className="hidden md:block">
+                    <h1 className="text-xl font-bold">{school?.name || 'EduAssist'}</h1>
+                  </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm hidden sm:inline">{school?.udise}</span>
+                <Button variant="ghost" size="icon" onClick={logout} aria-label="Logout">
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </div>
+          </header>
+          <main className="flex-1 p-4 sm:p-6 md:p-8 bg-secondary/40">
+              {(loading || !school) ? (
+                  <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                  </div>
+              ) : (
+                  children
+              )}
+          </main>
+          <footer className="p-4 bg-card border-t text-center text-sm text-muted-foreground">
+              Crafted with ❤️ by Dheeraj Jha
+          </footer>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

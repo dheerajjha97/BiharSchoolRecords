@@ -242,6 +242,10 @@ export default function LoginPage() {
         udise={udise}
         onSave={handleSaveSchool}
       />
+
+      <footer className="absolute bottom-4 text-center text-sm text-muted-foreground">
+        Crafted with ❤️ by Dheeraj Jha
+      </footer>
     </main>
   );
 }
