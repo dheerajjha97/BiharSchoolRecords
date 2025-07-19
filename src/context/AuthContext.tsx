@@ -5,7 +5,8 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { useRouter } from 'next/navigation';
 import type { School } from '@/lib/school';
 import { getSchoolByUdise } from '@/lib/school';
-import { firebaseError } from '@/lib/firebase';
+import { firebaseError, auth } from '@/lib/firebase';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 
 interface AuthContextType {
   school: School | null;
@@ -80,9 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     localStorage.removeItem('udise_code');
     setSchool(null);
+    if(auth) {
+        await signOut(auth);
+    }
     router.push('/login');
   }, [router]);
 

@@ -1,9 +1,11 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 let app;
 let dbInstance = null;
+let authInstance = null;
 let firebaseError: string | null = null;
 
 try {
@@ -21,6 +23,7 @@ try {
   if (allVarsPresent) {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     dbInstance = getFirestore(app);
+    authInstance = getAuth(app);
   } else {
     // This is a more specific error for developers.
     const missingVars = Object.entries(firebaseConfig).filter(([, val]) => !val).map(([key]) => key);
@@ -34,4 +37,5 @@ try {
 }
 
 export const db = dbInstance;
+export const auth = authInstance;
 export { firebaseError };

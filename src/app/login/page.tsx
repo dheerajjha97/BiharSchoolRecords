@@ -5,8 +5,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getSchoolByUdise, saveSchool } from '@/lib/school';
+import { getSchoolByUdise, saveSchool, getSchoolByEmail } from '@/lib/school';
 import type { School } from '@/lib/school';
+import { auth } from '@/lib/firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +27,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [checkingSchool, setCheckingSchool] = useState(false);
   const [error, setError] = useState('');
   const [showAddSchoolDialog, setShowAddSchoolDialog] = useState(false);
@@ -98,6 +101,40 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    setError('');
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const email = result.user.email;
+      if (!email) {
+        throw new Error("Could not retrieve email from Google account.");
+      }
+
+      const school = await getSchoolByEmail(email);
+      if (school) {
+        await login(school);
+        router.push('/dashboard');
+      } else {
+        setError("No school is registered with this Google account. Please log in with UDISE and password, or register your school.");
+      }
+
+    } catch (err: any) {
+       console.error("Google Sign-In error:", err);
+       if (err.code === 'auth/popup-closed-by-user') {
+          setError('Sign-in process was cancelled.');
+       } else if (err.code === 'auth/network-request-failed') {
+          setError('Network error. Please check your connection and try again.');
+       }
+       else {
+          setError('Failed to sign in with Google. Please try again.');
+       }
+    } finally {
+        setIsGoogleLoading(false);
+    }
+  }
+
   const handleRegisterClick = async () => {
     if (checkingSchool) return;
 
@@ -168,6 +205,26 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
+             <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading || loading || !!firebaseError}>
+                {isGoogleLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                        <path fill="currentColor" d="M488 261.8C488 403.3 381.5 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 173.4 58.2L373.6 119.5C340.4 89.4 298.4 72 248 72c-94.1 0-170.8 76.7-170.8 170.8S153.9 424 248 424c53.8 0 99.1-21.9 132.3-58.2 25-28.7 39.8-67.6 39.8-106.2H248v-85.3h236.2c2.4 12.7 3.8 25.9 3.8 39.8z"></path>
+                    </svg>
+                )}
+                Sign in with Google
+            </Button>
+            <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">
+                        Or continue with
+                    </span>
+                </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="udise">UDISE Code</Label>
               <Input
@@ -211,7 +268,7 @@ export default function LoginPage() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading || !!firebaseError}>
+            <Button type="submit" className="w-full" disabled={loading || isGoogleLoading || !!firebaseError}>
               {loading && !showAddSchoolDialog ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {loading && !showAddSchoolDialog ? 'Verifying...' : 'Login'}
             </Button>

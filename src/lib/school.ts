@@ -57,3 +57,28 @@ export const getSchoolByUdise = async (udise: string): Promise<School | null> =>
         return null;
     }
 };
+
+/**
+ * Fetches school information from Firestore by email address.
+ * @param email The email address of the school.
+ * @returns A promise that resolves to the school data, or null if not found.
+ */
+export const getSchoolByEmail = async (email: string): Promise<School | null> => {
+    if (!db || !email) {
+        console.warn(firebaseError || "Database not available or email not provided. Cannot fetch school data.");
+        return null;
+    }
+    try {
+        const q = query(collection(db, "schools"), where("email", "==", email));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            // Return the first school found with that email
+            return querySnapshot.docs[0].data() as School;
+        }
+        return null;
+    } catch (e) {
+        console.error(`Error fetching school with email ${email}:`, e);
+        return null;
+    }
+};
