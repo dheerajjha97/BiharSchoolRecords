@@ -205,26 +205,6 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
-             <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn} disabled={isGoogleLoading || loading || !!firebaseError}>
-                {isGoogleLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                        <path fill="currentColor" d="M488 261.8C488 403.3 381.5 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 173.4 58.2L373.6 119.5C340.4 89.4 298.4 72 248 72c-94.1 0-170.8 76.7-170.8 170.8S153.9 424 248 424c53.8 0 99.1-21.9 132.3-58.2 25-28.7 39.8-67.6 39.8-106.2H248v-85.3h236.2c2.4 12.7 3.8 25.9 3.8 39.8z"></path>
-                    </svg>
-                )}
-                Sign in with Google
-            </Button>
-            <div className="relative my-2">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">
-                        Or continue with
-                    </span>
-                </div>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="udise">UDISE Code</Label>
               <Input
