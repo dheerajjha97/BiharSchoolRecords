@@ -1,47 +1,7 @@
 
-import { redirect } from 'next/navigation';
-import { type Metadata, type ResolvingMetadata } from 'next';
 
 import AdmissionWizard from '@/components/admission-wizard';
 import { DebugEnvVars } from '@/components/debug-env-vars';
-import { getSchoolByUdise } from '@/lib/school';
-
-type Props = {
-  searchParams: { [key: string]: string | string[] | undefined }
-}
-
-export async function generateMetadata(
-  { searchParams }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const udise = searchParams.udise as string | undefined;
-
-  if (!udise) {
-    // Return default metadata if no udise is found
-    return {
-      title: 'EduAssist Admission Form',
-    }
-  }
-
-  const school = await getSchoolByUdise(udise);
-  const previousImages = (await parent).openGraph?.images || []
-
-  if (!school) {
-    return {
-      title: 'School Not Found | EduAssist',
-    }
-  }
-
-  return {
-    title: `Admission Form | ${school.name}`,
-    description: `Online admission form for ${school.name}, ${school.address}.`,
-    openGraph: {
-      title: `Admission Form | ${school.name}`,
-      description: `Online admission form for ${school.name}, ${school.address}.`,
-      images: ['/logo.jpg', ...previousImages],
-    },
-  }
-}
 
 export default function FormPage() {
   return (
