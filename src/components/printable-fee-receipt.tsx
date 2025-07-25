@@ -177,8 +177,6 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                         </td>
                         <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.developmentFundTotal).replace('₹', '')}</td>
                     </tr>
-                    
-                    <tr className="break-inside-avoid"><td className="py-4 border-x border-black"></td><td className="border-x border-black"></td><td className="border-x border-black"></td></tr>
                 </tbody>
                 <tfoot>
                     <tr className="font-bold bg-gray-100 break-inside-avoid">
@@ -246,4 +244,3 @@ export const PrintableFeeReceipt = ({ formData, schoolData }: { formData: FormVa
     </div>
   );
 };
-
