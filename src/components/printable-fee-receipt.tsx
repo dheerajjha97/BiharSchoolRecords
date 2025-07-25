@@ -145,8 +145,8 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
 
 
     return (
-        <div className="w-[14.8cm] min-h-[18cm] p-1 bg-white text-black font-body text-[10px] flex flex-col border border-dashed border-gray-400">
-            <header className="relative text-center w-full mb-2 break-inside-avoid">
+        <div className="w-[14.8cm] p-1 bg-white text-black font-body text-[10px] flex flex-col border border-dashed border-gray-400">
+            <header className="relative text-center w-full mb-1 break-inside-avoid">
                 <div className="absolute left-0 top-0">
                     <Image src="/logo.jpg" alt="School Logo" width={60} height={60} data-ai-hint="school logo"/>
                 </div>
@@ -158,7 +158,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 </div>
             </header>
 
-            <div className="flex justify-between items-center text-xs mb-1 break-inside-avoid">
+            <div className="flex justify-between items-center text-xs mb-0.5 break-inside-avoid">
                 <p><span className="font-bold">रसीद संख्या:</span> {admissionDetails.admissionNumber}</p>
                 <p><span className="font-bold">दिनांक:</span> {formatDate(admissionDetails.admissionDate)}</p>
             </div>
@@ -191,7 +191,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                     <tr className="break-inside-avoid">
                         <th className="border border-black py-1 px-2 text-left w-10">क्र.सं.</th>
                         <th className="border border-black py-1 px-2 text-left">विवरण</th>
-                        <th className="border border-black py-1 px-2 text-right">राशि (₹)</th>
+                        <th className="border border-black py-1 px-2 text-right">राशि</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -227,8 +227,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 </tfoot>
             </table>
 
-
-            <div className="pt-4 grid grid-cols-2 gap-8 text-center text-xs break-inside-avoid">
+            <div className="pt-2 mt-2 grid grid-cols-2 gap-8 text-center text-xs break-inside-avoid">
                 <div className="border-t border-dashed border-black pt-1 font-semibold">
                     छात्र का हस्ताक्षर
                 </div>
