@@ -118,23 +118,28 @@ interface FilterOptions {
 export const getFilteredAdmissions = async (udise: string, options: FilterOptions): Promise<AdmissionWithFee[]> => {
     if (!db) throw new Error(firebaseError || "Database not available.");
     
+    // Basic query to get all approved admissions for the school
     const constraints: QueryConstraint[] = [
         where('admissionDetails.udise', '==', udise),
-        where('admissionDetails.status', '==', 'approved'),
-        where('admissionDetails.admissionDate', '>=', options.startDate),
-        where('admissionDetails.admissionDate', '<=', options.endDate)
+        where('admissionDetails.status', '==', 'approved')
     ];
-
-    if (options.classSelection) {
-        constraints.push(where('admissionDetails.classSelection', '==', options.classSelection));
-    }
-    if (options.caste) {
-        constraints.push(where('studentDetails.caste', '==', options.caste));
-    }
 
     const q = query(collection(db, 'admissions'), ...constraints);
     const querySnapshot = await getDocs(q);
-    const admissions = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
+    let admissions = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
     
+    // Client-side filtering
+    admissions = admissions.filter(admission => {
+        const admissionDate = admission.admissionDetails.admissionDate;
+        if (!admissionDate) return false;
+
+        const isAfterStartDate = admissionDate >= options.startDate;
+        const isBeforeEndDate = admissionDate <= options.endDate;
+        const isCorrectClass = !options.classSelection || admission.admissionDetails.classSelection === options.classSelection;
+        const isCorrectCaste = !options.caste || admission.studentDetails.caste === options.caste;
+
+        return isAfterStartDate && isBeforeEndDate && isCorrectClass && isCorrectCaste;
+    });
+
     return processAdmissionsWithFees(udise, admissions);
 };
