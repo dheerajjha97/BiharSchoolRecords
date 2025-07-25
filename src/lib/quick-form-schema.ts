@@ -13,6 +13,7 @@ export const quickFormSchema = z.object({
   ),
   caste: z.enum(["gen", "ebc", "bc", "sc", "st"], { required_error: "Please select caste for fee calculation." }),
   rollNumber: z.string().min(1, "Roll number is required."),
+  admissionNumber: z.string().optional(),
 });
 
 export type QuickFormValues = z.infer<typeof quickFormSchema>;

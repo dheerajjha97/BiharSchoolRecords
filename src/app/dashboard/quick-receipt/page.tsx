@@ -14,7 +14,7 @@ import { translateName } from '@/ai/flows/name-translate-flow';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
@@ -40,6 +40,7 @@ export default function QuickReceiptPage() {
       classSelection: undefined,
       caste: undefined,
       rollNumber: '',
+      admissionNumber: '',
     },
   });
 
@@ -174,20 +175,18 @@ export default function QuickReceiptPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
+                 <FormField
                   control={form.control}
-                  name="mobileNumber"
+                  name="admissionNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mobile Number</FormLabel>
+                      <FormLabel>Admission Number (Optional)</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <span className="text-muted-foreground sm:text-sm">+91</span>
-                          </div>
-                          <Input placeholder="9876543210" type="tel" maxLength={10} className="pl-12" {...field} />
-                        </div>
+                        <Input placeholder="Leave blank to auto-generate" {...field} />
                       </FormControl>
+                      <FormDescription>
+                        If the student already has an admission number, enter it here.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -252,6 +251,24 @@ export default function QuickReceiptPage() {
                           <SelectItem value="st">ST</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="mobileNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mobile Number</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <span className="text-muted-foreground sm:text-sm">+91</span>
+                          </div>
+                          <Input placeholder="9876543210" type="tel" maxLength={10} className="pl-12" {...field} />
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

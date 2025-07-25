@@ -51,32 +51,49 @@ const createQuickAdmissionFlow = ai.defineFlow(
     }
 
     try {
+      let admissionNumber: string;
       const admissionDate = new Date();
       const admissionYear = admissionDate.getFullYear();
-      const yearSuffix = admissionYear.toString().slice(-2);
-
-      // Get all approved students for the year to generate a unique admission number
-      const q = query(
-        collection(db, "admissions"),
-        where('admissionDetails.udise', '==', input.udise),
-        where('admissionDetails.status', '==', 'approved')
-      );
       
-      const approvedSnapshot = await getDocs(q);
-      const totalApprovedInSchoolForYear = approvedSnapshot.docs.filter(doc => {
-        const data = doc.data() as FormValues;
-        // Handle both JS Date and Firestore Timestamp for robust filtering
-        const docAdmissionDate = data.admissionDetails?.admissionDate;
-        if (docAdmissionDate) {
-            const dateObj = docAdmissionDate instanceof Timestamp ? docAdmissionDate.toDate() : new Date(docAdmissionDate);
-            return dateObj.getFullYear() === admissionYear;
+      const admissionsCollection = collection(db, "admissions");
+
+      if (input.admissionNumber) {
+        // Use manually provided admission number, but check for duplicates first.
+        admissionNumber = input.admissionNumber;
+        const duplicateQuery = query(
+            admissionsCollection,
+            where('admissionDetails.udise', '==', input.udise),
+            where('admissionDetails.admissionNumber', '==', admissionNumber)
+        );
+        const duplicateSnapshot = await getDocs(duplicateQuery);
+        if (!duplicateSnapshot.empty) {
+            throw new Error(`Admission number ${admissionNumber} is already in use for this school. Please use a different one or leave it blank to auto-generate.`);
         }
-        return false;
-      }).length;
+      } else {
+        // Auto-generate admission number if not provided.
+        const yearSuffix = admissionYear.toString().slice(-2);
 
+        // Get all approved students for the year to generate a unique admission number
+        const q = query(
+          admissionsCollection,
+          where('admissionDetails.udise', '==', input.udise),
+          where('admissionDetails.status', '==', 'approved')
+        );
+        
+        const approvedSnapshot = await getDocs(q);
+        const totalApprovedInSchoolForYear = approvedSnapshot.docs.filter(doc => {
+          const data = doc.data() as FormValues;
+          const docAdmissionDate = data.admissionDetails?.admissionDate;
+          if (docAdmissionDate) {
+              const dateObj = docAdmissionDate instanceof Timestamp ? docAdmissionDate.toDate() : new Date(docAdmissionDate);
+              return dateObj.getFullYear() === admissionYear;
+          }
+          return false;
+        }).length;
 
-      const nextAdmissionSerial = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
-      const admissionNumber = `ADM/${yearSuffix}/${nextAdmissionSerial}`;
+        const nextAdmissionSerial = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
+        admissionNumber = `ADM/${yearSuffix}/${nextAdmissionSerial}`;
+      }
 
       // Construct a partial FormValues object
       const admissionData = {
@@ -119,7 +136,7 @@ const createQuickAdmissionFlow = ai.defineFlow(
         subjectDetails: {},
       };
 
-      const docRef = await addDoc(collection(db, 'admissions'), admissionData);
+      const docRef = await addDoc(admissionsCollection, admissionData);
 
       return {
         id: docRef.id,
