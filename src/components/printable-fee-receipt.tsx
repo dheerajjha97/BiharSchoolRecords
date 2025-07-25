@@ -202,7 +202,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                                 <div key={index}>{item}</div>
                             ))}
                         </td>
-                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.studentFundTotal).replace('₹', '')}</td>
+                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.studentFundTotal)}</td>
                     </tr>
                      <tr className="break-inside-avoid">
                         <td className="border border-black py-1 px-2 text-center align-top">2.</td>
@@ -211,7 +211,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                                 <div key={index}>{item}</div>
                             ))}
                         </td>
-                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.developmentFundTotal).replace('₹', '')}</td>
+                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.developmentFundTotal)}</td>
                     </tr>
                 </tbody>
                 <tfoot>
