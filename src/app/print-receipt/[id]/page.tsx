@@ -118,24 +118,33 @@ function PrintReceiptPageContent() {
   }
 
   return (
-    <div className="bg-gray-200 min-h-screen p-4 sm:p-8 print-bg-white">
-      <header className="flex justify-end gap-4 mb-4 print-hide">
-          <Button variant="outline" onClick={() => window.close()}>Cancel</Button>
-          <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Print or Save as PDF
-          </Button>
-      </header>
-      {error && schoolData === null && (
-        <div className="text-center p-4 mb-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-md print-hide">
-          <p className="font-bold">School Details Missing</p>
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
-      <main>
-        <PrintableFeeReceipt formData={studentData} schoolData={schoolData} />
-      </main>
-    </div>
+    <>
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: landscape;
+          }
+        }
+      `}</style>
+      <div className="bg-gray-200 min-h-screen p-4 sm:p-8 print-bg-white">
+        <header className="flex justify-end gap-4 mb-4 print-hide">
+            <Button variant="outline" onClick={() => window.close()}>Cancel</Button>
+            <Button onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print or Save as PDF
+            </Button>
+        </header>
+        {error && schoolData === null && (
+          <div className="text-center p-4 mb-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-md print-hide">
+            <p className="font-bold">School Details Missing</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+        <main>
+          <PrintableFeeReceipt formData={studentData} schoolData={schoolData} />
+        </main>
+      </div>
+    </>
   );
 }
 
