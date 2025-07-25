@@ -149,14 +149,14 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
 
 
     return (
-        <div className="w-[14.8cm] p-1 bg-white text-black font-body text-[10px] flex flex-col border border-dashed border-gray-400">
+        <div className="w-[14.8cm] p-2 bg-white text-black font-body text-[10px] flex flex-col border border-dashed border-gray-400">
             <header className="relative text-center w-full mb-1 break-inside-avoid">
                 <div className="absolute left-0 top-0">
                     <Image src="/logo.jpg" alt="School Logo" width={60} height={60} data-ai-hint="school logo"/>
                 </div>
                 <div>
                     <h1 className="text-xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
-                    <p className="text-sm">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
+                    <p className="text-xs">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
                     <p className="text-base font-bold mt-1 underline">शुल्क रसीद</p>
                     <p className="text-xs font-semibold">({copyTypeText}) | (सत्र {session})</p>
                 </div>
