@@ -14,46 +14,64 @@ const currencyFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 2,
 });
 
-// --- Helper function to convert number to words ---
-const toWords = (num: number): string => {
-    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
-    if (num === 0) return 'Zero';
+// --- Helper function to convert number to Hindi words ---
+const toWordsHindi = (num: number): string => {
+    const ekai = ['', 'एक', 'दो', 'तीन', 'चार', 'पाँच', 'छह', 'सात', 'आठ', 'नौ'];
+    const dahai = ['दस', 'ग्यारह', 'बारह', 'तेरह', 'चौदह', 'पंद्रह', 'सोलह', 'सत्रह', 'अठारह', 'उन्नीस'];
+    const beesSe = ['', '', 'बीस', 'तीस', 'चालीस', 'पचास', 'साठ', 'सत्तर', 'अस्सी', 'नब्बे'];
+
+    if (num === 0) return 'शून्य';
 
     const convertLessThanThousand = (n: number): string => {
         if (n === 0) return '';
-        if (n < 10) return ones[n];
-        if (n < 20) return teens[n - 10];
-        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + ones[n % 10] : '');
-        return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + convertLessThanThousand(n % 100) : '');
+        let current = n;
+        let words = '';
+
+        if (current >= 100) {
+            words += ekai[Math.floor(current / 100)] + ' सौ ';
+            current %= 100;
+        }
+
+        if (current > 0) {
+            if (current < 10) {
+                words += ekai[current];
+            } else if (current < 20) {
+                words += dahai[current - 10];
+            } else {
+                words += beesSe[Math.floor(current / 10)];
+                if (current % 10 !== 0) {
+                    words += ' ' + ekai[current % 10];
+                }
+            }
+        }
+        return words.trim();
     };
 
     let result = '';
     const crore = Math.floor(num / 10000000);
     num %= 10000000;
     if (crore > 0) {
-        result += convertLessThanThousand(crore) + ' Crore ';
+        result += convertLessThanThousand(crore) + ' करोड़ ';
     }
 
     const lakh = Math.floor(num / 100000);
     num %= 100000;
     if (lakh > 0) {
-        result += convertLessThanThousand(lakh) + ' Lakh ';
+        result += convertLessThanThousand(lakh) + ' लाख ';
     }
 
     const thousand = Math.floor(num / 1000);
     num %= 1000;
     if (thousand > 0) {
-        result += convertLessThanThousand(thousand) + ' Thousand ';
+        result += convertLessThanThousand(thousand) + ' हज़ार ';
     }
 
     if (num > 0) {
         result += convertLessThanThousand(num);
     }
 
-    return `Rupees ${result.trim()} Only`;
+    return `रुपये ${result.trim()} मात्र`;
 };
 
 
@@ -80,20 +98,20 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
 
     const studentFundParticulars = studentFundItems
         .filter(item => item.amount > 0 || item.isExempted)
-        .map(item => `${item.name_en}${item.isExempted ? ' (Exempted)' : ''}`);
+        .map(item => `${item.name_hi}${item.isExempted ? ' (छूट)' : ''}`);
 
     const developmentFundParticulars = developmentFundItems
         .filter(item => item.amount > 0)
-        .map(item => item.name_en);
+        .map(item => item.name_hi);
 
     return { studentFundTotal, developmentFundTotal, totalFee, studentFundParticulars, developmentFundParticulars };
 };
 
 const streamDisplayNames: { [key: string]: string } = {
-  '9': 'Class 9',
-  '11-arts': 'Class 11 - Arts',
-  '11-science': 'Class 11 - Science',
-  '11-commerce': 'Class 11 - Commerce',
+  '9': 'कक्षा 9',
+  '11-arts': 'कक्षा 11 - कला',
+  '11-science': 'कक्षा 11 - विज्ञान',
+  '11-commerce': 'कक्षा 11 - वाणिज्य',
 };
 
 const formatDate = (date: Date | undefined) => date ? new Date(date).toLocaleDateString('en-GB') : 'N/A';
@@ -107,6 +125,8 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
     const admissionDate = admissionDetails.admissionDate ? new Date(admissionDetails.admissionDate) : new Date();
     const session = `${admissionDate.getFullYear()}-${admissionDate.getFullYear() + 1}`;
 
+    const copyTypeText = copyType === 'Student' ? 'छात्र प्रति' : 'कार्यालय प्रति';
+
 
     return (
         <div className="w-[14.8cm] min-h-[19cm] p-2 bg-white text-black font-body text-xs flex flex-col border border-dashed border-gray-400">
@@ -117,34 +137,34 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 <div>
                     <h1 className="text-2xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
                     <p className="text-base">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
-                    <p className="text-lg font-bold mt-1 underline">FEE RECEIPT</p>
-                    <p className="text-xs font-semibold">({copyType} Copy) | (Session {session})</p>
+                    <p className="text-lg font-bold mt-1 underline">शुल्क रसीद</p>
+                    <p className="text-xs font-semibold">({copyTypeText}) | (सत्र {session})</p>
                 </div>
             </header>
 
             <div className="flex justify-between items-center text-xs mb-2 break-inside-avoid">
-            <p><span className="font-bold">Receipt No:</span> {admissionDetails.admissionNumber}</p>
-            <p><span className="font-bold">Date:</span> {formatDate(admissionDetails.admissionDate)}</p>
+                <p><span className="font-bold">रसीद संख्या:</span> {admissionDetails.admissionNumber}</p>
+                <p><span className="font-bold">दिनांक:</span> {formatDate(admissionDetails.admissionDate)}</p>
             </div>
 
             <table className="w-full border-collapse border border-black text-xs mb-2">
                 <tbody>
                     <tr className="break-inside-avoid">
-                        <td className="border border-black py-0.5 px-1 font-semibold">Admission No.</td>
+                        <td className="border border-black py-0.5 px-1 font-semibold">प्रवेश संख्या</td>
                         <td className="border border-black py-0.5 px-1 font-bold text-red-600">{admissionDetails.admissionNumber}</td>
-                        <td className="border border-black py-0.5 px-1 font-semibold">Roll No.</td>
+                        <td className="border border-black py-0.5 px-1 font-semibold">रोल नंबर</td>
                         <td className="border border-black py-0.5 px-1">{admissionDetails.rollNumber}</td>
                     </tr>
                     <tr className="break-inside-avoid">
-                        <td className="border border-black py-0.5 px-1 font-semibold">Student Name</td>
-                        <td className="border border-black py-0.5 px-1">{studentDetails.nameEn}</td>
-                        <td className="border border-black py-0.5 px-1 font-semibold">Father's Name</td>
-                        <td className="border border-black py-0.5 px-1">{studentDetails.fatherNameEn}</td>
+                        <td className="border border-black py-0.5 px-1 font-semibold">छात्र का नाम</td>
+                        <td className="border border-black py-0.5 px-1">{studentDetails.nameHi}</td>
+                        <td className="border border-black py-0.5 px-1 font-semibold">पिता का नाम</td>
+                        <td className="border border-black py-0.5 px-1">{studentDetails.fatherNameHi}</td>
                     </tr>
                     <tr className="break-inside-avoid">
-                        <td className="border border-black py-0.5 px-1 font-semibold">Class</td>
+                        <td className="border border-black py-0.5 px-1 font-semibold">कक्षा</td>
                         <td className="border border-black py-0.5 px-1">{displayStream}</td>
-                        <td className="border border-black py-0.5 px-1 font-semibold">Category</td>
+                        <td className="border border-black py-0.5 px-1 font-semibold">श्रेणी</td>
                         <td className="border border-black py-0.5 px-1 uppercase">{studentDetails.caste}</td>
                     </tr>
                 </tbody>
@@ -153,9 +173,9 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
             <table className="w-full border-collapse border border-black text-xs">
                  <thead>
                     <tr className="break-inside-avoid">
-                        <th className="border border-black py-1 px-2 text-left w-10">Sr. No.</th>
-                        <th className="border border-black py-1 px-2 text-left">Particulars</th>
-                        <th className="border border-black py-1 px-2 text-right">Amount (INR)</th>
+                        <th className="border border-black py-1 px-2 text-left w-10">क्र.सं.</th>
+                        <th className="border border-black py-1 px-2 text-left">विवरण</th>
+                        <th className="border border-black py-1 px-2 text-right">राशि (₹)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -180,12 +200,12 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 </tbody>
                 <tfoot>
                     <tr className="font-bold bg-gray-100 break-inside-avoid">
-                        <td colSpan={2} className="border border-black py-1 px-2 text-right">Total</td>
+                        <td colSpan={2} className="border border-black py-1 px-2 text-right">कुल योग</td>
                         <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.totalFee)}</td>
                     </tr>
                     <tr className="font-bold bg-gray-100 break-inside-avoid">
                         <td colSpan={3} className="border border-black py-1 px-2 text-left capitalize">
-                            Amount in Words: {toWords(fees.totalFee).toLowerCase()}
+                            शब्दों में राशि: {toWordsHindi(fees.totalFee)}
                         </td>
                     </tr>
                 </tfoot>
@@ -194,10 +214,10 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
 
             <div className="mt-auto pt-12 grid grid-cols-2 gap-8 text-center text-xs break-inside-avoid">
                 <div className="border-t border-dashed border-black pt-1 font-semibold">
-                    Student's Signature
+                    छात्र का हस्ताक्षर
                 </div>
                 <div className="border-t border-dashed border-black pt-1 font-semibold">
-                    Cashier / Clerk Signature
+                    कैशियर / क्लर्क का हस्ताक्षर
                 </div>
             </div>
         </div>
@@ -234,7 +254,7 @@ export const PrintableFeeReceipt = ({ formData, schoolData }: { formData: FormVa
   }, [schoolData, formData.admissionDetails.admissionDate]);
 
   if (loading || !feeStructure) {
-      return <div className="text-center p-8">Loading fee details...</div>;
+      return <div className="text-center p-8">शुल्क विवरण लोड हो रहा है...</div>;
   }
 
   return (
