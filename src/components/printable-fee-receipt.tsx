@@ -125,9 +125,13 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
 
 const streamDisplayNames: { [key: string]: string } = {
   '9': 'कक्षा 9',
+  '10': 'कक्षा 10',
   '11-arts': 'कक्षा 11 - कला',
   '11-science': 'कक्षा 11 - विज्ञान',
   '11-commerce': 'कक्षा 11 - वाणिज्य',
+  '12-arts': 'कक्षा 12 - कला',
+  '12-science': 'कक्षा 12 - विज्ञान',
+  '12-commerce': 'कक्षा 12 - वाणिज्य',
 };
 
 const formatDate = (date: Date | undefined) => date ? new Date(date).toLocaleDateString('en-GB') : 'N/A';

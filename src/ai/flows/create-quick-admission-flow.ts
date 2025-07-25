@@ -12,8 +12,9 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { db, firebaseError } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { quickFormSchema } from '@/lib/quick-form-schema';
+import type { FormValues } from '@/lib/form-schema';
 
 // We reuse the quickFormSchema and add the udise which is passed from the server context.
 const CreateQuickAdmissionInputSchema = quickFormSchema.extend({
@@ -60,12 +61,19 @@ const createQuickAdmissionFlow = ai.defineFlow(
         where('admissionDetails.udise', '==', input.udise),
         where('admissionDetails.status', '==', 'approved')
       );
+      
       const approvedSnapshot = await getDocs(q);
       const totalApprovedInSchoolForYear = approvedSnapshot.docs.filter(doc => {
-        const data = doc.data();
-        const docDate = data.admissionDetails?.admissionDate?.toDate();
-        return docDate && docDate.getFullYear() === admissionYear;
+        const data = doc.data() as FormValues;
+        // Handle both JS Date and Firestore Timestamp for robust filtering
+        const docAdmissionDate = data.admissionDetails?.admissionDate;
+        if (docAdmissionDate) {
+            const dateObj = docAdmissionDate instanceof Timestamp ? docAdmissionDate.toDate() : new Date(docAdmissionDate);
+            return dateObj.getFullYear() === admissionYear;
+        }
+        return false;
       }).length;
+
 
       const nextAdmissionSerial = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
       const admissionNumber = `ADM/${yearSuffix}/${nextAdmissionSerial}`;
@@ -94,6 +102,7 @@ const createQuickAdmissionFlow = ai.defineFlow(
           gender: 'male',
           nationality: 'indian',
           isDifferentlyAbled: false,
+          disabilityDetails: "",
           religion: 'hindu',
           maritalStatus: 'unmarried',
         },
@@ -103,9 +112,9 @@ const createQuickAdmissionFlow = ai.defineFlow(
           aadharNumber: '000000000000',
         },
         // Other schemas can be empty objects as they are optional in the main schema
-        addressDetails: {},
-        bankDetails: {},
-        otherDetails: {},
+        addressDetails: { village: "", post: "", block: "", district: "", ps: "", pin: "", area: 'rural' },
+        bankDetails: { accountNo: "", ifsc: "", bankName: "", branch: "" },
+        otherDetails: { identificationMark1: 'N/A' },
         prevSchoolDetails: {},
         subjectDetails: {},
       };
