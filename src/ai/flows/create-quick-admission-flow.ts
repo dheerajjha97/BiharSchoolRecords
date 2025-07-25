@@ -39,6 +39,18 @@ export async function createQuickAdmission(input: QuickAdmissionInput): Promise<
   return createQuickAdmissionFlow(input);
 }
 
+// Helper function to check for admission number duplicates
+const isAdmissionNumberDuplicate = async (admissionsCollection: any, udise: string, admissionNumber: string) => {
+    const duplicateQuery = query(
+        admissionsCollection,
+        where('admissionDetails.udise', '==', udise),
+        where('admissionDetails.admissionNumber', '==', admissionNumber)
+    );
+    const duplicateSnapshot = await getDocs(duplicateQuery);
+    return !duplicateSnapshot.empty;
+};
+
+
 const createQuickAdmissionFlow = ai.defineFlow(
   {
     name: 'createQuickAdmissionFlow',
@@ -60,14 +72,8 @@ const createQuickAdmissionFlow = ai.defineFlow(
       if (input.admissionNumber) {
         // Use manually provided admission number, but check for duplicates first.
         admissionNumber = input.admissionNumber;
-        const duplicateQuery = query(
-            admissionsCollection,
-            where('admissionDetails.udise', '==', input.udise),
-            where('admissionDetails.admissionNumber', '==', admissionNumber)
-        );
-        const duplicateSnapshot = await getDocs(duplicateQuery);
-        if (!duplicateSnapshot.empty) {
-            throw new Error(`Admission number ${admissionNumber} is already in use for this school. Please use a different one or leave it blank to auto-generate.`);
+        if (await isAdmissionNumberDuplicate(admissionsCollection, input.udise, admissionNumber)) {
+             throw new Error(`Admission number ${admissionNumber} is already in use for this school. Please use a different one or leave it blank to auto-generate.`);
         }
       } else {
         // Auto-generate admission number if not provided.
@@ -90,9 +96,18 @@ const createQuickAdmissionFlow = ai.defineFlow(
           }
           return false;
         }).length;
-
-        const nextAdmissionSerial = (totalApprovedInSchoolForYear + 1).toString().padStart(4, '0');
-        admissionNumber = `ADM/${yearSuffix}/${nextAdmissionSerial}`;
+        
+        // Loop to find the next available unique admission number
+        let nextSerial = totalApprovedInSchoolForYear + 1;
+        while (true) {
+            const nextAdmissionSerial = nextSerial.toString().padStart(4, '0');
+            const potentialAdmissionNumber = `ADM/${yearSuffix}/${nextAdmissionSerial}`;
+            if (!(await isAdmissionNumberDuplicate(admissionsCollection, input.udise, potentialAdmissionNumber))) {
+                admissionNumber = potentialAdmissionNumber;
+                break;
+            }
+            nextSerial++; // If duplicate, try the next number
+        }
       }
 
       // Construct a partial FormValues object
