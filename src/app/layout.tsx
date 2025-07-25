@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/AuthContext';
 
 const ptSans = PT_Sans({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   weight: ['400', '700'],
   variable: '--font-body',
 });
