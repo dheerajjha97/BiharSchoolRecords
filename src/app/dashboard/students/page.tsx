@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Pencil, Printer, FileDown, Sheet as SheetIcon } from 'lucide-react';
+import { Pencil, Printer, FileDown, Sheet as SheetIcon, Receipt } from 'lucide-react';
 import type { FormValues } from '@/lib/form-schema';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useAuth } from '@/context/AuthContext';
@@ -165,7 +165,7 @@ function StudentsListContent() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Students Data");
     
     // Auto-fit columns
-    const max_width = dataToExport.reduce((w, r) => Math.max(w, ...Object.values(r).map(v => v.length)), 10);
+    const max_width = dataToExport.reduce((w, r) => Math.max(w, ...Object.values(r).map(v => String(v || '').length)), 10);
     worksheet["!cols"] = Object.keys(dataToExport[0] || {}).map(() => ({ wch: max_width }));
 
     XLSX.writeFile(workbook, `students_complete_data_${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -270,14 +270,16 @@ function StudentsListContent() {
                       <TableCell>{student.admissionDetails.rollNumber}</TableCell>
                       <TableCell>{student.studentDetails.fatherNameEn}</TableCell>
                       <TableCell className="text-right space-x-1">
-                        <Button variant="ghost" size="icon" disabled>
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
                         <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/print/${student.id}?udise=${school?.udise || ''}`} target="_blank" rel="noopener noreferrer">
+                          <Link href={`/print/${student.id}`} target="_blank" rel="noopener noreferrer">
                               <Printer className="h-4 w-4" />
-                              <span className="sr-only">Print</span>
+                              <span className="sr-only">Print Form</span>
+                          </Link>
+                        </Button>
+                         <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/print-receipt/${student.id}`} target="_blank" rel="noopener noreferrer">
+                              <Receipt className="h-4 w-4" />
+                              <span className="sr-only">Print Receipt</span>
                           </Link>
                         </Button>
                       </TableCell>
