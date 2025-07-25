@@ -1,10 +1,10 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence, Firestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 let app;
-let dbInstance = null;
+let dbInstance: Firestore | null = null;
 let authInstance = null;
 let firebaseError: string | null = null;
 
@@ -24,15 +24,25 @@ try {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     dbInstance = getFirestore(app);
     authInstance = getAuth(app);
+    
+    // Enable offline persistence
+    enableIndexedDbPersistence(dbInstance).catch((err) => {
+        if (err.code == 'failed-precondition') {
+            // Multiple tabs open, persistence can only be enabled in one tab at a time.
+            console.warn("Firestore persistence failed: multiple tabs open.");
+        } else if (err.code == 'unimplemented') {
+            // The current browser does not support all of the features required to enable persistence
+             console.warn("Firestore persistence failed: browser does not support it.");
+        }
+    });
+
   } else {
-    // This is a more specific error for developers.
     const missingVars = Object.entries(firebaseConfig).filter(([, val]) => !val).map(([key]) => key);
     throw new Error(`The following Firebase environment variables are missing or empty: ${missingVars.join(', ')}. Please check your .env.local file.`);
   }
 
 } catch (e: any) {
   console.error("Firebase initialization failed:", e.message);
-  // This user-friendly error will be shown in the UI.
   firebaseError = `There is an issue with your Firebase configuration. Please check your environment variables. The server must be restarted after any changes.`;
 }
 
