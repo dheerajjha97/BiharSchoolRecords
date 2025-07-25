@@ -190,20 +190,23 @@ export const getApprovedAdmissionsForYear = async (udise: string, year: number):
         return [];
     }
     try {
-        const startDate = new Date(year, 0, 1); // Jan 1st of the year
-        const endDate = new Date(year, 11, 31, 23, 59, 59); // Dec 31st of the year
-
         const constraints: QueryConstraint[] = [
             where('admissionDetails.udise', '==', udise),
             where('admissionDetails.status', '==', 'approved'),
-            where('admissionDetails.admissionDate', '>=', startDate),
-            where('admissionDetails.admissionDate', '<=', endDate)
         ];
 
         const q = query(collection(db, "admissions"), ...constraints);
         const querySnapshot = await getDocs(q);
         
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
+        const allApproved = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
+
+        // Filter by year client-side to avoid composite index
+        const forYear = allApproved.filter(student => {
+          const admissionDate = student.admissionDetails.admissionDate;
+          return admissionDate && (new Date(admissionDate)).getFullYear() === year;
+        });
+
+        return forYear;
 
     } catch (e) {
         console.error("Error getting school admissions for year:", e);
