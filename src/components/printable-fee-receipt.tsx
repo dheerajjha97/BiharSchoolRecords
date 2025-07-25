@@ -55,7 +55,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData }: { copyType: 'Student' |
     const displayStream = streamDisplayNames[admissionDetails.classSelection || ''] || admissionDetails.classSelection;
 
     return (
-        <div className="w-[14.8cm] h-[21cm] p-4 bg-white text-black font-body text-sm flex flex-col border border-dashed border-gray-400">
+        <div className="w-[14.8cm] min-h-[20cm] p-4 bg-white text-black font-body text-sm flex flex-col border border-dashed border-gray-400">
             <header className="relative text-center w-full mb-4 break-inside-avoid">
                 <div className="absolute left-0 top-0">
                     <Image src="/logo.jpg" alt="School Logo" width={80} height={80} data-ai-hint="school logo"/>
@@ -150,7 +150,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData }: { copyType: 'Student' |
                 <p className="font-bold text-lg">Total Payable Amount: {currencyFormatter.format(fees.totalFee)}</p>
             </div>
 
-            <div className="mt-auto pt-8 grid grid-cols-2 gap-8 text-center text-sm break-inside-avoid">
+            <div className="mt-auto pt-16 grid grid-cols-2 gap-8 text-center text-sm break-inside-avoid">
                 <div className="border-t-2 border-dashed border-black pt-1 font-semibold">
                     Student's Signature
                 </div>
@@ -165,7 +165,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData }: { copyType: 'Student' |
 
 export const PrintableFeeReceipt = ({ formData, schoolData }: { formData: FormValues; schoolData: School | null }) => {
   return (
-    <div className="w-[29.7cm] h-[21cm] flex flex-row justify-center items-center gap-2 mx-auto">
+    <div className="w-full flex flex-row justify-center items-start gap-2 mx-auto">
         <ReceiptCopy copyType="Student" formData={formData} schoolData={schoolData} />
         <ReceiptCopy copyType="Office" formData={formData} schoolData={schoolData} />
     </div>

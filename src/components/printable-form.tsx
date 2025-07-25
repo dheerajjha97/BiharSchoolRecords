@@ -201,7 +201,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
 
         {isClass9 && subjectDetails && (
           <>
-            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
+            <table className="w-full mt-4 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Subject Selection Details (Class 9)" />
                     <PrintTableRow label="Medium" value={subjectDetails.medium} />
@@ -223,7 +223,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         
         {isClass11 && subjectDetails && (
           <>
-            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
+            <table className="w-full mt-4 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Matriculation Details" />
                     <PrintTableDoubleRow label1="Matric Board" value1={subjectDetails.matricBoard} label2="Board Code" value2={subjectDetails.matricBoardCode} />
@@ -281,5 +281,3 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
     </div>
   );
 };
-
-    
