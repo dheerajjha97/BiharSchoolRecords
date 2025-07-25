@@ -101,8 +101,11 @@ function ApprovalPageContent() {
         description: `The form for ${studentData.studentDetails.nameEn} has been approved.`,
       });
 
-      // Open print page in new tab and redirect current page to students list
-      window.open(`/print/${params.id}?udise=${school.udise}`, '_blank');
+      // Open print page for admission form and fee receipt in new tabs
+      window.open(`/print/${params.id}`, '_blank');
+      window.open(`/print-receipt/${params.id}`, '_blank');
+
+      // Redirect current page to students list
       router.push('/dashboard/students');
 
     } catch (e) {

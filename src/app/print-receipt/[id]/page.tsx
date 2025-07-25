@@ -2,9 +2,9 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import type { FormValues } from '@/lib/form-schema';
-import { PrintableForm } from '@/components/printable-form';
+import { PrintableFeeReceipt } from '@/components/printable-fee-receipt';
 import { Button } from '@/components/ui/button';
 import { Loader2, Printer, AlertTriangle } from 'lucide-react';
 import { getAdmissionById } from '@/lib/admissions';
@@ -12,10 +12,9 @@ import { firebaseError } from '@/lib/firebase';
 import type { School } from '@/lib/school';
 import { getSchoolByUdise } from '@/lib/school';
 
-
-function PrintPageContent() {
-  const params = useParams<{ admissionNumber: string }>();
-  const admissionId = params?.admissionNumber;
+function PrintReceiptPageContent() {
+  const params = useParams<{ id: string }>();
+  const admissionId = params?.id;
   
   const [studentData, setStudentData] = useState<FormValues | null>(null);
   const [schoolData, setSchoolData] = useState<School | null>(null);
@@ -55,7 +54,7 @@ function PrintPageContent() {
             if (firestoreSchoolData) {
                 setSchoolData(firestoreSchoolData);
             } else {
-                setError(`School details for UDISE ${udiseToUse} were not found. The form will print without school info.`);
+                setError(`School details for UDISE ${udiseToUse} were not found. The receipt will print without school info.`);
             }
         } else {
             setError(`Could not determine a UDISE code for this student record. School details cannot be loaded.`);
@@ -95,7 +94,7 @@ function PrintPageContent() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="ml-2">Loading printable form...</p>
+        <p className="ml-2">Loading fee receipt...</p>
       </div>
     );
   }
@@ -113,7 +112,7 @@ function PrintPageContent() {
     return (
       <div className="flex items-center justify-center min-h-screen text-destructive p-4 text-center">
         <AlertTriangle className="h-8 w-8 mr-2" />
-        <p>Could not load student data to print.</p>
+        <p>Could not load student data for receipt.</p>
       </div>
     );
   }
@@ -135,14 +134,14 @@ function PrintPageContent() {
           </div>
         )}
         <main>
-          <PrintableForm formData={studentData} schoolData={schoolData} />
+          <PrintableFeeReceipt formData={studentData} schoolData={schoolData} />
         </main>
       </div>
     </div>
   );
 }
 
-export default function PrintAdmissionPage() {
+export default function PrintFeeReceiptPage() {
     return (
         <Suspense fallback={
             <div className="flex items-center justify-center min-h-screen">
@@ -150,7 +149,7 @@ export default function PrintAdmissionPage() {
                 <p className="ml-2">Loading...</p>
             </div>
         }>
-            <PrintPageContent />
+            <PrintReceiptPageContent />
         </Suspense>
     )
 }
