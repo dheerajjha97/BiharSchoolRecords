@@ -163,12 +163,12 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 <tbody>
                     <tr className="break-inside-avoid">
                         <td className="border border-black py-1 px-2 text-center align-top">1.</td>
-                        <td className="border border-black py-1 px-2">{fees.studentFundParticulars}</td>
+                        <td className="border border-black py-1 px-2 whitespace-nowrap">{fees.studentFundParticulars}</td>
                         <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.studentFundTotal).replace('₹', '')}</td>
                     </tr>
                      <tr className="break-inside-avoid">
                         <td className="border border-black py-1 px-2 text-center align-top">2.</td>
-                        <td className="border border-black py-1 px-2">{fees.developmentFundParticulars}</td>
+                        <td className="border border-black py-1 px-2 whitespace-nowrap">{fees.developmentFundParticulars}</td>
                         <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.developmentFundTotal).replace('₹', '')}</td>
                     </tr>
                     {/* Add empty rows for spacing if needed */}
