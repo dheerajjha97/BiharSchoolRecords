@@ -5,7 +5,8 @@ import * as React from 'react';
 import Image from 'next/image';
 import type { FormValues } from '@/lib/form-schema';
 import type { School } from '@/lib/school';
-import { FEE_STRUCTURE } from '@/lib/fees';
+import { FeeHead, getFeeStructure } from '@/lib/feeStructure';
+import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -13,11 +14,11 @@ const currencyFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 2,
 });
 
-const calculatedFees = (studentClass: string, studentCaste: string) => {
+const calculateFees = (studentClass: string, studentCaste: string, feeStructure: FeeHead[]) => {
     const isExempt = studentCaste === 'sc' || studentCaste === 'st';
     const feeKey = studentClass.startsWith('11') ? 'class11' : 'class9';
     
-    const baseFees = FEE_STRUCTURE.map(head => ({
+    const baseFees = feeStructure.map(head => ({
       ...head,
       amount: head[feeKey] || 0,
     }));
@@ -49,10 +50,14 @@ const streamDisplayNames: { [key: string]: string } = {
 const formatDate = (date: Date | undefined) => date ? new Date(date).toLocaleDateString('en-GB') : 'N/A';
 
 
-const ReceiptCopy = ({ copyType, formData, schoolData }: { copyType: 'Student' | 'Office', formData: FormValues; schoolData: School | null }) => {
+const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyType: 'Student' | 'Office', formData: FormValues; schoolData: School | null, feeStructure: FeeHead[] }) => {
     const { admissionDetails, studentDetails } = formData;
-    const fees = calculatedFees(admissionDetails.classSelection, studentDetails.caste);
+    const fees = calculateFees(admissionDetails.classSelection, studentDetails.caste, feeStructure);
     const displayStream = streamDisplayNames[admissionDetails.classSelection || ''] || admissionDetails.classSelection;
+
+    const admissionDate = admissionDetails.admissionDate ? new Date(admissionDetails.admissionDate) : new Date();
+    const session = `${admissionDate.getFullYear()}-${admissionDate.getFullYear() + 1}`;
+
 
     return (
         <div className="w-[14.8cm] min-h-[20cm] p-4 bg-white text-black font-body text-sm flex flex-col border border-dashed border-gray-400">
@@ -64,7 +69,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData }: { copyType: 'Student' |
                     <h1 className="text-3xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
                     <p className="text-lg">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
                     <p className="text-xl font-bold mt-1 underline">FEE RECEIPT</p>
-                    <p className="text-xs font-semibold">({copyType} Copy) | (Session 2025-2026)</p>
+                    <p className="text-xs font-semibold">({copyType} Copy) | (Session {session})</p>
                 </div>
             </header>
 
@@ -164,10 +169,41 @@ const ReceiptCopy = ({ copyType, formData, schoolData }: { copyType: 'Student' |
 
 
 export const PrintableFeeReceipt = ({ formData, schoolData }: { formData: FormValues; schoolData: School | null }) => {
+  const [feeStructure, setFeeStructure] = React.useState<FeeHead[] | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchFees = async () => {
+        if (!schoolData?.udise || !formData.admissionDetails.admissionDate) {
+            setFeeStructure(DEFAULT_FEE_STRUCTURE);
+            setLoading(false);
+            return;
+        }
+        
+        setLoading(true);
+        try {
+            const admissionDate = new Date(formData.admissionDetails.admissionDate);
+            const session = `${admissionDate.getFullYear()}-${admissionDate.getFullYear() + 1}`;
+            const structure = await getFeeStructure(schoolData.udise, session);
+            setFeeStructure(structure ? structure.heads : DEFAULT_FEE_STRUCTURE);
+        } catch (error) {
+            console.error("Failed to load fee structure for printing:", error);
+            setFeeStructure(DEFAULT_FEE_STRUCTURE);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchFees();
+  }, [schoolData, formData.admissionDetails.admissionDate]);
+
+  if (loading || !feeStructure) {
+      return <div className="text-center p-8">Loading fee details...</div>;
+  }
+
   return (
     <div className="w-full flex flex-row justify-center items-start gap-2 mx-auto">
-        <ReceiptCopy copyType="Student" formData={formData} schoolData={schoolData} />
-        <ReceiptCopy copyType="Office" formData={formData} schoolData={schoolData} />
+        <ReceiptCopy copyType="Student" formData={formData} schoolData={schoolData} feeStructure={feeStructure} />
+        <ReceiptCopy copyType="Office" formData={formData} schoolData={schoolData} feeStructure={feeStructure} />
     </div>
   );
 };

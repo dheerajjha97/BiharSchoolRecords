@@ -1,14 +1,18 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FEE_STRUCTURE, FEE_HEADS_MAP } from '@/lib/fees';
+import { getFeeStructure, FeeHead } from '@/lib/feeStructure';
+import { useAuth } from '@/context/AuthContext';
+import { Skeleton } from './ui/skeleton';
+import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
 
 interface FeeCalculatorProps {
   studentClass: '9' | '11-arts' | '11-science' | '11-commerce' | string;
   studentCaste: 'gen' | 'ebc' | 'bc' | 'sc' | 'st' | string;
+  admissionDate: Date;
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
@@ -18,23 +22,49 @@ const currencyFormatter = new Intl.NumberFormat('en-IN', {
   maximumFractionDigits: 0,
 });
 
-export function FeeCalculator({ studentClass, studentCaste }: FeeCalculatorProps) {
+export function FeeCalculator({ studentClass, studentCaste, admissionDate }: FeeCalculatorProps) {
+  const { school } = useAuth();
+  const [feeStructure, setFeeStructure] = useState<FeeHead[]>(DEFAULT_FEE_STRUCTURE);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFees = async () => {
+      if (!school?.udise || !admissionDate) {
+        setFeeStructure(DEFAULT_FEE_STRUCTURE);
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        const year = admissionDate.getFullYear();
+        const nextYear = year + 1;
+        const session = `${year}-${nextYear}`;
+
+        const structure = await getFeeStructure(school.udise, session);
+        setFeeStructure(structure ? structure.heads : DEFAULT_FEE_STRUCTURE);
+      } catch (error) {
+        console.error("Failed to fetch fee structure, using default.", error);
+        setFeeStructure(DEFAULT_FEE_STRUCTURE);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFees();
+  }, [school, admissionDate]);
+
 
   const calculatedFees = useMemo(() => {
     const isExempt = studentCaste === 'sc' || studentCaste === 'st';
     
-    // Determine the correct fee column based on the class
     const feeKey = studentClass.startsWith('11') ? 'class11' : 'class9';
     
-    // Get the base fees for the student's class
-    const baseFees = FEE_STRUCTURE.map(head => ({
+    const baseFees = feeStructure.map(head => ({
       ...head,
       amount: head[feeKey] || 0,
     }));
     
-    // Apply exemptions if applicable
     const finalFees = baseFees.map(head => {
-      // Exclude Tuition Fee (ID 2) and Development Fee (ID 3) for SC/ST
       if (isExempt && (head.id === 2 || head.id === 3)) {
         return { ...head, amount: 0 };
       }
@@ -50,7 +80,16 @@ export function FeeCalculator({ studentClass, studentCaste }: FeeCalculatorProps
 
     return { studentFundItems, developmentFundItems, studentFundTotal, developmentFundTotal, totalFee, isExempt };
     
-  }, [studentClass, studentCaste]);
+  }, [studentClass, studentCaste, feeStructure]);
+
+  if (loading) {
+    return (
+        <div className="space-y-6">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+        </div>
+    )
+  }
 
 
   return (

@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu, FileWarning, XCircle } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu, FileWarning, XCircle, Settings } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePendingAdmissionsCount } from '@/hooks/use-pending-admissions';
 
@@ -123,6 +123,11 @@ export default function DashboardLayout({
                   <Link href="/dashboard/profile"><Building /><span>School Profile</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/settings')}>
+                  <Link href="/dashboard/settings/fees"><Settings /><span>Fee Settings</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem onClick={handleLinkClick}>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/reset-password'}>
                   <Link href="/dashboard/reset-password"><KeyRound /><span>Reset Password</span></Link>
@@ -192,6 +197,11 @@ export default function DashboardLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/profile'} tooltip="School Profile">
                   <Link href="/dashboard/profile"><Building /><span>School Profile</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/settings')} tooltip="Fee Settings">
+                  <Link href="/dashboard/settings/fees"><Settings /><span>Fee Settings</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

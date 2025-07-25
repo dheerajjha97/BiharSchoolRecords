@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
@@ -251,6 +252,7 @@ function ApprovalPageContent() {
                     <FeeCalculator
                         studentClass={studentData.admissionDetails.classSelection}
                         studentCaste={studentData.studentDetails.caste}
+                        admissionDate={form.getValues('admissionDate')}
                     />
                     <div className="flex justify-end gap-2 pt-4 border-t">
                         <Button variant="outline" onClick={() => setShowFeeStep(false)} disabled={isApproving}>

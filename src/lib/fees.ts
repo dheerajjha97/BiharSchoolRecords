@@ -1,5 +1,4 @@
 
-
 export interface FeeHead {
   id: number;
   name_en: string;
@@ -8,7 +7,9 @@ export interface FeeHead {
   class11: number;
 }
 
-export const FEE_STRUCTURE: FeeHead[] = [
+// This now serves as the default/fallback structure.
+// The primary source of truth will be the Firestore database.
+export const DEFAULT_FEE_STRUCTURE: FeeHead[] = [
   // Student Fund
   { id: 1, name_en: "Admission Fee", name_hi: "प्रवेश शुल्क", class9: 50, class11: 50 },
   { id: 2, name_en: "Tuition Fee", name_hi: "शिक्षण शुल्क", class9: 240, class11: 240 },
@@ -35,5 +36,4 @@ export const FEE_STRUCTURE: FeeHead[] = [
 ];
 
 // For quick lookup
-export const FEE_HEADS_MAP = new Map(FEE_STRUCTURE.map(item => [item.id, item]));
-
+export const FEE_HEADS_MAP = new Map(DEFAULT_FEE_STRUCTURE.map(item => [item.id, item]));
