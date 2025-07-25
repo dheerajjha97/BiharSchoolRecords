@@ -97,13 +97,18 @@ export const getAdmissionsByDate = async (udise: string, date: Date): Promise<Ad
     const q = query(
         collection(db, 'admissions'),
         where('admissionDetails.udise', '==', udise),
-        where('admissionDetails.status', '==', 'approved'),
-        where('admissionDetails.admissionDate', '>=', startOfDay),
-        where('admissionDetails.admissionDate', '<=', endOfDay)
+        where('admissionDetails.status', '==', 'approved')
     );
 
     const querySnapshot = await getDocs(q);
-    const admissions = querySnapshot.docs.map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }));
+    
+    // Filter by date on the client side to avoid composite index
+    const admissions = querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...convertTimestamps(doc.data()) } as FormValues & { id: string }))
+        .filter(admission => {
+            const admissionDate = admission.admissionDetails.admissionDate;
+            return admissionDate && admissionDate >= startOfDay && admissionDate <= endOfDay;
+        });
     
     return processAdmissionsWithFees(udise, admissions);
 };
