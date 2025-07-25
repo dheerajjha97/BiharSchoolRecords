@@ -96,13 +96,8 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
     const developmentFundTotal = developmentFundItems.reduce((sum, item) => sum + item.amount, 0);
     const totalFee = studentFundTotal + developmentFundTotal;
 
-    const studentFundParticulars = studentFundItems
-        .filter(item => item.amount > 0 || item.isExempted)
-        .map(item => `${item.name_hi}${item.isExempted ? ' (छूट)' : ''}`);
-
-    const developmentFundParticulars = developmentFundItems
-        .filter(item => item.amount > 0)
-        .map(item => item.name_hi);
+    const studentFundParticulars = studentFundItems.map(item => `${item.name_hi}${item.isExempted ? ' (छूट)' : ''}`);
+    const developmentFundParticulars = developmentFundItems.map(item => item.name_hi);
 
     return { studentFundTotal, developmentFundTotal, totalFee, studentFundParticulars, developmentFundParticulars };
 };
@@ -212,7 +207,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
             </table>
 
 
-            <div className="mt-auto pt-4 grid grid-cols-2 gap-8 text-center text-xs break-inside-avoid">
+            <div className="pt-4 grid grid-cols-2 gap-8 text-center text-xs break-inside-avoid">
                 <div className="border-t border-dashed border-black pt-1 font-semibold">
                     छात्र का हस्ताक्षर
                 </div>
