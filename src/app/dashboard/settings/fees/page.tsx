@@ -126,13 +126,18 @@ export default function FeeSettingsPage() {
       render={({ field }) => (
         <FormItem>
           <FormControl>
-            <Input
-              type="number"
-              className="text-right"
-              {...field}
-              value={field.value || 0}
-              onChange={e => field.onChange(e.target.valueAsNumber || 0)}
-            />
+            <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <span className="text-muted-foreground sm:text-sm">₹</span>
+                </div>
+                <Input
+                  type="number"
+                  className="text-right pl-6"
+                  {...field}
+                  value={field.value || 0}
+                  onChange={e => field.onChange(e.target.valueAsNumber || 0)}
+                />
+            </div>
           </FormControl>
           <FormMessage />
         </FormItem>
