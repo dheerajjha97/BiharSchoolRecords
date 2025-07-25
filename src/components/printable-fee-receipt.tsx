@@ -129,15 +129,15 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
 
 
     return (
-        <div className="w-[14.8cm] min-h-[19cm] p-2 bg-white text-black font-body text-xs flex flex-col border border-dashed border-gray-400">
+        <div className="w-[14.8cm] min-h-[19cm] p-2 bg-white text-black font-body text-[10px] flex flex-col border border-dashed border-gray-400">
             <header className="relative text-center w-full mb-2 break-inside-avoid">
                 <div className="absolute left-0 top-0">
                     <Image src="/logo.jpg" alt="School Logo" width={60} height={60} data-ai-hint="school logo"/>
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
-                    <p className="text-base">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
-                    <p className="text-lg font-bold mt-1 underline">शुल्क रसीद</p>
+                    <h1 className="text-xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
+                    <p className="text-sm">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
+                    <p className="text-base font-bold mt-1 underline">शुल्क रसीद</p>
                     <p className="text-xs font-semibold">({copyTypeText}) | (सत्र {session})</p>
                 </div>
             </header>
@@ -212,7 +212,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
             </table>
 
 
-            <div className="mt-auto pt-12 grid grid-cols-2 gap-8 text-center text-xs break-inside-avoid">
+            <div className="mt-auto pt-4 grid grid-cols-2 gap-8 text-center text-xs break-inside-avoid">
                 <div className="border-t border-dashed border-black pt-1 font-semibold">
                     छात्र का हस्ताक्षर
                 </div>
