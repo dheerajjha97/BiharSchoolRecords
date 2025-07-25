@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
+import { DEFAULT_FEE_STRUCTURE, FEE_HEADS_MAP } from '@/lib/fees';
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -27,6 +27,8 @@ function DailyCollectionRegister() {
   const [data, setData] = useState<AdmissionWithFee[]>([]);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingStudentFund, setDownloadingStudentFund] = useState(false);
+  const [downloadingDevFund, setDownloadingDevFund] = useState(false);
   const [error, setError] = useState('');
 
   const handleFetchDCR = async () => {
@@ -57,6 +59,71 @@ function DailyCollectionRegister() {
     }, { studentFund: 0, devFund: 0, grandTotal: 0 });
   }, [data]);
   
+  const generateFundPdf = async (fundType: 'student' | 'development') => {
+    const isStudentFund = fundType === 'student';
+    if (isStudentFund) {
+        setDownloadingStudentFund(true);
+    } else {
+        setDownloadingDevFund(true);
+    }
+
+    try {
+        const { default: jsPDF } = await import('jspdf');
+        const { default: autoTable } = await import('jspdf-autotable');
+
+        const doc = new jsPDF();
+        const fundName = isStudentFund ? "Student Fund" : "Development Fund";
+        const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Amount"];
+        const tableRows: any[] = [];
+
+        let grandTotal = 0;
+
+        data.forEach(item => {
+            const fundTotal = isStudentFund ? item.fees.studentFundTotal : item.fees.developmentFundTotal;
+            if (fundTotal > 0) {
+                grandTotal += fundTotal;
+                const rowData = [
+                    item.admissionDetails.admissionNumber,
+                    item.studentDetails.nameEn,
+                    item.studentDetails.fatherNameEn,
+                    item.admissionDetails.classSelection,
+                    currencyFormatter.format(fundTotal),
+                ];
+                tableRows.push(rowData);
+            }
+        });
+        
+        tableRows.push([
+            { content: 'Grand Total', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
+            { content: currencyFormatter.format(grandTotal), styles: { fontStyle: 'bold' } }
+        ]);
+
+        doc.setFontSize(18);
+        doc.text(`${fundName} Collection Register - ${school?.name || 'School'}`, 14, 15);
+        doc.setFontSize(12);
+        doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 25,
+            theme: 'grid',
+            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+            styles: { fontSize: 8 },
+        });
+        doc.save(`${fundName.replace(' ', '_')}_DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
+    } catch (e) {
+        console.error("PDF generation failed", e);
+    } finally {
+        if (isStudentFund) {
+            setDownloadingStudentFund(false);
+        } else {
+            setDownloadingDevFund(false);
+        }
+    }
+  };
+
+
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
@@ -108,6 +175,8 @@ function DailyCollectionRegister() {
     }
   };
 
+  const isAnyDownloadActive = downloading || downloadingStudentFund || downloadingDevFund;
+
   return (
     <Card>
       <CardHeader>
@@ -115,12 +184,22 @@ function DailyCollectionRegister() {
         <CardDescription>View and download a detailed collection report for a specific day.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start">
             <DatePicker date={date} setDate={(d) => setDate(d || new Date())} />
-            <Button onClick={handleDownloadPdf} disabled={loading || downloading || data.length === 0}>
-                {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
-                Download PDF
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+                <Button onClick={handleDownloadPdf} disabled={isAnyDownloadActive || data.length === 0}>
+                    {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
+                    Download PDF
+                </Button>
+                <Button variant="outline" onClick={() => generateFundPdf('student')} disabled={isAnyDownloadActive || data.length === 0}>
+                    {downloadingStudentFund ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
+                    Student Fund PDF
+                </Button>
+                 <Button variant="outline" onClick={() => generateFundPdf('development')} disabled={isAnyDownloadActive || data.length === 0}>
+                    {downloadingDevFund ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
+                    Dev. Fund PDF
+                </Button>
+            </div>
         </div>
         <div className="rounded-md border">
           <Table>
@@ -216,7 +295,8 @@ function CustomReportGenerator() {
 
             const dataToExport = data.map(item => {
                 const feeBreakdown = item.fees.allHeads.reduce((acc, head) => {
-                    acc[feeHeadNames[head.id] || `Head ${head.id}`] = head.amount;
+                    const feeHeadName = FEE_HEADS_MAP.get(head.id)?.name_en || `Head ${head.id}`;
+                    acc[feeHeadName] = head.amount;
                     return acc;
                 }, {} as Record<string, number>);
 
@@ -335,3 +415,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+
