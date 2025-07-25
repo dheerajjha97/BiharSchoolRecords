@@ -12,6 +12,10 @@ const pwaConfig = withPWA({
 
 const nextConfig: NextConfig = {
   /* config options here */
+  generateBuildId: async () => {
+    // This adds a timestamp to the build ID, effectively busting the cache on each new build.
+    return new Date().getTime().toString();
+  },
   env: {
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   },
