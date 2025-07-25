@@ -129,7 +129,7 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
 
 
     return (
-        <div className="w-[14.8cm] min-h-[19cm] p-2 bg-white text-black font-body text-[10px] flex flex-col border border-dashed border-gray-400">
+        <div className="w-[14.8cm] min-h-[18cm] p-1 bg-white text-black font-body text-[10px] flex flex-col border border-dashed border-gray-400">
             <header className="relative text-center w-full mb-2 break-inside-avoid">
                 <div className="absolute left-0 top-0">
                     <Image src="/logo.jpg" alt="School Logo" width={60} height={60} data-ai-hint="school logo"/>
@@ -142,12 +142,12 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 </div>
             </header>
 
-            <div className="flex justify-between items-center text-xs mb-2 break-inside-avoid">
+            <div className="flex justify-between items-center text-xs mb-1 break-inside-avoid">
                 <p><span className="font-bold">रसीद संख्या:</span> {admissionDetails.admissionNumber}</p>
                 <p><span className="font-bold">दिनांक:</span> {formatDate(admissionDetails.admissionDate)}</p>
             </div>
 
-            <table className="w-full border-collapse border border-black text-xs mb-2">
+            <table className="w-full border-collapse border border-black text-xs mb-1">
                 <tbody>
                     <tr className="break-inside-avoid">
                         <td className="border border-black py-0.5 px-1 font-semibold">प्रवेश संख्या</td>
