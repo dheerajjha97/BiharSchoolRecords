@@ -14,6 +14,49 @@ const currencyFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 2,
 });
 
+// --- Helper function to convert number to words ---
+const toWords = (num: number): string => {
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    const convertLessThanThousand = (n: number): string => {
+        if (n === 0) return '';
+        if (n < 10) return ones[n];
+        if (n < 20) return teens[n - 10];
+        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + ones[n % 10] : '');
+        return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' ' + convertLessThanThousand(n % 100) : '');
+    };
+
+    if (num === 0) return 'Zero';
+
+    let result = '';
+    const crore = Math.floor(num / 10000000);
+    num %= 10000000;
+    if (crore > 0) {
+        result += convertLessThanThousand(crore) + ' Crore ';
+    }
+
+    const lakh = Math.floor(num / 100000);
+    num %= 100000;
+    if (lakh > 0) {
+        result += convertLessThanThousand(lakh) + ' Lakh ';
+    }
+
+    const thousand = Math.floor(num / 1000);
+    num %= 1000;
+    if (thousand > 0) {
+        result += convertLessThanThousand(thousand) + ' Thousand ';
+    }
+
+    if (num > 0) {
+        result += convertLessThanThousand(num);
+    }
+
+    return `Rupees ${result.trim()} Only`;
+};
+
+
 const calculateFees = (studentClass: string, studentCaste: string, feeStructure: FeeHead[]) => {
     const isExempt = studentCaste === 'sc' || studentCaste === 'st';
     const feeKey = studentClass.startsWith('11') ? 'class11' : 'class9';
@@ -37,7 +80,7 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
     const developmentFundTotal = developmentFundItems.reduce((sum, item) => sum + item.amount, 0);
     const totalFee = studentFundTotal + developmentFundTotal;
 
-    return { studentFundItems, developmentFundItems, studentFundTotal, developmentFundTotal, totalFee };
+    return { studentFundTotal, developmentFundTotal, totalFee };
 };
 
 const streamDisplayNames: { [key: string]: string } = {
@@ -101,59 +144,43 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 </tbody>
             </table>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <h3 className="font-bold text-center bg-gray-100 border border-black py-1">Student Fund</h3>
-                    <table className="w-full border-collapse border border-black text-sm">
-                        <thead>
-                            <tr className="break-inside-avoid">
-                                <th className="border border-black py-1 px-2 text-left">Fee Head</th>
-                                <th className="border border-black py-1 px-2 text-right">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {fees.studentFundItems.map(item => (
-                                <tr key={item.id} className="break-inside-avoid">
-                                    <td className="border border-black py-1 px-2">{item.name_en} {item.isExempted && <span className="text-green-600">(Exempt)</span>}</td>
-                                    <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(item.amount)}</td>
-                                </tr>
-                            ))}
-                            <tr className="font-bold bg-gray-100 break-inside-avoid">
-                                <td className="border border-black py-1 px-2">Sub Total</td>
-                                <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.studentFundTotal)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <table className="w-full border-collapse border border-black text-sm">
+                 <thead>
+                    <tr className="break-inside-avoid">
+                        <th className="border border-black py-1 px-2 text-left w-12">Sr. No.</th>
+                        <th className="border border-black py-1 px-2 text-left">Particulars</th>
+                        <th className="border border-black py-1 px-2 text-right">Amount (INR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr className="break-inside-avoid">
+                        <td className="border border-black py-1 px-2 text-center">1.</td>
+                        <td className="border border-black py-1 px-2">Student Fund</td>
+                        <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.studentFundTotal).replace('₹', '')}</td>
+                    </tr>
+                     <tr className="break-inside-avoid">
+                        <td className="border border-black py-1 px-2 text-center">2.</td>
+                        <td className="border border-black py-1 px-2">Development Fund</td>
+                        <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.developmentFundTotal).replace('₹', '')}</td>
+                    </tr>
+                    {/* Add empty rows for spacing if needed */}
+                    <tr className="break-inside-avoid"><td className="py-2 border-x border-black"></td><td className="border-x border-black"></td><td className="border-x border-black"></td></tr>
+                    <tr className="break-inside-avoid"><td className="py-2 border-x border-black"></td><td className="border-x border-black"></td><td className="border-x border-black"></td></tr>
 
-                <div>
-                    <h3 className="font-bold text-center bg-gray-100 border border-black py-1">Development Fund</h3>
-                    <table className="w-full border-collapse border border-black text-sm">
-                        <thead>
-                            <tr className="break-inside-avoid">
-                                <th className="border border-black py-1 px-2 text-left">Fee Head</th>
-                                <th className="border border-black py-1 px-2 text-right">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {fees.developmentFundItems.map(item => (
-                                <tr key={item.id} className="break-inside-avoid">
-                                    <td className="border border-black py-1 px-2">{item.name_en}</td>
-                                    <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(item.amount)}</td>
-                                </tr>
-                            ))}
-                            <tr className="font-bold bg-gray-100 break-inside-avoid">
-                                <td className="border border-black py-1 px-2">Sub Total</td>
-                                <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.developmentFundTotal)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                </tbody>
+                <tfoot>
+                    <tr className="font-bold bg-gray-100 break-inside-avoid">
+                        <td colSpan={2} className="border border-black py-1 px-2 text-right">Total</td>
+                        <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.totalFee)}</td>
+                    </tr>
+                    <tr className="font-bold bg-gray-100 break-inside-avoid">
+                        <td colSpan={3} className="border border-black py-1 px-2 text-left">
+                            Amount in Words: {toWords(fees.totalFee)}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
 
-            <div className="mt-4 text-right break-inside-avoid">
-                <p className="font-bold text-lg">Total Payable Amount: {currencyFormatter.format(fees.totalFee)}</p>
-            </div>
 
             <div className="mt-auto pt-16 grid grid-cols-2 gap-8 text-center text-sm break-inside-avoid">
                 <div className="border-t-2 border-dashed border-black pt-1 font-semibold">
