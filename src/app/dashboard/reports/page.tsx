@@ -10,13 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getAdmissionsByDate, getFilteredAdmissions, AdmissionWithFee } from '@/lib/reports';
 import { Loader2, Download, FileSpreadsheet, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import * as XLSX from 'xlsx';
-import { FeeHead, DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
+import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
 
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -29,6 +26,7 @@ function DailyCollectionRegister() {
   const [date, setDate] = useState<Date>(new Date());
   const [data, setData] = useState<AdmissionWithFee[]>([]);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
 
   const handleFetchDCR = async () => {
@@ -59,46 +57,55 @@ function DailyCollectionRegister() {
     }, { studentFund: 0, devFund: 0, grandTotal: 0 });
   }, [data]);
   
-  const handleDownloadPdf = () => {
-    const doc = new jsPDF();
-    const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Student Fund", "Dev Fund", "Total"];
-    const tableRows: any[] = [];
+  const handleDownloadPdf = async () => {
+    setDownloading(true);
+    try {
+        const { default: jsPDF } = await import('jspdf');
+        const { default: autoTable } = await import('jspdf-autotable');
 
-    data.forEach(item => {
-      const rowData = [
-        item.admissionDetails.admissionNumber,
-        item.studentDetails.nameEn,
-        item.studentDetails.fatherNameEn,
-        item.admissionDetails.classSelection,
-        currencyFormatter.format(item.fees.studentFundTotal),
-        currencyFormatter.format(item.fees.developmentFundTotal),
-        currencyFormatter.format(item.fees.totalFee),
-      ];
-      tableRows.push(rowData);
-    });
-    
-    // Add totals row
-    tableRows.push([
-        { content: 'Grand Total', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
-        { content: currencyFormatter.format(totals.studentFund), styles: { fontStyle: 'bold' } },
-        { content: currencyFormatter.format(totals.devFund), styles: { fontStyle: 'bold' } },
-        { content: currencyFormatter.format(totals.grandTotal), styles: { fontStyle: 'bold' } }
-    ]);
+        const doc = new jsPDF();
+        const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Student Fund", "Dev Fund", "Total"];
+        const tableRows: any[] = [];
 
-    doc.setFontSize(18);
-    doc.text(`Daily Collection Register - ${school?.name || 'School'}`, 14, 15);
-    doc.setFontSize(12);
-    doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
+        data.forEach(item => {
+        const rowData = [
+            item.admissionDetails.admissionNumber,
+            item.studentDetails.nameEn,
+            item.studentDetails.fatherNameEn,
+            item.admissionDetails.classSelection,
+            currencyFormatter.format(item.fees.studentFundTotal),
+            currencyFormatter.format(item.fees.developmentFundTotal),
+            currencyFormatter.format(item.fees.totalFee),
+        ];
+        tableRows.push(rowData);
+        });
+        
+        tableRows.push([
+            { content: 'Grand Total', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
+            { content: currencyFormatter.format(totals.studentFund), styles: { fontStyle: 'bold' } },
+            { content: currencyFormatter.format(totals.devFund), styles: { fontStyle: 'bold' } },
+            { content: currencyFormatter.format(totals.grandTotal), styles: { fontStyle: 'bold' } }
+        ]);
 
-    (doc as any).autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 25,
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      styles: { fontSize: 8 },
-    });
-    doc.save(`DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
+        doc.setFontSize(18);
+        doc.text(`Daily Collection Register - ${school?.name || 'School'}`, 14, 15);
+        doc.setFontSize(12);
+        doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 25,
+            theme: 'grid',
+            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+            styles: { fontSize: 8 },
+        });
+        doc.save(`DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
+    } catch (e) {
+        console.error("PDF generation failed", e);
+    } finally {
+        setDownloading(false);
+    }
   };
 
   return (
@@ -110,8 +117,8 @@ function DailyCollectionRegister() {
       <CardContent className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
             <DatePicker date={date} setDate={(d) => setDate(d || new Date())} />
-            <Button onClick={handleDownloadPdf} disabled={loading || data.length === 0}>
-                <Download className="mr-2 h-4 w-4"/>
+            <Button onClick={handleDownloadPdf} disabled={loading || downloading || data.length === 0}>
+                {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
                 Download PDF
             </Button>
         </div>
@@ -200,6 +207,8 @@ function CustomReportGenerator() {
               return;
             }
 
+            const XLSX = await import('xlsx');
+
             const feeHeadNames = DEFAULT_FEE_STRUCTURE.reduce((acc, head) => {
                 acc[head.id] = head.name_en;
                 return acc;
@@ -229,7 +238,6 @@ function CustomReportGenerator() {
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Fee Collection Report");
             
-            // Auto-fit columns (optional, but good for readability)
             const colWidths = Object.keys(dataToExport[0]).map(key => ({ wch: Math.max(key.length, 15) }));
             worksheet["!cols"] = colWidths;
 
