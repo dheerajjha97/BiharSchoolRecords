@@ -20,15 +20,15 @@ const toWords = (num: number): string => {
     const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
+    if (num === 0) return 'Zero';
+
     const convertLessThanThousand = (n: number): string => {
         if (n === 0) return '';
         if (n < 10) return ones[n];
         if (n < 20) return teens[n - 10];
         if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + ones[n % 10] : '');
-        return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' ' + convertLessThanThousand(n % 100) : '');
+        return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + convertLessThanThousand(n % 100) : '');
     };
-
-    if (num === 0) return 'Zero';
 
     let result = '';
     const crore = Math.floor(num / 10000000);
@@ -61,16 +61,14 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
     const isExempt = studentCaste === 'sc' || studentCaste === 'st';
     const feeKey = studentClass.startsWith('11') ? 'class11' : 'class9';
     
-    const baseFees = feeStructure.map(head => ({
-      ...head,
-      amount: head[feeKey] || 0,
-    }));
-    
-    const finalFees = baseFees.map(head => {
-      if (isExempt && (head.id === 2 || head.id === 3)) {
-        return { ...head, amount: 0, isExempted: true };
-      }
-      return { ...head, isExempted: false };
+    const finalFees = feeStructure.map(head => {
+        let amount = head[feeKey] || 0;
+        let isExempted = false;
+        if (isExempt && (head.id === 2 || head.id === 3)) {
+            amount = 0;
+            isExempted = true;
+        }
+        return { ...head, amount, isExempted };
     });
 
     const studentFundItems = finalFees.slice(0, 4);
@@ -80,7 +78,17 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
     const developmentFundTotal = developmentFundItems.reduce((sum, item) => sum + item.amount, 0);
     const totalFee = studentFundTotal + developmentFundTotal;
 
-    return { studentFundTotal, developmentFundTotal, totalFee };
+    const studentFundParticulars = studentFundItems
+        .filter(item => item.amount > 0 || item.isExempted)
+        .map(item => `${item.name_en}${item.isExempted ? ' (Exempted)' : ''}`)
+        .join(', ');
+
+    const developmentFundParticulars = developmentFundItems
+        .filter(item => item.amount > 0)
+        .map(item => item.name_en)
+        .join(', ');
+
+    return { studentFundTotal, developmentFundTotal, totalFee, studentFundParticulars, developmentFundParticulars };
 };
 
 const streamDisplayNames: { [key: string]: string } = {
@@ -154,18 +162,17 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 </thead>
                 <tbody>
                     <tr className="break-inside-avoid">
-                        <td className="border border-black py-1 px-2 text-center">1.</td>
-                        <td className="border border-black py-1 px-2">Student Fund</td>
-                        <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.studentFundTotal).replace('₹', '')}</td>
+                        <td className="border border-black py-1 px-2 text-center align-top">1.</td>
+                        <td className="border border-black py-1 px-2">{fees.studentFundParticulars}</td>
+                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.studentFundTotal).replace('₹', '')}</td>
                     </tr>
                      <tr className="break-inside-avoid">
-                        <td className="border border-black py-1 px-2 text-center">2.</td>
-                        <td className="border border-black py-1 px-2">Development Fund</td>
-                        <td className="border border-black py-1 px-2 text-right">{currencyFormatter.format(fees.developmentFundTotal).replace('₹', '')}</td>
+                        <td className="border border-black py-1 px-2 text-center align-top">2.</td>
+                        <td className="border border-black py-1 px-2">{fees.developmentFundParticulars}</td>
+                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.developmentFundTotal).replace('₹', '')}</td>
                     </tr>
                     {/* Add empty rows for spacing if needed */}
-                    <tr className="break-inside-avoid"><td className="py-2 border-x border-black"></td><td className="border-x border-black"></td><td className="border-x border-black"></td></tr>
-                    <tr className="break-inside-avoid"><td className="py-2 border-x border-black"></td><td className="border-x border-black"></td><td className="border-x border-black"></td></tr>
+                    <tr className="break-inside-avoid"><td className="py-8 border-x border-black"></td><td className="border-x border-black"></td><td className="border-x border-black"></td></tr>
 
                 </tbody>
                 <tfoot>
