@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu, FileWarning, XCircle, Settings, ReceiptText } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu, FileWarning, XCircle, Settings, ReceiptText, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePendingAdmissionsCount } from '@/hooks/use-pending-admissions';
 
@@ -119,6 +119,11 @@ export default function DashboardLayout({
                   <Link href="/dashboard/quick-receipt"><ReceiptText /><span>New Quick Receipt</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem onClick={handleLinkClick}>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/reports')}>
+                  <Link href="/dashboard/reports"><BarChart3 /><span>Reports</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </div>
           <div className="p-2 mt-auto border-t">
@@ -199,6 +204,11 @@ export default function DashboardLayout({
               <SidebarMenuButton asChild isActive={pathname === '/dashboard/quick-receipt'} tooltip="New Quick Receipt">
                 <Link href="/dashboard/quick-receipt"><ReceiptText /><span>New Quick Receipt</span></Link>
               </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/reports')} tooltip="Reports">
+                  <Link href="/dashboard/reports"><BarChart3 /><span>Reports</span></Link>
+                </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
