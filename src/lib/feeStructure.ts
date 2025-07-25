@@ -8,7 +8,11 @@ export interface FeeHead {
   name_en: string;
   name_hi: string;
   class9: number;
-  class11: number;
+  class10: number;
+  class11ac: number; // Arts & Commerce
+  class11s: number;  // Science
+  class12ac: number; // Arts & Commerce
+  class12s: number;  // Science
 }
 
 export interface FeeStructure {
@@ -61,9 +65,8 @@ export const getFeeStructure = async (udise: string, session: string): Promise<F
     // If no specific structure for the session, try fetching one for the UDISE without session
     const genericDocId = `${udise}_default`;
     const genericFeeDocRef = doc(db, 'feeStructures', genericDocId);
-    const genericDocSnap = await getDoc(genericFeeDocRef);
-     if (genericDocSnap.exists()) {
-      return genericDocSnap.data() as FeeStructure;
+     if (genericFeeDocRef.exists()) {
+      return genericFeeDocRef.data() as FeeStructure;
     }
 
     return null; // Return null to indicate that default should be used

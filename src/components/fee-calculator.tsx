@@ -10,7 +10,7 @@ import { Skeleton } from './ui/skeleton';
 import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
 
 interface FeeCalculatorProps {
-  studentClass: '9' | '11-arts' | '11-science' | '11-commerce' | string;
+  studentClass: '9' | '10' | '11-arts' | '11-science' | '11-commerce' | '12-arts' | '12-science' | '12-commerce' | string;
   studentCaste: 'gen' | 'ebc' | 'bc' | 'sc' | 'st' | string;
   admissionDate: Date;
 }
@@ -21,6 +21,28 @@ const currencyFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
+
+const getFeeKeyForClass = (studentClass: string): keyof Omit<FeeHead, 'id' | 'name_en' | 'name_hi'> => {
+  switch (studentClass) {
+    case '9':
+      return 'class9';
+    case '10':
+      return 'class10';
+    case '11-arts':
+    case '11-commerce':
+      return 'class11ac';
+    case '11-science':
+      return 'class11s';
+    case '12-arts':
+    case '12-commerce':
+      return 'class12ac';
+    case '12-science':
+      return 'class12s';
+    default:
+      return 'class9'; // Fallback
+  }
+};
+
 
 export function FeeCalculator({ studentClass, studentCaste, admissionDate }: FeeCalculatorProps) {
   const { school } = useAuth();
@@ -57,7 +79,7 @@ export function FeeCalculator({ studentClass, studentCaste, admissionDate }: Fee
   const calculatedFees = useMemo(() => {
     const isExempt = studentCaste === 'sc' || studentCaste === 'st';
     
-    const feeKey = studentClass.startsWith('11') ? 'class11' : 'class9';
+    const feeKey = getFeeKeyForClass(studentClass);
     
     const baseFees = feeStructure.map(head => ({
       ...head,

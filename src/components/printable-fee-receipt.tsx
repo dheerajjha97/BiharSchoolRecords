@@ -74,10 +74,31 @@ const toWordsHindi = (num: number): string => {
     return `रुपये ${result.trim()} मात्र`;
 };
 
+const getFeeKeyForClass = (studentClass: string): keyof Omit<FeeHead, 'id' | 'name_en' | 'name_hi'> => {
+  switch (studentClass) {
+    case '9':
+      return 'class9';
+    case '10':
+      return 'class10';
+    case '11-arts':
+    case '11-commerce':
+      return 'class11ac';
+    case '11-science':
+      return 'class11s';
+    case '12-arts':
+    case '12-commerce':
+      return 'class12ac';
+    case '12-science':
+      return 'class12s';
+    default:
+      return 'class9'; // Fallback
+  }
+};
+
 
 const calculateFees = (studentClass: string, studentCaste: string, feeStructure: FeeHead[]) => {
     const isExempt = studentCaste === 'sc' || studentCaste === 'st';
-    const feeKey = studentClass.startsWith('11') ? 'class11' : 'class9';
+    const feeKey = getFeeKeyForClass(studentClass);
     
     const finalFees = feeStructure.map(head => {
         let amount = head[feeKey] || 0;

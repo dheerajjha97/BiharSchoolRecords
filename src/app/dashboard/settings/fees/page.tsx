@@ -24,7 +24,11 @@ const feeHeadSchema = z.object({
   name_en: z.string(),
   name_hi: z.string(),
   class9: z.number().min(0, 'Amount must be positive'),
-  class11: z.number().min(0, 'Amount must be positive'),
+  class10: z.number().min(0, 'Amount must be positive'),
+  class11ac: z.number().min(0, 'Amount must be positive'),
+  class11s: z.number().min(0, 'Amount must be positive'),
+  class12ac: z.number().min(0, 'Amount must be positive'),
+  class12s: z.number().min(0, 'Amount must be positive'),
 });
 
 const feeStructureSchema = z.object({
@@ -115,6 +119,27 @@ export default function FeeSettingsPage() {
     return options;
   };
 
+  const renderInput = (index: number, fieldName: keyof FeeHead) => (
+    <FormField
+      control={form.control}
+      name={`heads.${index}.${fieldName}`}
+      render={({ field }) => (
+        <FormItem>
+          <FormControl>
+            <Input
+              type="number"
+              className="text-right"
+              {...field}
+              value={field.value || 0}
+              onChange={e => field.onChange(e.target.valueAsNumber || 0)}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
   return (
     <div className="space-y-8">
       <header>
@@ -152,13 +177,17 @@ export default function FeeSettingsPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="rounded-md border">
-                <Table>
+              <div className="rounded-md border overflow-x-auto">
+                <Table className="min-w-[1000px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-1/2">Fee Head</TableHead>
-                      <TableHead className="text-right">Class 9 Amount (₹)</TableHead>
-                      <TableHead className="text-right">Class 11 Amount (₹)</TableHead>
+                      <TableHead className="w-[30%]">Fee Head</TableHead>
+                      <TableHead className="text-right">Class 9 (₹)</TableHead>
+                      <TableHead className="text-right">Class 10 (₹)</TableHead>
+                      <TableHead className="text-right">11 Arts/Comm (₹)</TableHead>
+                      <TableHead className="text-right">11 Science (₹)</TableHead>
+                      <TableHead className="text-right">12 Arts/Comm (₹)</TableHead>
+                      <TableHead className="text-right">12 Science (₹)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -166,8 +195,7 @@ export default function FeeSettingsPage() {
                       Array.from({ length: 10 }).map((_, i) => (
                         <TableRow key={i}>
                           <TableCell><Skeleton className="h-6 w-3/4" /></TableCell>
-                          <TableCell><Skeleton className="h-10 w-full" /></TableCell>
-                          <TableCell><Skeleton className="h-10 w-full" /></TableCell>
+                           <TableCell colSpan={6}><Skeleton className="h-10 w-full" /></TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -177,44 +205,12 @@ export default function FeeSettingsPage() {
                             <p>{field.name_en}</p>
                             <p className="text-sm text-muted-foreground">{field.name_hi}</p>
                           </TableCell>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`heads.${index}.class9`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      className="text-right"
-                                      {...field}
-                                      onChange={e => field.onChange(e.target.valueAsNumber)}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`heads.${index}.class11`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      className="text-right"
-                                      {...field}
-                                      onChange={e => field.onChange(e.target.valueAsNumber)}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
+                          <TableCell>{renderInput(index, 'class9')}</TableCell>
+                          <TableCell>{renderInput(index, 'class10')}</TableCell>
+                          <TableCell>{renderInput(index, 'class11ac')}</TableCell>
+                          <TableCell>{renderInput(index, 'class11s')}</TableCell>
+                          <TableCell>{renderInput(index, 'class12ac')}</TableCell>
+                          <TableCell>{renderInput(index, 'class12s')}</TableCell>
                         </TableRow>
                       ))
                     )}
