@@ -65,8 +65,9 @@ export const getFeeStructure = async (udise: string, session: string): Promise<F
     // If no specific structure for the session, try fetching one for the UDISE without session
     const genericDocId = `${udise}_default`;
     const genericFeeDocRef = doc(db, 'feeStructures', genericDocId);
-     if (genericFeeDocRef.exists()) {
-      return genericFeeDocRef.data() as FeeStructure;
+    const genericDocSnap = await getDoc(genericFeeDocRef);
+    if (genericDocSnap.exists()) {
+      return genericDocSnap.data() as FeeStructure;
     }
 
     return null; // Return null to indicate that default should be used
