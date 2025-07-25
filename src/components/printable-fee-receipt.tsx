@@ -80,13 +80,11 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
 
     const studentFundParticulars = studentFundItems
         .filter(item => item.amount > 0 || item.isExempted)
-        .map(item => `${item.name_en}${item.isExempted ? ' (Exempted)' : ''}`)
-        .join(', ');
+        .map(item => `${item.name_en}${item.isExempted ? ' (Exempted)' : ''}`);
 
     const developmentFundParticulars = developmentFundItems
         .filter(item => item.amount > 0)
-        .map(item => item.name_en)
-        .join(', ');
+        .map(item => item.name_en);
 
     return { studentFundTotal, developmentFundTotal, totalFee, studentFundParticulars, developmentFundParticulars };
 };
@@ -163,12 +161,20 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                 <tbody>
                     <tr className="break-inside-avoid">
                         <td className="border border-black py-1 px-2 text-center align-top">1.</td>
-                        <td className="border border-black py-1 px-2 whitespace-nowrap">{fees.studentFundParticulars}</td>
+                        <td className="border border-black py-1 px-2">
+                             {fees.studentFundParticulars.map((item, index) => (
+                                <div key={index}>{item}</div>
+                            ))}
+                        </td>
                         <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.studentFundTotal).replace('₹', '')}</td>
                     </tr>
                      <tr className="break-inside-avoid">
                         <td className="border border-black py-1 px-2 text-center align-top">2.</td>
-                        <td className="border border-black py-1 px-2 whitespace-nowrap">{fees.developmentFundParticulars}</td>
+                        <td className="border border-black py-1 px-2">
+                            {fees.developmentFundParticulars.map((item, index) => (
+                                <div key={index}>{item}</div>
+                            ))}
+                        </td>
                         <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.developmentFundTotal).replace('₹', '')}</td>
                     </tr>
                     
@@ -240,3 +246,4 @@ export const PrintableFeeReceipt = ({ formData, schoolData }: { formData: FormVa
     </div>
   );
 };
+
