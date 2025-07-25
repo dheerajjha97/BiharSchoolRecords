@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, AlertTriangle, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, WalletCards } from 'lucide-react';
 import { FormReviewStep } from '@/components/form-review-step';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
+import { FeeCalculator } from '@/components/fee-calculator';
 
 const approvalSchema = z.object({
   admissionDate: z.date({ required_error: 'Admission date is required to approve.' }),
@@ -49,6 +49,7 @@ function ApprovalPageContent() {
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFeeStep, setShowFeeStep] = useState(false);
   
   const form = useForm<ApprovalFormValues>({
     resolver: zodResolver(approvalSchema),
@@ -78,8 +79,13 @@ function ApprovalPageContent() {
     }
   }, [params.id]);
 
-  const handleApprove = async (data: ApprovalFormValues) => {
-    if (!studentData || !school || !params.id) return;
+  const onDateSet = () => {
+    setShowFeeStep(true);
+  }
+
+  const handleApprove = async () => {
+    const admissionDate = form.getValues('admissionDate');
+    if (!studentData || !school || !params.id || !admissionDate) return;
 
     setIsApproving(true);
     try {
@@ -87,7 +93,7 @@ function ApprovalPageContent() {
         params.id as string,
         school.udise,
         studentData.admissionDetails.classSelection,
-        data.admissionDate
+        admissionDate
       );
 
       toast({
@@ -185,54 +191,76 @@ function ApprovalPageContent() {
         <Card>
             <CardHeader>
                 <CardTitle>Approval Action</CardTitle>
-                <CardDescription>Please set the official admission date and approve the form, or reject it.</CardDescription>
+                <CardDescription>
+                  {showFeeStep 
+                    ? "Review the calculated fee and approve the admission." 
+                    : "Please set the official admission date to proceed."}
+                </CardDescription>
             </CardHeader>
             <CardContent>
+              {!showFeeStep ? (
                 <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleApprove)} className="flex flex-col sm:flex-row items-start gap-4">
-                    <FormField
-                    control={form.control}
-                    name="admissionDate"
-                    render={({ field }) => (
-                        <FormItem className="flex-1 w-full sm:w-auto">
-                        <FormLabel>Admission Date</FormLabel>
-                        <DatePicker date={field.value} setDate={field.onChange} />
-                        <FormMessage />
-                        </FormItem>
-                    )}
+                  <form onSubmit={form.handleSubmit(onDateSet)} className="flex flex-col sm:flex-row items-start gap-4">
+                      <FormField
+                      control={form.control}
+                      name="admissionDate"
+                      render={({ field }) => (
+                          <FormItem className="flex-1 w-full sm:w-auto">
+                          <FormLabel>Admission Date</FormLabel>
+                          <DatePicker date={field.value} setDate={field.onChange} />
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                      <div className="flex-shrink-0 pt-8 space-x-2">
+                          <Button type="submit">
+                              <WalletCards className="mr-2 h-4 w-4" />
+                              Calculate Fee
+                          </Button>
+                           <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                  <Button type="button" variant="destructive" disabled={isApproving || isRejecting}>
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Reject
+                                  </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      This action will mark the admission for {studentData.studentDetails.nameEn} as rejected. You can find rejected applications in a separate list later. Are you sure you want to proceed?
+                                  </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                  <AlertDialogCancel disabled={isRejecting}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleReject} disabled={isRejecting} className="bg-destructive hover:bg-destructive/90">
+                                      {isRejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                      Yes, Reject Admission
+                                  </AlertDialogAction>
+                                  </AlertDialogFooter>
+                              </AlertDialogContent>
+                          </AlertDialog>
+                      </div>
+                  </form>
+                </Form>
+              ) : (
+                <div className="space-y-6">
+                    <FeeCalculator
+                        studentClass={studentData.admissionDetails.classSelection}
+                        studentCaste={studentData.studentDetails.caste}
                     />
-                    <div className="flex-shrink-0 pt-8 space-x-2">
-                        <Button type="submit" disabled={isApproving || isRejecting}>
+                    <div className="flex justify-end gap-2 pt-4 border-t">
+                        <Button variant="outline" onClick={() => setShowFeeStep(false)} disabled={isApproving}>
+                            Back
+                        </Button>
+                        <Button onClick={handleApprove} disabled={isApproving || isRejecting}>
                             {isApproving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             <CheckCircle2 className="mr-2 h-4 w-4" />
                             Approve & Print
                         </Button>
-                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button type="button" variant="destructive" disabled={isApproving || isRejecting}>
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Reject
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action will mark the admission for {studentData.studentDetails.nameEn} as rejected. You can find rejected applications in a separate list later. Are you sure you want to proceed?
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isRejecting}>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleReject} disabled={isRejecting} className="bg-destructive hover:bg-destructive/90">
-                                    {isRejecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Yes, Reject Admission
-                                </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
                     </div>
-                </form>
-                </Form>
+                </div>
+              )}
             </CardContent>
         </Card>
       )}
