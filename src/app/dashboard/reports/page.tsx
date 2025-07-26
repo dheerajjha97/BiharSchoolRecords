@@ -288,11 +288,6 @@ function CustomReportGenerator() {
 
             const XLSX = await import('xlsx');
 
-            const feeHeadNames = DEFAULT_FEE_STRUCTURE.reduce((acc, head) => {
-                acc[head.id] = head.name_en;
-                return acc;
-            }, {} as Record<number, string>);
-
             const dataToExport = data.map(item => {
                 const feeBreakdown = item.fees.allHeads.reduce((acc, head) => {
                     const feeHeadName = FEE_HEADS_MAP.get(head.id)?.name_en || `Head ${head.id}`;
