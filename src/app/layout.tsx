@@ -1,14 +1,15 @@
 
 import type {Metadata, Viewport} from 'next';
-import { PT_Sans } from 'next/font/google';
+import { Noto_Sans_Devanagari } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/AuthContext';
 
-const ptSans = PT_Sans({
-  subsets: ['latin', 'latin-ext'],
+const noto_sans_devanagari = Noto_Sans_Devanagari({
+  subsets: ['devanagari', 'latin'],
   weight: ['400', '700'],
   variable: '--font-body',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={ptSans.variable}>
+    <html lang="en" suppressHydrationWarning className={noto_sans_devanagari.variable}>
       <body className="font-body antialiased">
         <AuthProvider>
             {children}

@@ -15,6 +15,45 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { DEFAULT_FEE_STRUCTURE, FEE_HEADS_MAP } from '@/lib/fees';
 import { currencyFormatter } from '@/lib/utils';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+
+// --- Font Loading for jsPDF ---
+let notoFontRegular: string | null = null;
+let notoFontBold: string | null = null;
+
+const loadPdfFonts = async () => {
+    try {
+        if (!notoFontRegular) {
+            const fontRegular = await fetch('/fonts/NotoSansDevanagari-Regular.ttf');
+            const arrayBufferRegular = await fontRegular.arrayBuffer();
+            notoFontRegular = btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBufferRegular) as any));
+        }
+        if (!notoFontBold) {
+            const fontBold = await fetch('/fonts/NotoSansDevanagari-Bold.ttf');
+            const arrayBufferBold = await fontBold.arrayBuffer();
+            notoFontBold = btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBufferBold) as any));
+        }
+    } catch (e) {
+        console.error("Failed to load PDF fonts:", e);
+    }
+}
+// Pre-load fonts when the component mounts
+useEffect(() => { loadPdfFonts(); }, []);
+
+
+const createPdfDoc = () => {
+    const doc = new jsPDF();
+    if (notoFontRegular && notoFontBold) {
+        doc.addFileToVFS("NotoSansDevanagari-Regular.ttf", notoFontRegular);
+        doc.addFont("NotoSansDevanagari-Regular.ttf", "NotoSansDevanagari", "normal");
+        doc.addFileToVFS("NotoSansDevanagari-Bold.ttf", notoFontBold);
+        doc.addFont("NotoSansDevanagari-Bold.ttf", "NotoSansDevanagari", "bold");
+        doc.setFont("NotoSansDevanagari");
+    }
+    return doc;
+};
+
 
 // --- Daily Collection Register ---
 function DailyCollectionRegister() {
@@ -64,10 +103,8 @@ function DailyCollectionRegister() {
     }
 
     try {
-        const { default: jsPDF } = await import('jspdf');
-        const { default: autoTable } = await import('jspdf-autotable');
-
-        const doc = new jsPDF();
+        await loadPdfFonts();
+        const doc = createPdfDoc();
         const fundName = isStudentFund ? "Student Fund" : "Development Fund";
         const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Amount"];
         const tableRows: any[] = [];
@@ -95,17 +132,20 @@ function DailyCollectionRegister() {
         ]);
 
         doc.setFontSize(18);
+        doc.setFont("NotoSansDevanagari", "bold");
         doc.text(`${fundName} Collection Register - ${school?.name || 'School'}`, 14, 15);
+        
         doc.setFontSize(12);
+        doc.setFont("NotoSansDevanagari", "normal");
         doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
 
-        autoTable(doc, {
+        (doc as any).autoTable({
             head: [tableColumn],
             body: tableRows,
             startY: 25,
             theme: 'grid',
-            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-            styles: { fontSize: 8 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, font: "NotoSansDevanagari", fontStyle: 'bold' },
+            styles: { fontSize: 8, font: "NotoSansDevanagari", fontStyle: 'normal' },
         });
         doc.save(`${fundName.replace(' ', '_')}_DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
     } catch (e) {
@@ -123,10 +163,8 @@ function DailyCollectionRegister() {
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
-        const { default: jsPDF } = await import('jspdf');
-        const { default: autoTable } = await import('jspdf-autotable');
-
-        const doc = new jsPDF();
+        await loadPdfFonts();
+        const doc = createPdfDoc();
         const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Student Fund", "Dev Fund", "Total"];
         const tableRows: any[] = [];
 
@@ -149,19 +187,22 @@ function DailyCollectionRegister() {
             { content: currencyFormatter.format(totals.devFund), styles: { fontStyle: 'bold' } },
             { content: currencyFormatter.format(totals.grandTotal), styles: { fontStyle: 'bold' } }
         ]);
-
+        
         doc.setFontSize(18);
+        doc.setFont("NotoSansDevanagari", "bold");
         doc.text(`Daily Collection Register - ${school?.name || 'School'}`, 14, 15);
+        
         doc.setFontSize(12);
+        doc.setFont("NotoSansDevanagari", "normal");
         doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
 
-        autoTable(doc, {
+        (doc as any).autoTable({
             head: [tableColumn],
             body: tableRows,
             startY: 25,
             theme: 'grid',
-            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-            styles: { fontSize: 8 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, font: "NotoSansDevanagari", fontStyle: 'bold' },
+            styles: { fontSize: 8, font: "NotoSansDevanagari", fontStyle: 'normal' },
         });
         doc.save(`DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
     } catch (e) {
