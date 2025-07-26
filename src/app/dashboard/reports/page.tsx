@@ -19,25 +19,47 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 // --- Font Loading for jsPDF ---
+// These will hold the base64 encoded font data
 let notoFontRegular: string | null = null;
 let notoFontBold: string | null = null;
+
+// Helper function to fetch font data as base64
+const fetchFontAsBase64 = async (url: string): Promise<string> => {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch font: ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                // The result is a data URL, we only need the base64 part
+                resolve(reader.result.split(',')[1]);
+            } else {
+                reject(new Error('Failed to read font as base64 string.'));
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
 
 const loadPdfFonts = async () => {
     try {
         if (!notoFontRegular) {
-            const fontRegular = await fetch('/fonts/NotoSansDevanagari-Regular.ttf');
-            const arrayBufferRegular = await fontRegular.arrayBuffer();
-            notoFontRegular = btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBufferRegular) as any));
+            notoFontRegular = await fetchFontAsBase64('/fonts/NotoSansDevanagari-Regular.ttf');
         }
         if (!notoFontBold) {
-            const fontBold = await fetch('/fonts/NotoSansDevanagari-Bold.ttf');
-            const arrayBufferBold = await fontBold.arrayBuffer();
-            notoFontBold = btoa(String.fromCharCode.apply(null, new Uint8Array(arrayBufferBold) as any));
+            notoFontBold = await fetchFontAsBase64('/fonts/NotoSansDevanagari-Bold.ttf');
         }
     } catch (e) {
         console.error("Failed to load PDF fonts:", e);
+        // Set to null to avoid using corrupted data
+        notoFontRegular = null;
+        notoFontBold = null;
     }
-}
+};
 
 const createPdfDoc = () => {
     const doc = new jsPDF();
@@ -47,6 +69,8 @@ const createPdfDoc = () => {
         doc.addFileToVFS("NotoSansDevanagari-Bold.ttf", notoFontBold);
         doc.addFont("NotoSansDevanagari-Bold.ttf", "NotoSansDevanagari", "bold");
         doc.setFont("NotoSansDevanagari");
+    } else {
+        console.warn("Noto Sans Devanagari font not loaded for PDF generation. Using default font.");
     }
     return doc;
 };
@@ -64,7 +88,9 @@ function DailyCollectionRegister() {
   const [error, setError] = useState('');
 
   // Pre-load fonts when the component mounts
-  useEffect(() => { loadPdfFonts(); }, []);
+  useEffect(() => {
+    loadPdfFonts();
+  }, []);
 
   const handleFetchDCR = async () => {
     if (!school?.udise || !date) return;
