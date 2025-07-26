@@ -239,7 +239,7 @@ export default function LoginPage() {
                 Forgot Password?
               </Link>
             </div>
-            {error && !firebaseError && (
+            {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Login Failed</AlertTitle>

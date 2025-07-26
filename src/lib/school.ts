@@ -1,4 +1,5 @@
 
+
 import { db, firebaseError } from './firebase';
 import { doc, getDoc, setDoc, getDocs, collection, query, where } from 'firebase/firestore';
 
@@ -29,7 +30,11 @@ export const saveSchool = async (schoolData: School): Promise<void> => {
         console.error("Error saving school to Firestore: ", e);
         let errorMessage = "Failed to save school details to the database.";
         if (e instanceof Error) {
-            errorMessage += ` Reason: ${e.message}`;
+            if (/unavailable/i.test(e.message)) {
+              errorMessage = 'Could not connect to the database. Please check your internet connection.';
+            } else {
+              errorMessage = e.message;
+            }
         }
         throw new Error(errorMessage);
     }

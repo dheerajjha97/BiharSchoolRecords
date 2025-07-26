@@ -127,7 +127,11 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
     // Provide a more detailed error message for easier debugging.
     let errorMessage = "Failed to save admission data.";
     if (e instanceof Error) {
-        errorMessage = e.message; // Use the specific error from the check
+        if (/unavailable/i.test(e.message)) {
+          errorMessage = 'Could not connect to the database. Please check your internet connection.';
+        } else {
+          errorMessage = e.message;
+        }
     }
     throw new Error(errorMessage);
   }
@@ -170,7 +174,11 @@ export const updateAdmission = async (id: string, data: FormValues): Promise<voi
     console.error(`Error updating document ${id} in Firestore:`, e);
     let errorMessage = "Failed to update admission data.";
     if (e instanceof Error) {
-        errorMessage = e.message;
+        if (/unavailable/i.test(e.message)) {
+          errorMessage = 'Could not connect to the database. Please check your internet connection.';
+        } else {
+          errorMessage = e.message;
+        }
     }
     throw new Error(errorMessage);
   }
@@ -240,7 +248,7 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         const yearSuffix = admissionYear.toString().slice(-2);
         
         const totalApprovedInSchoolForYear = approvedStudentsData.filter(s => 
-            s.admissionDetails.admissionDate && s.admissionDetails.admissionDate.getFullYear() === admissionYear
+            s.admissionDetails.admissionDate && new Date(s.admissionDetails.admissionDate).getFullYear() === admissionYear
         ).length;
 
         // Step 3: Calculate total approved for the specific class
@@ -268,7 +276,11 @@ export const approveAdmission = async (id: string, udise: string, classSelection
         console.error("Error approving admission:", e);
         let errorMessage = "Failed to approve admission.";
         if (e instanceof Error) {
-            errorMessage += ` Reason: ${e.message}`;
+            if (/unavailable/i.test(e.message)) {
+                errorMessage = 'Could not connect to the database. Please check your internet connection.';
+            } else {
+                errorMessage = e.message;
+            }
         }
         throw new Error(errorMessage);
     }
@@ -290,7 +302,11 @@ export const rejectAdmission = async (id: string): Promise<void> => {
         console.error("Error rejecting admission:", e);
         let errorMessage = "Failed to reject admission.";
         if (e instanceof Error) {
-            errorMessage += ` Reason: ${e.message}`;
+            if (/unavailable/i.test(e.message)) {
+              errorMessage = 'Could not connect to the database. Please check your internet connection.';
+            } else {
+              errorMessage = e.message;
+            }
         }
         throw new Error(errorMessage);
     }

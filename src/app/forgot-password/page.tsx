@@ -174,7 +174,11 @@ export default function ForgotPasswordPage() {
       await saveSchool({ ...school, password: data.password });
       setStep('success');
     } catch (error) {
-      passwordForm.setError('root', { message: 'Failed to reset password. Please try again.' });
+      let errorMessage = 'Failed to reset password. Please try again.';
+      if (error instanceof Error && /unavailable/i.test(error.message)) {
+        errorMessage = 'Could not connect to the database. Please check your internet connection.';
+      }
+      passwordForm.setError('root', { message: errorMessage });
     } finally {
       setLoading(false);
     }
