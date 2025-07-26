@@ -99,7 +99,7 @@ export default function FeeCollectionByFundChart() {
                             border: '1px solid hsl(var(--border))',
                             borderRadius: 'var(--radius)'
                         }}
-                        formatter={(value) => currencyFormatter.format(Number(value))}
+                        formatter={(value: number) => currencyFormatter.format(value)}
                     />
                     <Pie
                         data={chartData}
