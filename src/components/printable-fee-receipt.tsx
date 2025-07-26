@@ -11,7 +11,6 @@ import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
-  minimumFractionDigits: 2,
 });
 
 
