@@ -63,7 +63,7 @@ const convertTimestamps = (data: any): any => {
     return data;
 };
 
-const processAdmissionsWithFees = async (
+export const processAdmissionsWithFees = async (
     udise: string,
     admissions: (FormValues & {id: string})[]
 ): Promise<AdmissionWithFee[]> => {
@@ -148,4 +148,3 @@ export const getFilteredAdmissions = async (udise: string, options: FilterOption
 
     return processAdmissionsWithFees(udise, admissions);
 };
-
