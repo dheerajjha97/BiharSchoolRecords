@@ -32,10 +32,10 @@ export const DEFAULT_FEE_STRUCTURE: FeeHead[] = [
   { id: 13, name_en: "Electricity Fee", name_hi: "विद्युत शुल्क", class9: 20, class10: 20, class11ac: 20, class11s: 20, class12ac: 20, class12s: 20 },
   { id: 14, name_en: "Library Fee", name_hi: "पुस्तकालय शुल्क", class9: 10, class10: 10, class11ac: 10, class11s: 10, class12ac: 10, class12s: 10 },
   { id: 15, name_en: "Maintenance Fee", name_hi: "विद्यालय रख-रखाव शुल्क", class9: 20, class10: 20, class11ac: 20, class11s: 20, class12ac: 20, class12s: 20 },
-  { id: 16, name_en: "Lab Fee", name_hi: "प्रयोगशाला शुल्क", class9: 20, class10: 20, class11ac: 20, class11s: 20, class12ac: 20, class12s: 20 },
-  { id: 17, name_en: "Remedial Class Fee", name_hi: "अतिरिक्त कक्षा शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 0, class12ac: 0, class12s: 0 },
+  { id: 16, name_en: "Balchar / Scout Fee", name_hi: "बालचर/स्काउट शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 0, class12ac: 0, class12s: 0 },
+  { id: 17, name_en: "Miscellaneous Fee", name_hi: "विविध शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 0, class12ac: 0, class12s: 0 },
   { id: 18, name_en: "Exam Fee", name_hi: "परीक्षा शुल्क", class9: 150, class10: 150, class11ac: 150, class11s: 150, class12ac: 150, class12s: 150 },
-  { id: 19, name_en: "Certificate Fee", name_hi: "प्रमाण पत्र शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 0, class12ac: 0, class12s: 0 },
+  { id: 19, name_en: "Form / Prospectus Fee", name_hi: "फॉर्म/प्रॉस्पेक्टस शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 0, class12ac: 0, class12s: 0 },
   { id: 20, name_en: "ID Card Fee", name_hi: "पहचान पत्र शुल्क", class9: 20, class10: 20, class11ac: 20, class11s: 20, class12ac: 20, class12s: 20 },
 ];
 
