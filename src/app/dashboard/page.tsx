@@ -10,6 +10,7 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import GenerateQrCode from '@/components/generate-qr-code';
 import { useAuth } from '@/context/AuthContext';
 import AdmissionsByClassChart from '@/components/charts/admissions-by-class-chart';
+import FeeCollectionByFundChart from '@/components/charts/fee-collection-by-fund-chart';
 
 export default function DashboardPage() {
   const { school, loading } = useAuth();
@@ -45,6 +46,7 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-8">
             <AdmissionsByClassChart />
+            <FeeCollectionByFundChart />
             <GenerateQrCode />
           </div>
         </div>
