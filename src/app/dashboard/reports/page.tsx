@@ -38,9 +38,6 @@ const loadPdfFonts = async () => {
         console.error("Failed to load PDF fonts:", e);
     }
 }
-// Pre-load fonts when the component mounts
-useEffect(() => { loadPdfFonts(); }, []);
-
 
 const createPdfDoc = () => {
     const doc = new jsPDF();
@@ -65,6 +62,9 @@ function DailyCollectionRegister() {
   const [downloadingStudentFund, setDownloadingStudentFund] = useState(false);
   const [downloadingDevFund, setDownloadingDevFund] = useState(false);
   const [error, setError] = useState('');
+
+  // Pre-load fonts when the component mounts
+  useEffect(() => { loadPdfFonts(); }, []);
 
   const handleFetchDCR = async () => {
     if (!school?.udise || !date) return;
