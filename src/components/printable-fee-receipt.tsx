@@ -7,11 +7,7 @@ import type { FormValues } from '@/lib/form-schema';
 import type { School } from '@/lib/school';
 import { FeeHead, getFeeStructure } from '@/lib/feeStructure';
 import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
-
-const currencyFormatter = new Intl.NumberFormat('en-IN', {
-  style: 'currency',
-  currency: 'INR',
-});
+import { currencyFormatter } from '@/lib/utils';
 
 
 // --- Helper function to convert number to Hindi words ---

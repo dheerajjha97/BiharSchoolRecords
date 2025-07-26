@@ -8,17 +8,12 @@ import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip, Legend } from 'recha
 import { listenToAdmissions } from '@/lib/admissions';
 import { useAuth } from '@/context/AuthContext';
 import { processAdmissionsWithFees, AdmissionWithFee } from '@/lib/reports';
+import { currencyFormatter } from '@/lib/utils';
 
 const COLORS = {
   studentFund: 'hsl(var(--chart-1))',
   developmentFund: 'hsl(var(--chart-2))',
 };
-
-const currencyFormatter = new Intl.NumberFormat('en-IN', {
-  style: 'currency',
-  currency: 'INR',
-  minimumFractionDigits: 0,
-});
 
 
 export default function FeeCollectionByFundChart() {

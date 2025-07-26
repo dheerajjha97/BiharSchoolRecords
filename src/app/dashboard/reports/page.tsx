@@ -14,11 +14,7 @@ import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { DEFAULT_FEE_STRUCTURE, FEE_HEADS_MAP } from '@/lib/fees';
-
-const currencyFormatter = new Intl.NumberFormat('en-IN', {
-  style: 'currency',
-  currency: 'INR',
-});
+import { currencyFormatter } from '@/lib/utils';
 
 // --- Daily Collection Register ---
 function DailyCollectionRegister() {

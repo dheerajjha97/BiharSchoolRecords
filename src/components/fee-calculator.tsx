@@ -8,19 +8,13 @@ import { getFeeStructure, FeeHead } from '@/lib/feeStructure';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from './ui/skeleton';
 import { DEFAULT_FEE_STRUCTURE } from '@/lib/fees';
+import { currencyFormatter } from '@/lib/utils';
 
 interface FeeCalculatorProps {
   studentClass: '9' | '10' | '11-arts' | '11-science' | '11-commerce' | '12-arts' | '12-science' | '12-commerce' | string;
   studentCaste: 'gen' | 'ebc' | 'bc' | 'sc' | 'st' | string;
   admissionDate: Date;
 }
-
-const currencyFormatter = new Intl.NumberFormat('en-IN', {
-  style: 'currency',
-  currency: 'INR',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
 
 const getFeeKeyForClass = (studentClass: string): keyof Omit<FeeHead, 'id' | 'name_en' | 'name_hi'> => {
   switch (studentClass) {
