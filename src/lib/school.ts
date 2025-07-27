@@ -21,7 +21,7 @@ export interface School {
  */
 export const saveSchool = async (schoolData: School): Promise<void> => {
     if (!db) {
-        throw new Error(firebaseError || "Database not available. Cannot save school data.");
+        throw new Error(firebaseError || "Could not connect to the database. Please check your internet connection.");
     }
     try {
         const schoolDocRef = doc(db, 'schools', schoolData.udise);
@@ -59,6 +59,9 @@ export const getSchoolByUdise = async (udise: string): Promise<School | null> =>
         return null;
     } catch (e) {
         console.error(`Error fetching school with UDISE ${udise}:`, e);
+        if (e instanceof Error && /unavailable/i.test(e.message)) {
+          throw new Error('Could not connect to the database. Please check your internet connection.');
+        }
         return null;
     }
 };
@@ -84,6 +87,9 @@ export const getSchoolByEmail = async (email: string): Promise<School | null> =>
         return null;
     } catch (e) {
         console.error(`Error fetching school with email ${email}:`, e);
+        if (e instanceof Error && /unavailable/i.test(e.message)) {
+          throw new Error('Could not connect to the database. Please check your internet connection.');
+        }
         return null;
     }
 };

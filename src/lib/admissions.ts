@@ -90,7 +90,7 @@ const convertTimestamps = (data: any): any => {
  */
 export const addAdmission = async (data: FormValues): Promise<string> => {
   if (!db) {
-    throw new Error(firebaseError || "Database not available. Submission failed.");
+    throw new Error(firebaseError || "Could not connect to the database. Please check your internet connection.");
   }
   try {
     if (!data.admissionDetails?.udise) {
@@ -144,7 +144,7 @@ export const addAdmission = async (data: FormValues): Promise<string> => {
  */
 export const updateAdmission = async (id: string, data: FormValues): Promise<void> => {
   if (!db) {
-    throw new Error(firebaseError || "Database not available. Update failed.");
+    throw new Error(firebaseError || "Could not connect to the database. Please check your internet connection.");
   }
   try {
     if (!data.admissionDetails?.udise) {
@@ -232,7 +232,7 @@ export const getApprovedAdmissionsForYear = async (udise: string, year: number):
  * @param admissionDate The date of admission set by the admin.
  */
 export const approveAdmission = async (id: string, udise: string, classSelection: string, admissionDate: Date): Promise<void> => {
-    if (!db) { throw new Error(firebaseError || "Database not available."); }
+    if (!db) { throw new Error(firebaseError || "Could not connect to the database. Please check your internet connection."); }
     
     const batch = writeBatch(db);
     const docRef = doc(db, "admissions", id);
@@ -291,7 +291,7 @@ export const approveAdmission = async (id: string, udise: string, classSelection
  * @param id The document ID of the admission record.
  */
 export const rejectAdmission = async (id: string): Promise<void> => {
-    if (!db) { throw new Error(firebaseError || "Database not available."); }
+    if (!db) { throw new Error(firebaseError || "Could not connect to the database. Please check your internet connection."); }
 
     try {
         const docRef = doc(db, "admissions", id);
@@ -441,7 +441,7 @@ export const getAdmissionById = async (id: string): Promise<FormValues | null> =
  */
 export const getAllAdmissionIdsForSchool = async (udise: string): Promise<string[]> => {
     if (!db) {
-        throw new Error(firebaseError || "Database not available.");
+        throw new Error(firebaseError || "Could not connect to the database. Please check your internet connection.");
     }
     try {
         const q = query(collection(db, 'admissions'), where('admissionDetails.udise', '==', udise));

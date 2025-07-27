@@ -98,8 +98,8 @@ export default function ForgotPasswordPage() {
       }
     } catch (error) {
       let errorMessage = 'Failed to verify UDISE code. Please try again later.';
-      if (error instanceof Error && /unavailable/i.test(error.message)) {
-        errorMessage = 'Could not connect to the database. Please check your internet connection.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
       }
       udiseForm.setError('udise', {
         type: 'manual',
@@ -175,8 +175,8 @@ export default function ForgotPasswordPage() {
       setStep('success');
     } catch (error) {
       let errorMessage = 'Failed to reset password. Please try again.';
-      if (error instanceof Error && /unavailable/i.test(error.message)) {
-        errorMessage = 'Could not connect to the database. Please check your internet connection.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
       }
       passwordForm.setError('root', { message: errorMessage });
     } finally {

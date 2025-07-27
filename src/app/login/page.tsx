@@ -91,8 +91,8 @@ export default function LoginPage() {
       }
     } catch (err) {
       let errorMessage = 'An error occurred during login. Please try again.';
-      if (err instanceof Error && /unavailable/i.test(err.message)) {
-          errorMessage = 'Could not connect to the database. Please check your internet connection.';
+      if (err instanceof Error) {
+          errorMessage = err.message;
       }
       setError(errorMessage);
       console.error(err);
@@ -124,7 +124,7 @@ export default function LoginPage() {
        console.error("Google Sign-In error:", err);
        if (err.code === 'auth/popup-closed-by-user') {
           setError('Sign-in process was cancelled.');
-       } else if (err.code === 'auth/network-request-failed') {
+       } else if (err.code === 'auth/network-request-failed' || /unavailable/i.test(err.message)) {
           setError('Network error. Please check your connection and try again.');
        }
        else {
@@ -152,9 +152,13 @@ export default function LoginPage() {
           setShowAddSchoolDialog(true);
         }
       } catch (err) {
+        let errorMessage = 'Could not verify school status. Please try again.';
+        if (err instanceof Error) {
+            errorMessage = err.message;
+        }
          toast({
             title: 'Error',
-            description: 'Could not verify school status. Please try again.',
+            description: errorMessage,
             variant: 'destructive',
           });
       } finally {
@@ -178,11 +182,7 @@ export default function LoginPage() {
     } catch (err) {
       let errorMessage = 'An unexpected error occurred.';
       if (err instanceof Error) {
-        if (/unavailable/i.test(err.message)) {
-            errorMessage = 'Could not connect to the database. Please check your internet connection.';
-        } else {
-            errorMessage = err.message;
-        }
+        errorMessage = err.message;
       }
       setError(`Failed to save the new school. ${errorMessage}`);
       console.error(err);

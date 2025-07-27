@@ -59,7 +59,7 @@ const createQuickAdmissionFlow = ai.defineFlow(
   },
   async (input) => {
     if (!db) {
-      throw new Error(firebaseError || "Database not available. Cannot create admission.");
+      throw new Error(firebaseError || "Could not connect to the database. Please check your internet connection.");
     }
 
     try {

@@ -69,11 +69,7 @@ function DangerZone() {
     } catch (error) {
       let errorMessage = 'An unexpected error occurred while clearing data.';
       if (error instanceof Error) {
-        if (/unavailable/i.test(error.message)) {
-          errorMessage = 'Could not connect to the database. Please check your internet connection.';
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       toast({
         title: 'Data Clearing Failed',
@@ -217,11 +213,7 @@ export default function ProfilePage() {
     } catch (error) {
       let errorMessage = 'An unexpected error occurred.';
       if (error instanceof Error) {
-        if (/unavailable/i.test(error.message)) {
-          errorMessage = 'Could not connect to the database. Please check your internet connection.';
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       toast({
         title: 'Update Failed',
