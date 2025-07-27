@@ -25,25 +25,32 @@ let notoFontBold: string | null = null;
 
 // Helper function to fetch font data as base64
 const fetchFontAsBase64 = async (url: string): Promise<string> => {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch font: ${response.statusText}`);
-    }
-    const blob = await response.blob();
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            if (typeof reader.result === 'string') {
-                // The result is a data URL, we only need the base64 part
-                resolve(reader.result.split(',')[1]);
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'blob';
+        xhr.onload = function() {
+            if (this.status === 200) {
+                const blob = this.response;
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (typeof reader.result === 'string') {
+                        resolve(reader.result.split(',')[1]);
+                    } else {
+                        reject(new Error('Failed to read font as base64 string.'));
+                    }
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
             } else {
-                reject(new Error('Failed to read font as base64 string.'));
+                reject(new Error(`Failed to fetch font: ${this.statusText}`));
             }
         };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
+        xhr.onerror = reject;
+        xhr.send();
     });
 };
+
 
 const loadPdfFonts = async () => {
     try {
@@ -142,10 +149,10 @@ function DailyCollectionRegister() {
             if (fundTotal > 0) {
                 grandTotal += fundTotal;
                 const rowData = [
-                    item.admissionDetails.admissionNumber,
-                    item.studentDetails.nameEn,
-                    item.studentDetails.fatherNameEn,
-                    item.admissionDetails.classSelection,
+                    item.admissionDetails?.admissionNumber || '',
+                    item.studentDetails?.nameEn || '',
+                    item.studentDetails?.fatherNameEn || '',
+                    item.admissionDetails?.classSelection || '',
                     currencyFormatter.format(fundTotal),
                 ];
                 tableRows.push(rowData);
@@ -196,13 +203,13 @@ function DailyCollectionRegister() {
 
         data.forEach(item => {
         const rowData = [
-            item.admissionDetails.admissionNumber,
-            item.studentDetails.nameEn,
-            item.studentDetails.fatherNameEn,
-            item.admissionDetails.classSelection,
-            currencyFormatter.format(item.fees.studentFundTotal),
-            currencyFormatter.format(item.fees.developmentFundTotal),
-            currencyFormatter.format(item.fees.totalFee),
+            item.admissionDetails?.admissionNumber || '',
+            item.studentDetails?.nameEn || '',
+            item.studentDetails?.fatherNameEn || '',
+            item.admissionDetails?.classSelection || '',
+            currencyFormatter.format(item.fees?.studentFundTotal || 0),
+            currencyFormatter.format(item.fees?.developmentFundTotal || 0),
+            currencyFormatter.format(item.fees?.totalFee || 0),
         ];
         tableRows.push(rowData);
         });
@@ -360,7 +367,7 @@ function CustomReportGenerator() {
 
                 return {
                     'Admission No': item.admissionDetails.admissionNumber,
-                    'Admission Date': format(new Date(item.admissionDetails.admissionDate!), 'yyyy-MM-dd'),
+                    'Admission Date': item.admissionDetails.admissionDate ? format(new Date(item.admissionDetails.admissionDate), 'yyyy-MM-dd') : '',
                     'Student Name': item.studentDetails.nameEn,
                     'Father Name': item.studentDetails.fatherNameEn,
                     'Class': item.admissionDetails.classSelection,
