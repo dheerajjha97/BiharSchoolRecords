@@ -182,7 +182,7 @@ export default function FeeSettingsPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="max-w-full rounded-md border overflow-x-auto">
+              <div className="relative max-w-full overflow-x-auto rounded-md border">
                 <Table className="min-w-[1000px]">
                   <TableHeader>
                     <TableRow>
