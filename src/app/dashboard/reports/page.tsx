@@ -82,6 +82,7 @@ function DailyCollectionRegister() {
                 <TableHead>Admission No.</TableHead>
                 <TableHead>Student Name</TableHead>
                 <TableHead>Class</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead className="text-right">Student Fund</TableHead>
                 <TableHead className="text-right">Dev. Fund</TableHead>
                 <TableHead className="text-right">Total Fee</TableHead>
@@ -90,7 +91,7 @@ function DailyCollectionRegister() {
             <TableBody>
               {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
-                  <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                  <TableRow key={i}><TableCell colSpan={7}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
                 ))
               ) : data.length > 0 ? (
                 <>
@@ -99,20 +100,21 @@ function DailyCollectionRegister() {
                       <TableCell>{item.admissionDetails.admissionNumber}</TableCell>
                       <TableCell>{item.studentDetails.nameEn}</TableCell>
                       <TableCell>{item.admissionDetails.classSelection}</TableCell>
+                      <TableCell className="uppercase">{item.studentDetails.caste}</TableCell>
                       <TableCell className="text-right">{currencyFormatter.format(item.fees.studentFundTotal)}</TableCell>
                       <TableCell className="text-right">{currencyFormatter.format(item.fees.developmentFundTotal)}</TableCell>
                       <TableCell className="text-right font-semibold">{currencyFormatter.format(item.fees.totalFee)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted font-bold">
-                    <TableCell colSpan={3} className="text-right">Grand Total</TableCell>
+                    <TableCell colSpan={4} className="text-right">Grand Total</TableCell>
                     <TableCell className="text-right">{currencyFormatter.format(totals.studentFund)}</TableCell>
                     <TableCell className="text-right">{currencyFormatter.format(totals.devFund)}</TableCell>
                     <TableCell className="text-right">{currencyFormatter.format(totals.grandTotal)}</TableCell>
                   </TableRow>
                 </>
               ) : (
-                <TableRow><TableCell colSpan={6} className="text-center h-24">No collections found for this date.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center h-24">No collections found for this date.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

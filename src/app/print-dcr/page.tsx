@@ -110,6 +110,7 @@ function PrintableDCRContent() {
                 <TableHead className="border border-black">Adm No.</TableHead>
                 <TableHead className="border border-black">Student Name</TableHead>
                 <TableHead className="border border-black">Class</TableHead>
+                <TableHead className="border border-black">Category</TableHead>
                 <TableHead className="border border-black text-right">Student Fund</TableHead>
                 <TableHead className="border border-black text-right">Dev. Fund</TableHead>
                 <TableHead className="border border-black text-right">Total Fee</TableHead>
@@ -123,13 +124,14 @@ function PrintableDCRContent() {
                       <TableCell className="border border-black">{item.admissionDetails.admissionNumber}</TableCell>
                       <TableCell className="border border-black">{item.studentDetails.nameEn}</TableCell>
                       <TableCell className="border border-black">{item.admissionDetails.classSelection}</TableCell>
+                      <TableCell className="border border-black uppercase">{item.studentDetails.caste}</TableCell>
                       <TableCell className="border border-black text-right">{currencyFormatter.format(item.fees.studentFundTotal)}</TableCell>
                       <TableCell className="border border-black text-right">{currencyFormatter.format(item.fees.developmentFundTotal)}</TableCell>
                       <TableCell className="border border-black text-right font-semibold">{currencyFormatter.format(item.fees.totalFee)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-gray-100 font-bold text-sm break-inside-avoid">
-                    <TableCell colSpan={3} className="border border-black text-right">Grand Total</TableCell>
+                    <TableCell colSpan={4} className="border border-black text-right">Grand Total</TableCell>
                     <TableCell className="border border-black text-right">{currencyFormatter.format(totals.studentFund)}</TableCell>
                     <TableCell className="border border-black text-right">{currencyFormatter.format(totals.devFund)}</TableCell>
                     <TableCell className="border border-black text-right">{currencyFormatter.format(totals.grandTotal)}</TableCell>
@@ -137,7 +139,7 @@ function PrintableDCRContent() {
                 </>
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center h-24 border border-black">No collections found for this date.</TableCell>
+                  <TableCell colSpan={7} className="text-center h-24 border border-black">No collections found for this date.</TableCell>
                 </TableRow>
               )}
             </TableBody>
