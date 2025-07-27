@@ -17,69 +17,26 @@ import { DEFAULT_FEE_STRUCTURE, FEE_HEADS_MAP } from '@/lib/fees';
 import { currencyFormatter } from '@/lib/utils';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import fs from 'fs';
+import path from 'path';
 
-// --- Font Loading for jsPDF ---
-// These will hold the base64 encoded font data
-let notoFontRegular: string | null = null;
-let notoFontBold: string | null = null;
-
-// Helper function to fetch font data as base64
-const fetchFontAsBase64 = async (url: string): Promise<string> => {
+// --- Helper function to load font data as base64 ---
+const loadFontAsBase64 = (fontPath: string): Promise<string> => {
     return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
-        xhr.onload = function() {
-            if (this.status === 200) {
-                const blob = this.response;
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    if (typeof reader.result === 'string') {
-                        resolve(reader.result.split(',')[1]);
-                    } else {
-                        reject(new Error('Failed to read font as base64 string.'));
-                    }
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            } else {
-                reject(new Error(`Failed to fetch font: ${this.statusText}`));
-            }
-        };
-        xhr.onerror = reject;
-        xhr.send();
+        // In a Next.js client component, we fetch from the public directory.
+        fetch(fontPath)
+            .then(res => res.arrayBuffer())
+            .then(arrayBuffer => {
+                let binary = '';
+                const bytes = new Uint8Array(arrayBuffer);
+                const len = bytes.byteLength;
+                for (let i = 0; i < len; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                resolve(btoa(binary));
+            })
+            .catch(reject);
     });
-};
-
-
-const loadPdfFonts = async () => {
-    try {
-        if (!notoFontRegular) {
-            notoFontRegular = await fetchFontAsBase64('/fonts/NotoSansDevanagari-Regular.ttf');
-        }
-        if (!notoFontBold) {
-            notoFontBold = await fetchFontAsBase64('/fonts/NotoSansDevanagari-Bold.ttf');
-        }
-    } catch (e) {
-        console.error("Failed to load PDF fonts:", e);
-        // Set to null to avoid using corrupted data
-        notoFontRegular = null;
-        notoFontBold = null;
-    }
-};
-
-const createPdfDoc = () => {
-    const doc = new jsPDF();
-    if (notoFontRegular && notoFontBold) {
-        doc.addFileToVFS("NotoSansDevanagari-Regular.ttf", notoFontRegular);
-        doc.addFont("NotoSansDevanagari-Regular.ttf", "NotoSansDevanagari", "normal");
-        doc.addFileToVFS("NotoSansDevanagari-Bold.ttf", notoFontBold);
-        doc.addFont("NotoSansDevanagari-Bold.ttf", "NotoSansDevanagari", "bold");
-        doc.setFont("NotoSansDevanagari");
-    } else {
-        console.warn("Noto Sans Devanagari font not loaded for PDF generation. Using default font.");
-    }
-    return doc;
 };
 
 
@@ -93,11 +50,6 @@ function DailyCollectionRegister() {
   const [downloadingStudentFund, setDownloadingStudentFund] = useState(false);
   const [downloadingDevFund, setDownloadingDevFund] = useState(false);
   const [error, setError] = useState('');
-
-  // Pre-load fonts when the component mounts
-  useEffect(() => {
-    loadPdfFonts();
-  }, []);
 
   const handleFetchDCR = async () => {
     if (!school?.udise || !date) return;
@@ -136,8 +88,16 @@ function DailyCollectionRegister() {
     }
 
     try {
-        await loadPdfFonts();
-        const doc = createPdfDoc();
+        const doc = new jsPDF();
+        
+        // Load fonts
+        const notoFontRegular = await loadFontAsBase64('/fonts/NotoSansDevanagari-Regular.ttf');
+        const notoFontBold = await loadFontAsBase64('/fonts/NotoSansDevanagari-Bold.ttf');
+        doc.addFileToVFS("NotoSansDevanagari-Regular.ttf", notoFontRegular);
+        doc.addFont("NotoSansDevanagari-Regular.ttf", "NotoSansDevanagari", "normal");
+        doc.addFileToVFS("NotoSansDevanagari-Bold.ttf", notoFontBold);
+        doc.addFont("NotoSansDevanagari-Bold.ttf", "NotoSansDevanagari", "bold");
+
         const fundName = isStudentFund ? "Student Fund" : "Development Fund";
         const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Amount"];
         const tableRows: any[] = [];
@@ -150,8 +110,8 @@ function DailyCollectionRegister() {
                 grandTotal += fundTotal;
                 const rowData = [
                     item.admissionDetails?.admissionNumber || '',
-                    item.studentDetails?.nameEn || '',
-                    item.studentDetails?.fatherNameEn || '',
+                    item.studentDetails?.nameHi || item.studentDetails?.nameEn || '',
+                    item.studentDetails?.fatherNameHi || item.studentDetails?.fatherNameEn || '',
                     item.admissionDetails?.classSelection || '',
                     currencyFormatter.format(fundTotal),
                 ];
@@ -164,12 +124,12 @@ function DailyCollectionRegister() {
             { content: currencyFormatter.format(grandTotal), styles: { fontStyle: 'bold' } }
         ]);
 
-        doc.setFontSize(18);
         doc.setFont("NotoSansDevanagari", "bold");
+        doc.setFontSize(18);
         doc.text(`${fundName} Collection Register - ${school?.name || 'School'}`, 14, 15);
         
-        doc.setFontSize(12);
         doc.setFont("NotoSansDevanagari", "normal");
+        doc.setFontSize(12);
         doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
 
         (doc as any).autoTable({
@@ -183,6 +143,7 @@ function DailyCollectionRegister() {
         doc.save(`${fundName.replace(' ', '_')}_DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
     } catch (e) {
         console.error("PDF generation failed", e);
+        setError("Failed to generate PDF. Check console for details.");
     } finally {
         if (isStudentFund) {
             setDownloadingStudentFund(false);
@@ -196,22 +157,30 @@ function DailyCollectionRegister() {
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
-        await loadPdfFonts();
-        const doc = createPdfDoc();
+        const doc = new jsPDF();
+        
+        // Load fonts
+        const notoFontRegular = await loadFontAsBase64('/fonts/NotoSansDevanagari-Regular.ttf');
+        const notoFontBold = await loadFontAsBase64('/fonts/NotoSansDevanagari-Bold.ttf');
+        doc.addFileToVFS("NotoSansDevanagari-Regular.ttf", notoFontRegular);
+        doc.addFont("NotoSansDevanagari-Regular.ttf", "NotoSansDevanagari", "normal");
+        doc.addFileToVFS("NotoSansDevanagari-Bold.ttf", notoFontBold);
+        doc.addFont("NotoSansDevanagari-Bold.ttf", "NotoSansDevanagari", "bold");
+        
         const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Student Fund", "Dev Fund", "Total"];
         const tableRows: any[] = [];
 
         data.forEach(item => {
-        const rowData = [
-            item.admissionDetails?.admissionNumber || '',
-            item.studentDetails?.nameEn || '',
-            item.studentDetails?.fatherNameEn || '',
-            item.admissionDetails?.classSelection || '',
-            currencyFormatter.format(item.fees?.studentFundTotal || 0),
-            currencyFormatter.format(item.fees?.developmentFundTotal || 0),
-            currencyFormatter.format(item.fees?.totalFee || 0),
-        ];
-        tableRows.push(rowData);
+            const rowData = [
+                item.admissionDetails?.admissionNumber || '',
+                item.studentDetails?.nameHi || item.studentDetails?.nameEn || '',
+                item.studentDetails?.fatherNameHi || item.studentDetails?.fatherNameEn || '',
+                item.admissionDetails?.classSelection || '',
+                currencyFormatter.format(item.fees?.studentFundTotal || 0),
+                currencyFormatter.format(item.fees?.developmentFundTotal || 0),
+                currencyFormatter.format(item.fees?.totalFee || 0),
+            ];
+            tableRows.push(rowData);
         });
         
         tableRows.push([
@@ -221,12 +190,12 @@ function DailyCollectionRegister() {
             { content: currencyFormatter.format(totals.grandTotal), styles: { fontStyle: 'bold' } }
         ]);
         
-        doc.setFontSize(18);
         doc.setFont("NotoSansDevanagari", "bold");
+        doc.setFontSize(18);
         doc.text(`Daily Collection Register - ${school?.name || 'School'}`, 14, 15);
         
-        doc.setFontSize(12);
         doc.setFont("NotoSansDevanagari", "normal");
+        doc.setFontSize(12);
         doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
 
         (doc as any).autoTable({
@@ -240,6 +209,7 @@ function DailyCollectionRegister() {
         doc.save(`DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
     } catch (e) {
         console.error("PDF generation failed", e);
+        setError("Failed to generate PDF. Check console for details.");
     } finally {
         setDownloading(false);
     }
@@ -271,6 +241,12 @@ function DailyCollectionRegister() {
                 </Button>
             </div>
         </div>
+        {error && (
+            <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-sm flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                {error}
+            </div>
+        )}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -480,3 +456,5 @@ export default function ReportsPage() {
     </div>
   );
 }
+
+    
