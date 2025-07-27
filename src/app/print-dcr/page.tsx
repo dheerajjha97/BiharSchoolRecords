@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { format, parse } from 'date-fns';
 import { currencyFormatter } from '@/lib/utils';
 import Image from 'next/image';
 import type { School } from '@/lib/school';
-import { getSchoolByUdise } from '@/lib/school';
 
 function PrintableDCRContent() {
   const searchParams = useSearchParams();
@@ -51,7 +50,7 @@ function PrintableDCRContent() {
         }
     };
     loadData();
-  }, [reportDate, loggedInSchool, authLoading]);
+  }, [dateString, loggedInSchool?.udise, authLoading]);
   
   const totals = useMemo(() => {
     return data.reduce((acc, item) => {
