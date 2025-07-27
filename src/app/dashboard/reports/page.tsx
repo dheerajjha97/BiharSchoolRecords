@@ -2,43 +2,20 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getAdmissionsByDate, getFilteredAdmissions, AdmissionWithFee } from '@/lib/reports';
-import { Loader2, Download, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { Loader2, Download, FileSpreadsheet, AlertCircle, Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { DEFAULT_FEE_STRUCTURE, FEE_HEADS_MAP } from '@/lib/fees';
+import { FEE_HEADS_MAP } from '@/lib/fees';
 import { currencyFormatter } from '@/lib/utils';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import fs from 'fs';
-import path from 'path';
-
-// --- Helper function to load font data as base64 ---
-const loadFontAsBase64 = (fontPath: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        // In a Next.js client component, we fetch from the public directory.
-        fetch(fontPath)
-            .then(res => res.arrayBuffer())
-            .then(arrayBuffer => {
-                let binary = '';
-                const bytes = new Uint8Array(arrayBuffer);
-                const len = bytes.byteLength;
-                for (let i = 0; i < len; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                resolve(btoa(binary));
-            })
-            .catch(reject);
-    });
-};
-
 
 // --- Daily Collection Register ---
 function DailyCollectionRegister() {
@@ -46,9 +23,6 @@ function DailyCollectionRegister() {
   const [date, setDate] = useState<Date>(new Date());
   const [data, setData] = useState<AdmissionWithFee[]>([]);
   const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [downloadingStudentFund, setDownloadingStudentFund] = useState(false);
-  const [downloadingDevFund, setDownloadingDevFund] = useState(false);
   const [error, setError] = useState('');
 
   const handleFetchDCR = async () => {
@@ -78,168 +52,22 @@ function DailyCollectionRegister() {
       return acc;
     }, { studentFund: 0, devFund: 0, grandTotal: 0 });
   }, [data]);
-  
-  const generateFundPdf = async (fundType: 'student' | 'development') => {
-    const isStudentFund = fundType === 'student';
-    if (isStudentFund) {
-        setDownloadingStudentFund(true);
-    } else {
-        setDownloadingDevFund(true);
-    }
-
-    try {
-        const doc = new jsPDF();
-        
-        // Load fonts
-        const notoFontRegular = await loadFontAsBase64('/fonts/NotoSansDevanagari-Regular.ttf');
-        const notoFontBold = await loadFontAsBase64('/fonts/NotoSansDevanagari-Bold.ttf');
-        doc.addFileToVFS("NotoSansDevanagari-Regular.ttf", notoFontRegular);
-        doc.addFont("NotoSansDevanagari-Regular.ttf", "NotoSansDevanagari", "normal");
-        doc.addFileToVFS("NotoSansDevanagari-Bold.ttf", notoFontBold);
-        doc.addFont("NotoSansDevanagari-Bold.ttf", "NotoSansDevanagari", "bold");
-
-        const fundName = isStudentFund ? "Student Fund" : "Development Fund";
-        const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Amount"];
-        const tableRows: any[] = [];
-
-        let grandTotal = 0;
-
-        data.forEach(item => {
-            const fundTotal = isStudentFund ? item.fees.studentFundTotal : item.fees.developmentFundTotal;
-            if (fundTotal > 0) {
-                grandTotal += fundTotal;
-                const rowData = [
-                    item.admissionDetails?.admissionNumber || '',
-                    item.studentDetails?.nameHi || item.studentDetails?.nameEn || '',
-                    item.studentDetails?.fatherNameHi || item.studentDetails?.fatherNameEn || '',
-                    item.admissionDetails?.classSelection || '',
-                    currencyFormatter.format(fundTotal),
-                ];
-                tableRows.push(rowData);
-            }
-        });
-        
-        tableRows.push([
-            { content: 'Grand Total', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
-            { content: currencyFormatter.format(grandTotal), styles: { fontStyle: 'bold' } }
-        ]);
-
-        doc.setFont("NotoSansDevanagari", "bold");
-        doc.setFontSize(18);
-        doc.text(`${fundName} Collection Register - ${school?.name || 'School'}`, 14, 15);
-        
-        doc.setFont("NotoSansDevanagari", "normal");
-        doc.setFontSize(12);
-        doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
-
-        (doc as any).autoTable({
-            head: [tableColumn],
-            body: tableRows,
-            startY: 25,
-            theme: 'grid',
-            headStyles: { fillColor: [41, 128, 185], textColor: 255, font: "NotoSansDevanagari", fontStyle: 'bold' },
-            styles: { fontSize: 8, font: "NotoSansDevanagari", fontStyle: 'normal' },
-        });
-        doc.save(`${fundName.replace(' ', '_')}_DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
-    } catch (e) {
-        console.error("PDF generation failed", e);
-        setError("Failed to generate PDF. Check console for details.");
-    } finally {
-        if (isStudentFund) {
-            setDownloadingStudentFund(false);
-        } else {
-            setDownloadingDevFund(false);
-        }
-    }
-  };
-
-
-  const handleDownloadPdf = async () => {
-    setDownloading(true);
-    try {
-        const doc = new jsPDF();
-        
-        // Load fonts
-        const notoFontRegular = await loadFontAsBase64('/fonts/NotoSansDevanagari-Regular.ttf');
-        const notoFontBold = await loadFontAsBase64('/fonts/NotoSansDevanagari-Bold.ttf');
-        doc.addFileToVFS("NotoSansDevanagari-Regular.ttf", notoFontRegular);
-        doc.addFont("NotoSansDevanagari-Regular.ttf", "NotoSansDevanagari", "normal");
-        doc.addFileToVFS("NotoSansDevanagari-Bold.ttf", notoFontBold);
-        doc.addFont("NotoSansDevanagari-Bold.ttf", "NotoSansDevanagari", "bold");
-        
-        const tableColumn = ["Adm No.", "Name", "Father's Name", "Class", "Student Fund", "Dev Fund", "Total"];
-        const tableRows: any[] = [];
-
-        data.forEach(item => {
-            const rowData = [
-                item.admissionDetails?.admissionNumber || '',
-                item.studentDetails?.nameHi || item.studentDetails?.nameEn || '',
-                item.studentDetails?.fatherNameHi || item.studentDetails?.fatherNameEn || '',
-                item.admissionDetails?.classSelection || '',
-                currencyFormatter.format(item.fees?.studentFundTotal || 0),
-                currencyFormatter.format(item.fees?.developmentFundTotal || 0),
-                currencyFormatter.format(item.fees?.totalFee || 0),
-            ];
-            tableRows.push(rowData);
-        });
-        
-        tableRows.push([
-            { content: 'Grand Total', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
-            { content: currencyFormatter.format(totals.studentFund), styles: { fontStyle: 'bold' } },
-            { content: currencyFormatter.format(totals.devFund), styles: { fontStyle: 'bold' } },
-            { content: currencyFormatter.format(totals.grandTotal), styles: { fontStyle: 'bold' } }
-        ]);
-        
-        doc.setFont("NotoSansDevanagari", "bold");
-        doc.setFontSize(18);
-        doc.text(`Daily Collection Register - ${school?.name || 'School'}`, 14, 15);
-        
-        doc.setFont("NotoSansDevanagari", "normal");
-        doc.setFontSize(12);
-        doc.text(`Date: ${format(date, 'PPP')}`, 14, 22);
-
-        (doc as any).autoTable({
-            head: [tableColumn],
-            body: tableRows,
-            startY: 25,
-            theme: 'grid',
-            headStyles: { fillColor: [41, 128, 185], textColor: 255, font: "NotoSansDevanagari", fontStyle: 'bold' },
-            styles: { fontSize: 8, font: "NotoSansDevanagari", fontStyle: 'normal' },
-        });
-        doc.save(`DCR_${format(date, 'yyyy-MM-dd')}.pdf`);
-    } catch (e) {
-        console.error("PDF generation failed", e);
-        setError("Failed to generate PDF. Check console for details.");
-    } finally {
-        setDownloading(false);
-    }
-  };
-
-  const isAnyDownloadActive = downloading || downloadingStudentFund || downloadingDevFund;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Daily Collection Register (DCR)</CardTitle>
-        <CardDescription>View and download a detailed collection report for a specific day.</CardDescription>
+        <CardDescription>View a detailed collection report for a specific day and print it.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start">
             <DatePicker date={date} setDate={(d) => setDate(d || new Date())} />
-            <div className="flex gap-2 flex-wrap">
-                <Button onClick={handleDownloadPdf} disabled={isAnyDownloadActive || data.length === 0}>
-                    {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
-                    Download PDF
-                </Button>
-                <Button variant="outline" onClick={() => generateFundPdf('student')} disabled={isAnyDownloadActive || data.length === 0}>
-                    {downloadingStudentFund ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
-                    Student Fund PDF
-                </Button>
-                 <Button variant="outline" onClick={() => generateFundPdf('development')} disabled={isAnyDownloadActive || data.length === 0}>
-                    {downloadingDevFund ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Download className="mr-2 h-4 w-4"/>}
-                    Dev. Fund PDF
-                </Button>
-            </div>
+            <Button asChild disabled={data.length === 0}>
+              <Link href={`/print-dcr?date=${format(date, 'yyyy-MM-dd')}`} target="_blank">
+                <Printer className="mr-2 h-4 w-4"/>
+                Print DCR
+              </Link>
+            </Button>
         </div>
         {error && (
             <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-sm flex items-center gap-2">
@@ -456,5 +284,3 @@ export default function ReportsPage() {
     </div>
   );
 }
-
-    
