@@ -191,10 +191,10 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
       </div>
 
       {/* --- PAGE 2 --- */}
-      <div className="page page-break">
+      <div className="page page-break flex flex-col">
         {isClass9 && subjectDetails && (
           <>
-            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
+            <table className="w-full border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Subject Selection Details (Class 9)" />
                     <PrintTableRow label="Medium" value={subjectDetails.medium} />
@@ -216,7 +216,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         
         {isClass11 && subjectDetails && (
           <>
-            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
+            <table className="w-full border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Matriculation Details" />
                     <PrintTableDoubleRow label1="Matric Board" value1={subjectDetails.matricBoard} label2="Board Code" value2={subjectDetails.matricBoardCode} />
@@ -260,10 +260,10 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         </div>
         
         <header className="text-center py-1 border-b-2 border-black break-inside-avoid mt-4">
-            <p className="font-semibold">Admission Form - For Office Use Only</p>
+            <p className="font-semibold">For Office Use Only</p>
         </header>
         
-        <div className="mt-8 p-4 border-2 border-dashed border-black break-inside-avoid h-[20cm]">
+        <div className="flex-grow mt-2 p-4 border-2 border-dashed border-black break-inside-avoid">
             <h3 className="font-semibold text-center text-lg">For Office Use Only</h3>
             <div className="mt-24 grid grid-cols-2 gap-16 text-sm">
                 <div className="border-t-2 border-black pt-2 font-semibold text-center">
