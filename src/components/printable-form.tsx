@@ -12,7 +12,7 @@ const formatAadharPrint = (aadhar: string) => {
   if (!aadhar || typeof aadhar !== 'string') return '';
   const cleaned = aadhar.replace(/\D/g, '');
   if (cleaned.length !== 12) return aadhar; // Return original if not 12 digits
-  return `${cleaned.substring(0, 4)}-${cleaned.substring(4, 8)}-${cleaned.substring(8, 12)}`;
+  return `${cleaned.substring(0, 4)} / ${cleaned.substring(4, 8)} / ${cleaned.substring(8, 12)}`;
 };
 
 // Helper function to format Mobile number
@@ -45,8 +45,8 @@ const PrintTableRow = ({ label, value }: { label: string; value: any }) => {
 
   return (
     <tr className="break-inside-avoid">
-      <td className="w-1/3 border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50">{label}</td>
-      <td colSpan={3} className="border border-black py-1 px-2 capitalize">
+      <td className="w-1/3 border border-black py-0.5 px-2 font-semibold text-gray-700 bg-gray-50">{label}</td>
+      <td colSpan={3} className="border border-black py-0.5 px-2 capitalize">
         {String(displayValue)}
       </td>
     </tr>
@@ -64,10 +64,10 @@ const PrintTableDoubleRow = ({ label1, value1, label2, value2, value1ClassName }
 
   return (
     <tr className="break-inside-avoid">
-      <td className="border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">{label1}</td>
-      <td className={cn("border border-black py-1 px-2 capitalize", value1ClassName)}>{formatValue(value1)}</td>
-      <td className="border border-black py-1 px-2 font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">{label2}</td>
-      <td className="border border-black py-1 px-2 capitalize">{formatValue(value2)}</td>
+      <td className="border border-black py-0.5 px-2 font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">{label1}</td>
+      <td className={cn("border border-black py-0.5 px-2 capitalize", value1ClassName)}>{formatValue(value1)}</td>
+      <td className="border border-black py-0.5 px-2 font-semibold text-gray-700 bg-gray-50 whitespace-nowrap">{label2}</td>
+      <td className="border border-black py-0.5 px-2 capitalize">{formatValue(value2)}</td>
     </tr>
   );
 };
@@ -76,7 +76,7 @@ const PrintTableDoubleRow = ({ label1, value1, label2, value2, value1ClassName }
 // Helper component for section titles
 const SectionTitle = ({ title }: { title: string }) => (
     <tr className="break-inside-avoid">
-        <td colSpan={4} className="text-base font-bold text-center bg-gray-100 py-1 border-y-2 border-black">
+        <td colSpan={4} className="text-sm font-semibold text-center bg-gray-100 py-0.5 border-y-2 border-black">
             {title}
         </td>
     </tr>
@@ -104,17 +104,17 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
     <div className="a4-container bg-white text-black font-body shadow-lg text-xs">
       {/* --- PAGE 1 --- */}
       <div className="page">
-        <header className="relative text-center w-full mb-4 break-inside-avoid">
+        <header className="relative text-center w-full mb-2 break-inside-avoid">
             <div className="absolute left-0 top-0">
-                <div className="pr-2.5"> {/* This pr-2.5 is equivalent to 10pt padding */}
-                    <Image src="/logo.jpg" alt="School Logo" width={80} height={80} data-ai-hint="school logo" />
+                <div className="pr-2.5">
+                    <Image src="/logo.jpg" alt="School Logo" width={60} height={60} data-ai-hint="school logo" />
                 </div>
             </div>
             <div>
-                <h1 className="text-4xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
-                <p className="text-lg font-semibold">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
-                <p className="text-xl font-bold mt-1">ADMISSION FORM</p>
-                <p className="text-sm">(Session 2025-2026)</p>
+                <h1 className="text-2xl font-bold">{schoolData?.name || 'School Name Not Found'}</h1>
+                <p className="text-base font-semibold">{schoolData?.address || `UDISE: ${admissionDetails.udise}`}</p>
+                <p className="text-lg font-bold mt-1">ADMISSION FORM</p>
+                <p className="text-xs">(Session 2025-2026)</p>
             </div>
         </header>
 
@@ -133,20 +133,16 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                             label1="Class / Stream" value1={displayStream}
                             label2="Roll Number" value2={admissionDetails.rollNumber} 
                         />
-                        <PrintTableDoubleRow 
-                            label1="PEN Number" value1="" 
-                            label2="E-shikshakosh ID" value2=""
-                        />
                     </tbody>
                 </table>
             </div>
             
-            <div className="w-32 h-[140px] border-2 border-black flex-shrink-0 flex items-center justify-center text-center p-1 text-xs">
+            <div className="w-28 h-32 border-2 border-black flex-shrink-0 flex items-center justify-center text-center p-1 text-gray-500">
                 Affix recent passport size photograph
             </div>
         </div>
         
-        <table className="w-full border-collapse border border-black text-xs break-inside-avoid mt-2">
+        <table className="w-full border-collapse border border-black text-xs break-inside-avoid">
             <tbody>
                 <SectionTitle title="1. Personal Details" />
                 <PrintTableDoubleRow label1="Student's Name (EN)" value1={studentDetails.nameEn} label2="Student's Name (HI)" value2={studentDetails.nameHi} />
@@ -246,14 +242,14 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
           </>
         )}
 
-        <div className="mt-12 p-2 border border-black break-inside-avoid">
-            <h3 className="font-bold text-center">आवेदक द्वारा घोषणा</h3>
+        <div className="mt-8 p-2 border border-black break-inside-avoid">
+            <h3 className="font-semibold text-center text-sm">आवेदक द्वारा घोषणा</h3>
             <p className="text-xs mt-2">
                 मैं, {studentDetails.nameEn}, घोषणा करता/करती हूँ कि इस आवेदन पत्र में मेरे द्वारा दी गई सभी जानकारी मेरी सर्वोत्तम जानकारी और विश्वास के अनुसार सत्य, पूर्ण और सही है। मैं यह समझता/समझती हूँ कि किसी भी जानकारी के गलत या असत्य पाए जाने पर मेरा प्रवेश रद्द किया जा सकता है।
                 <br/>
                 मैं यह भी वचन देता/देती हूँ कि मैं विद्यालय के सभी नियमों का पालन करूँगा/करूँगी, प्रतिदिन निर्धारित यूनिफॉर्म में विद्यालय आऊँगा/आऊँगी, पूर्ण अनुशासन बनाए रखूँगा/रखूँगी और अपनी न्यूनतम 75% उपस्थिति सुनिश्चित करूँगा/करूँगी।
             </p>
-            <div className="mt-12 grid grid-cols-3 gap-8 text-sm text-center">
+            <div className="mt-12 grid grid-cols-3 gap-8 text-xs text-center">
                 <div className="border-t-2 border-black pt-1 font-semibold">
                     Signature of Guardian
                 </div>
@@ -267,8 +263,8 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         </div>
         
         <div className="mt-4 p-2 border-2 border-dashed border-black break-inside-avoid">
-            <h3 className="font-bold text-center">For Office Use Only</h3>
-            <div className="mt-12 grid grid-cols-2 gap-16 text-sm">
+            <h3 className="font-semibold text-center text-sm">For Office Use Only</h3>
+            <div className="mt-12 grid grid-cols-2 gap-16 text-xs">
                 <div className="border-t-2 border-black pt-1 font-semibold">
                     Checked by
                 </div>
