@@ -235,15 +235,8 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
             </table>
           </>
         )}
-      </div>
 
-      {/* --- PAGE 2 --- */}
-      <div className="page page-break">
-        <header className="text-center py-1 border-b-2 border-black break-inside-avoid">
-            <p className="font-semibold">Admission Form - Page 2</p>
-        </header>
-        
-        <div className="mt-8 p-2 border border-black break-inside-avoid">
+        <div className="mt-4 p-2 border border-black break-inside-avoid">
             <h3 className="font-semibold text-center text-sm">आवेदक द्वारा घोषणा</h3>
             <p className="text-xs mt-2">
                 मैं, {studentDetails.nameEn}, घोषणा करता/करती हूँ कि इस आवेदन पत्र में मेरे द्वारा दी गई सभी जानकारी मेरी सर्वोत्तम जानकारी और विश्वास के अनुसार सत्य, पूर्ण और सही है। मैं यह समझता/समझती हूँ कि किसी भी जानकारी के गलत या असत्य पाए जाने पर मेरा प्रवेश रद्द किया जा सकता है।
@@ -262,14 +255,21 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                 </div>
             </div>
         </div>
+      </div>
+
+      {/* --- PAGE 2 --- */}
+      <div className="page page-break">
+        <header className="text-center py-1 border-b-2 border-black break-inside-avoid">
+            <p className="font-semibold">Admission Form - For Office Use Only</p>
+        </header>
         
-        <div className="mt-4 p-2 border-2 border-dashed border-black break-inside-avoid">
-            <h3 className="font-semibold text-center text-sm">For Office Use Only</h3>
-            <div className="mt-12 grid grid-cols-2 gap-16 text-xs">
-                <div className="border-t-2 border-black pt-1 font-semibold">
+        <div className="mt-8 p-4 border-2 border-dashed border-black break-inside-avoid h-[20cm]">
+            <h3 className="font-semibold text-center text-lg">For Office Use Only</h3>
+            <div className="mt-24 grid grid-cols-2 gap-16 text-sm">
+                <div className="border-t-2 border-black pt-2 font-semibold text-center">
                     Checked by
                 </div>
-                <div className="border-t-2 border-black pt-1 font-semibold">
+                <div className="border-t-2 border-black pt-2 font-semibold text-center">
                     Signature of Principal
                 </div>
             </div>
