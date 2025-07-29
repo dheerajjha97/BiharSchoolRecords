@@ -188,17 +188,10 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                 <PrintTableDoubleRow label1="Account No." value1={bankDetails.accountNo} label2="IFSC Code" value2={bankDetails.ifsc} />
             </tbody>
         </table>
-      </div>
-
-      {/* --- PAGE 2 --- */}
-      <div className="page page-break">
-        <header className="text-center py-1 border-b-2 border-black break-inside-avoid">
-            <p className="font-semibold">Admission Form - Page 2</p>
-        </header>
-
+        
         {isClass9 && subjectDetails && (
           <>
-            <table className="w-full mt-4 border-collapse border border-black text-xs break-inside-avoid">
+            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Subject Selection Details (Class 9)" />
                     <PrintTableRow label="Medium" value={subjectDetails.medium} />
@@ -220,7 +213,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
         
         {isClass11 && subjectDetails && (
           <>
-            <table className="w-full mt-4 border-collapse border border-black text-xs break-inside-avoid">
+            <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
                 <tbody>
                     <SectionTitle title="6. Matriculation Details" />
                     <PrintTableDoubleRow label1="Matric Board" value1={subjectDetails.matricBoard} label2="Board Code" value2={subjectDetails.matricBoardCode} />
@@ -242,7 +235,14 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
             </table>
           </>
         )}
+      </div>
 
+      {/* --- PAGE 2 --- */}
+      <div className="page page-break">
+        <header className="text-center py-1 border-b-2 border-black break-inside-avoid">
+            <p className="font-semibold">Admission Form - Page 2</p>
+        </header>
+        
         <div className="mt-8 p-2 border border-black break-inside-avoid">
             <h3 className="font-semibold text-center text-sm">आवेदक द्वारा घोषणा</h3>
             <p className="text-xs mt-2">
