@@ -150,6 +150,7 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                 <PrintTableDoubleRow label1="Mother's Name (EN)" value1={studentDetails.motherNameEn} label2="Mother's Name (HI)" value2={studentDetails.motherNameHi} />
                 <PrintTableDoubleRow label1="Date of Birth" value1={studentDetails.dob} label2="Gender" value2={studentDetails.gender} />
                 <PrintTableDoubleRow label1="Caste" value1={studentDetails.caste} label2="Religion" value2={studentDetails.religion} />
+                <PrintTableDoubleRow label1="PEN Number" value1={studentDetails.penNumber} label2="e-Shikshakosh ID" value2={studentDetails.eshikshakoshId} />
                 <PrintTableDoubleRow label1="Nationality" value1={studentDetails.nationality} label2="Marital Status" value2={studentDetails.maritalStatus} />
                 <PrintTableDoubleRow label1="Differently Abled" value1={studentDetails.isDifferentlyAbled} label2="Disability Details" value2={studentDetails.isDifferentlyAbled ? studentDetails.disabilityDetails : 'N/A'} />
             </tbody>

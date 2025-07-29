@@ -283,6 +283,8 @@ export function AdmissionFormStep({ form }: AdmissionFormStepProps) {
               </FormItem>
             )}
           />
+           <FormField control={form.control} name="studentDetails.penNumber" render={({ field }) => (<FormItem><FormLabel>PEN Number (Optional)</FormLabel><FormControl><Input placeholder="Student's PEN Number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField control={form.control} name="studentDetails.eshikshakoshId" render={({ field }) => (<FormItem><FormLabel>e-Shikshakosh ID (Optional)</FormLabel><FormControl><Input placeholder="Student's e-Shikshakosh ID" {...field} /></FormControl><FormMessage /></FormItem>)} />
         </div>
       </FormSection>
 

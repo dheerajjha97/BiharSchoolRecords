@@ -102,6 +102,8 @@ function StudentsListContent() {
         'Date of Birth': formatDate(s.studentDetails?.dob),
         'Gender': s.studentDetails?.gender || '',
         'Caste': s.studentDetails?.caste || '',
+        'PEN Number': s.studentDetails?.penNumber || '',
+        'e-Shikshakosh ID': s.studentDetails?.eshikshakoshId || '',
         'Religion': s.studentDetails?.religion || '',
         'Nationality': s.studentDetails?.nationality || '',
         'Marital Status': s.studentDetails?.maritalStatus || '',

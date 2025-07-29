@@ -25,6 +25,8 @@ const studentDetailsSchema = z.object({
     disabilityDetails: z.string().optional(),
     religion: z.enum(["hindu", "islam", "sikh", "jain", "buddhism", "christ", "other"], { required_error: "Please select a religion." }),
     maritalStatus: z.enum(["married", "unmarried"], { required_error: "Please select marital status." }),
+    penNumber: z.string().optional(),
+    eshikshakoshId: z.string().optional(),
 });
 
 const contactDetailsSchema = z.object({

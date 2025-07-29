@@ -80,6 +80,8 @@ export function FormReviewStep({ formData }: FormReviewStepProps) {
                 <ReviewItem label="Date of Birth" value={studentDetails.dob} />
                 <ReviewItem label="Gender" value={studentDetails.gender} />
                 <ReviewItem label="Caste" value={studentDetails.caste} />
+                <ReviewItem label="PEN Number" value={studentDetails.penNumber} />
+                <ReviewItem label="e-Shikshakosh ID" value={studentDetails.eshikshakoshId} />
                 <ReviewItem label="Religion" value={studentDetails.religion} />
                 <ReviewItem label="Differently Abled" value={studentDetails.isDifferentlyAbled} />
                 {studentDetails.isDifferentlyAbled && <ReviewItem label="Disability Details" value={studentDetails.disabilityDetails} />}
