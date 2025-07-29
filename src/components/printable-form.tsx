@@ -188,7 +188,10 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                 <PrintTableDoubleRow label1="Account No." value1={bankDetails.accountNo} label2="IFSC Code" value2={bankDetails.ifsc} />
             </tbody>
         </table>
-        
+      </div>
+
+      {/* --- PAGE 2 --- */}
+      <div className="page page-break">
         {isClass9 && subjectDetails && (
           <>
             <table className="w-full mt-2 border-collapse border border-black text-xs break-inside-avoid">
@@ -255,11 +258,8 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
                 </div>
             </div>
         </div>
-      </div>
-
-      {/* --- PAGE 2 --- */}
-      <div className="page page-break">
-        <header className="text-center py-1 border-b-2 border-black break-inside-avoid">
+        
+        <header className="text-center py-1 border-b-2 border-black break-inside-avoid mt-4">
             <p className="font-semibold">Admission Form - For Office Use Only</p>
         </header>
         
@@ -278,3 +278,5 @@ export const PrintableForm = ({ formData, schoolData }: { formData: FormValues; 
     </div>
   );
 };
+
+  
