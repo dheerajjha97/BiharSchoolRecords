@@ -9,5 +9,5 @@ runConfig:
 # The location of the GitHub repository that this backend is backed by.
 # Replace the owner and name with your own.
 repository:
-  owner: <YOUR_GITHUB_USERNAME>
-  name: <YOUR_REPOSITORY_NAME>
+  owner: dheerajjha97
+  name: BiharSchoolRecords
