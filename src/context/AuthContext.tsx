@@ -38,20 +38,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true); // Start loading whenever auth state might change
       if (currentUser && currentUser.email) {
-        setUser(currentUser);
         try {
           const schoolData = await getSchoolByEmail(currentUser.email);
           if (schoolData) {
+            setUser(currentUser); // Set user only after confirming school link
             setSchool(schoolData);
           } else {
             console.warn(`No school record found for authenticated user: ${currentUser.email}. Logging out.`);
-            await signOut(auth);
+            await signOut(auth); // This will trigger onAuthStateChanged again with null
             setSchool(null);
             setUser(null);
           }
         } catch (error) {
           console.error("Error fetching school data for authenticated user:", error);
+          await signOut(auth);
           setSchool(null);
           setUser(null);
         }
@@ -67,19 +69,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (schoolData: School, userData: User) => {
+    setLoading(true);
     setSchool(schoolData);
     setUser(userData);
+    setLoading(false);
   }, []);
 
   const logout = useCallback(async () => {
     setLoading(true);
-    if(auth) {
-        await signOut(auth);
+    if (auth) {
+      await signOut(auth);
     }
     setUser(null);
     setSchool(null);
     router.push('/login');
-    setLoading(false);
+    // setLoading will be set to false by the onAuthStateChanged listener
   }, [router]);
 
   const value = { user, school, loading, login, logout };
