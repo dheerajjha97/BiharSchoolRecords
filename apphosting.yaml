@@ -5,3 +5,9 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+# The location of the GitHub repository that this backend is backed by.
+# Replace the owner and name with your own.
+repository:
+  owner: <YOUR_GITHUB_USERNAME>
+  name: <YOUR_REPOSITORY_NAME>
