@@ -4,14 +4,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { School } from '@/lib/school';
-import { getSchoolByUdise, seedInitialSchools } from '@/lib/school';
+import { getSchoolByUdise, getSchoolByEmail, seedInitialSchools } from '@/lib/school';
 import { firebaseError, auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 
 interface AuthContextType {
   school: School | null;
   loading: boolean;
-  login: (schoolData: School | string) => Promise<void>;
+  login: (schoolData: School) => Promise<void>;
   logout: () => void;
 }
 
@@ -28,55 +28,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-        setLoading(true);
-        if (firebaseError) {
-            console.error("Auth provider cannot function due to Firebase error:", firebaseError);
-            setSchool(null);
-            setLoading(false);
-            return;
-        }
+    // This effect runs once on mount to set up the auth state listener.
+    // It ensures that we have the most up-to-date user authentication status.
+    if (!auth || firebaseError) {
+      console.error("Auth provider cannot function due to Firebase error:", firebaseError);
+      setLoading(false);
+      return () => {};
+    }
+    
+    // Seed initial schools on startup
+    seedInitialSchools();
 
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+      if (user && user.email) {
+        // User is signed in via Google. Fetch their school data.
         try {
-            // Seed the database with initial schools if they don't exist.
-            await seedInitialSchools();
-
-            const storedUdise = localStorage.getItem('udise_code');
-            if (storedUdise) {
+          const schoolData = await getSchoolByEmail(user.email);
+          if (schoolData) {
+            setSchool(schoolData);
+          } else {
+            // User authenticated with Google, but no school record found.
+            // This can happen if their record was deleted. Log them out.
+            console.warn(`No school record found for authenticated user: ${user.email}`);
+            await signOut(auth);
+            setSchool(null);
+          }
+        } catch (error) {
+          console.error("Error fetching school data for authenticated user:", error);
+          setSchool(null);
+        }
+      } else {
+        // User is not signed in with Google. Check for local UDISE login.
+        const storedUdise = localStorage.getItem('udise_code');
+        if (storedUdise) {
+            try {
                 const schoolData = await getSchoolByUdise(storedUdise);
                 setSchool(schoolData);
-            } else {
+            } catch (error) {
+                console.error("Failed to load school data from local storage:", error);
                 setSchool(null);
+                localStorage.removeItem('udise_code');
             }
-        } catch (error) {
-            console.error("Failed to load school data on init:", error);
+        } else {
             setSchool(null);
-            localStorage.removeItem('udise_code');
-        } finally {
-            setLoading(false);
         }
-    }
-    checkUser();
+      }
+      setLoading(false);
+    });
+
+    // Cleanup the subscription when the component unmounts
+    return () => unsubscribe();
   }, []);
 
-  const login = useCallback(async (schoolDataOrUdise: School | string) => {
+  const login = useCallback(async (schoolData: School) => {
     setLoading(true);
     try {
-        let schoolData: School | null;
-        if (typeof schoolDataOrUdise === 'string') {
-            schoolData = await getSchoolByUdise(schoolDataOrUdise);
-        } else {
-            schoolData = schoolDataOrUdise;
-        }
-
         if (schoolData && schoolData.udise) {
+            // For password-based login, we store the UDISE locally
+            // onAuthStateChanged will handle the rest based on this.
             localStorage.setItem('udise_code', schoolData.udise);
             setSchool(schoolData);
         } else {
-            throw new Error("Invalid school data or UDISE provided to login function.");
+            throw new Error("Invalid school data provided to login function.");
         }
     } catch (error) {
-        console.error("Login failed:", error);
+        console.error("Login process failed:", error);
         localStorage.removeItem('udise_code');
         setSchool(null);
     } finally {
@@ -87,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     localStorage.removeItem('udise_code');
     setSchool(null);
-    if(auth) {
+    if(auth && auth.currentUser) {
         await signOut(auth);
     }
     router.push('/login');
