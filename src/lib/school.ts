@@ -6,8 +6,6 @@ export interface School {
     name: string;
     address: string;
     udise: string;
-    ownerUid?: string;
-    password?: string;
     mobile?: string;
     email?: string;
 }
@@ -104,24 +102,22 @@ export const seedInitialSchools = async (): Promise<void> => {
         return;
     }
 
-    const initialSchools: School[] = [
+    // This data is for initial setup only. After this, all data is managed by the user.
+    const initialSchools: Omit<School, 'email'>[] = [
         {
             udise: '10141201505',
             name: 'उच्च माध्यमिक विद्यालय बेरुआ',
             address: 'ग्राम – चोरनियां, पोस्ट – चिरैला, प्रखंड – गायघाट, जिला – मुजफ्फरपुर',
-            password: '123456'
         },
         {
             udise: '10130100101',
             name: 'राजकीयकृत मध्य विद्यालय, मिठनपुरा',
             address: 'मिठनपुरा, मुजफ्फरपुर, बिहार',
-            password: '123456'
         },
         {
             udise: '10130100202',
             name: 'जिला स्कूल, मुजफ्फरपुर',
             address: 'कलेक्ट्रेट के पास, मुजफ्फरपुर, बिहार',
-            password: '123456'
         }
     ];
 

@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { School } from '@/lib/school';
 import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Info } from 'lucide-react';
 
 interface AddSchoolDialogProps {
   open: boolean;
@@ -27,21 +29,16 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchool
   const [schoolName, setSchoolName] = useState('');
   const [schoolAddress, setSchoolAddress] = useState('');
   const [schoolUdise, setSchoolUdise] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
   const finalUdise = udise || schoolUdise;
-  const passwordsMatch = password && password === confirmPassword;
-  const canSave = finalUdise.length === 11 && schoolName.trim() && schoolAddress.trim() && password.length >= 6 && passwordsMatch;
+  const canSave = finalUdise.length === 11 && schoolName.trim() && schoolAddress.trim();
 
   useEffect(() => {
     if (open) {
-      setSchoolUdise(udise); // Pre-fill UDISE from login form if it exists
+      setSchoolUdise(udise);
       setSchoolName('');
       setSchoolAddress('');
-      setPassword('');
-      setConfirmPassword('');
       setIsSaving(false);
     }
   }, [open, udise]);
@@ -55,11 +52,9 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchool
             udise: finalUdise,
             name: schoolName.trim(),
             address: schoolAddress.trim(),
-            password: password,
         });
         onOpenChange(false);
     } catch (error) {
-        // Error is shown on the login page, just need to stop loading state here
         console.error("Save failed from dialog:", error);
     } finally {
         setIsSaving(false);
@@ -72,10 +67,7 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchool
         <DialogHeader>
           <DialogTitle>Register New School</DialogTitle>
           <DialogDescription>
-            {udise
-              ? `The school for UDISE ${udise} is not registered. Please enter its details.`
-              : "Enter your school's details to create a new account."
-            }
+            Enter your school's details. After this step, you will be prompted to sign in with Google to link an account for management.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -85,7 +77,6 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchool
               id="udise-code" 
               value={finalUdise} 
               onChange={(e) => setSchoolUdise(e.target.value.replace(/\D/g, ''))} 
-              disabled={!!udise} 
               maxLength={11} 
               placeholder="Enter 11-digit UDISE code" 
             />
@@ -98,23 +89,19 @@ export function AddSchoolDialog({ open, onOpenChange, udise, onSave }: AddSchool
             <Label htmlFor="school-address">Address</Label>
             <Input id="school-address" value={schoolAddress} onChange={(e) => setSchoolAddress(e.target.value)} placeholder="Enter full school address" />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Create a password (min. 6 characters)" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm Password</Label>
-            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm your new password" />
-          </div>
-          {!passwordsMatch && confirmPassword && (
-            <p className="text-sm text-destructive">Passwords do not match.</p>
-          )}
+          <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Next Step: Link Google Account</AlertTitle>
+              <AlertDescription>
+                After clicking 'Continue', you'll be asked to sign in with Google. This will securely link your Google Account to this school for future logins.
+              </AlertDescription>
+          </Alert>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancel</Button>
           <Button onClick={handleSave} disabled={!canSave || isSaving}>
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Register and Login
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>

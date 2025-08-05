@@ -2,109 +2,51 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getSchoolByUdise, saveSchool, getSchoolByEmail } from '@/lib/school';
+import { getSchoolByEmail, saveSchool } from '@/lib/school';
 import type { School } from '@/lib/school';
-import { auth } from '@/lib/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth, firebaseError } from '@/lib/firebase';
+import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { AddSchoolDialog } from '@/components/add-school-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DebugEnvVars } from '@/components/debug-env-vars';
-import { firebaseError } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const [udise, setUdise] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [checkingSchool, setCheckingSchool] = useState(false);
   const [error, setError] = useState('');
   const [showAddSchoolDialog, setShowAddSchoolDialog] = useState(false);
+  const [initialUdise, setInitialUdise] = useState('');
+  
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, school: loggedInSchool } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    const rememberedUdise = localStorage.getItem('remembered_udise');
-    if (rememberedUdise) {
-      setUdise(rememberedUdise);
-      const rememberedPassword = localStorage.getItem('remembered_password');
-      if (rememberedPassword) {
-        setPassword(rememberedPassword);
-      }
-      setRememberMe(true);
-    }
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!udise || udise.length !== 11) {
-      setError('Please enter a valid 11-digit UDISE code.');
-      return;
-    }
-    if (!password) {
-      setError('Please enter your password.');
-      return;
-    }
-    setLoading(true);
-
-    if (firebaseError) {
-        setError(firebaseError);
-        setLoading(false);
-        return;
-    }
-
-    try {
-      const school = await getSchoolByUdise(udise);
-      
-      if (!school) {
-        setError(`School with UDISE code ${udise} not found. Please register it.`);
-        setShowAddSchoolDialog(true);
-        setLoading(false);
-        return;
-      }
-
-      if (school.password === password) {
-        if (rememberMe) {
-          localStorage.setItem('remembered_udise', udise);
-          localStorage.setItem('remembered_password', password);
-        } else {
-          localStorage.removeItem('remembered_udise');
-          localStorage.removeItem('remembered_password');
-        }
-        await login(school);
+    // If user is already logged in, redirect to dashboard.
+    // This can happen if they manually navigate to /login.
+    if(user && loggedInSchool) {
         router.push('/dashboard');
-      } else {
-        setError('Invalid UDISE code or password.');
-      }
-    } catch (err) {
-      let errorMessage = 'An error occurred during login. Please try again.';
-      if (err instanceof Error) {
-          errorMessage = err.message;
-      }
-      setError(errorMessage);
-      console.error(err);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [user, loggedInSchool, router]);
+
 
   const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
+    setLoading(true);
     setError('');
     const provider = new GoogleAuthProvider();
+
+    if (!auth || firebaseError) {
+        setError(firebaseError || 'Firebase is not configured correctly.');
+        setLoading(false);
+        return;
+    }
+
     try {
       const result = await signInWithPopup(auth, provider);
       const email = result.user.email;
@@ -114,10 +56,15 @@ export default function LoginPage() {
 
       const school = await getSchoolByEmail(email);
       if (school) {
-        await login(school); // login will set the context and redirect is handled by AuthContext
+        await login(school, result.user);
         router.push('/dashboard');
       } else {
-        setError("No school is registered with this Google account. Please log in with UDISE and password, or register your school.");
+        // This Google account is not linked to any school.
+        // We sign them out of firebase and show the 'Add School' dialog.
+        await signOut(auth);
+        setInitialUdise(''); // No UDISE to pre-fill
+        setShowAddSchoolDialog(true);
+        setError("This Google account isn't linked to any school. Please register your school to continue.");
       }
 
     } catch (err: any) {
@@ -131,61 +78,53 @@ export default function LoginPage() {
           setError('Failed to sign in with Google. Please try again.');
        }
     } finally {
-        setIsGoogleLoading(false);
+        setLoading(false);
     }
   }
 
   const handleRegisterClick = async () => {
-    if (checkingSchool) return;
-
-    if (udise && udise.length === 11) {
-      setCheckingSchool(true);
-      try {
-        const schoolExists = await getSchoolByUdise(udise);
-        if (schoolExists) {
-          toast({
-            title: 'School Already Registered',
-            description: 'School with this UDISE is already registered. Please log in.',
-            variant: 'destructive',
-          });
-        } else {
-          setShowAddSchoolDialog(true);
-        }
-      } catch (err) {
-        let errorMessage = 'Could not verify school status. Please try again.';
-        if (err instanceof Error) {
-            errorMessage = err.message;
-        }
-         toast({
-            title: 'Error',
-            description: errorMessage,
-            variant: 'destructive',
-          });
-      } finally {
-        setCheckingSchool(false);
-      }
-    } else {
-      // If no UDISE is entered, just open the dialog
+      setInitialUdise('');
       setShowAddSchoolDialog(true);
-    }
   };
-
 
   const handleSaveSchool = async (school: School) => {
     setLoading(true);
     setError('');
+    const provider = new GoogleAuthProvider();
+
+    if (!auth) {
+        setError('Firebase Auth is not initialized.');
+        setLoading(false);
+        return;
+    }
+
     try {
-      await saveSchool(school);
-      await login(school);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const email = user.email;
+
+      if (!email) {
+          throw new Error("Could not retrieve email from Google Account.");
+      }
+      
+      const schoolWithEmail: School = { ...school, email: email };
+      
+      await saveSchool(schoolWithEmail);
+      await login(schoolWithEmail, user);
+
       setShowAddSchoolDialog(false);
-      router.push('/dashboard');
+      router.push('/dashboard/profile'); // Redirect to profile to see the linked account
+      toast({
+          title: "Registration Successful!",
+          description: "Your school is registered. Please review your profile."
+      })
     } catch (err) {
-      let errorMessage = 'An unexpected error occurred.';
+      let errorMessage = 'An unexpected error occurred during registration.';
       if (err instanceof Error) {
         errorMessage = err.message;
       }
-      setError(`Failed to save the new school. ${errorMessage}`);
-      console.error(err);
+      setError(errorMessage);
+      if (auth.currentUser) await signOut(auth);
       // Re-throw to be caught in the dialog to stop its loading state
       throw err;
     } finally {
@@ -200,45 +139,18 @@ export default function LoginPage() {
       <DebugEnvVars />
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your school's UDISE code and password to access the dashboard.</CardDescription>
+          <CardTitle className="text-2xl">School Login</CardTitle>
+          <CardDescription>Use your linked Google Account to sign in to the dashboard.</CardDescription>
         </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="udise">UDISE Code</Label>
-              <Input
-                id="udise"
-                type="text"
-                placeholder="11-digit UDISE code"
-                value={udise}
-                onChange={(e) => setUdise(e.target.value)}
-                required
-                maxLength={11}
-                disabled={!!firebaseError}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={!!firebaseError}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                  <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} disabled={!!firebaseError} />
-                  <Label htmlFor="remember-me" className="text-sm font-normal">Remember me</Label>
-              </div>
-              <Link href="/forgot-password" passHref className="text-sm font-medium text-primary hover:underline underline-offset-4">
-                Forgot Password?
-              </Link>
-            </div>
+        <CardContent className="space-y-4">
+            <Button variant="default" className="w-full" onClick={handleGoogleSignIn} disabled={loading || !!firebaseError}>
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
+                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                    <path fill="currentColor" d="M488 261.8C488 403.3 381.5 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 174 55.9L381.8 120.2C344.3 87.5 300.6 69.5 248 69.5c-108.6 0-197.3 88.8-197.3 186.5s88.8 186.5 197.3 186.5c78.2 0 129.5-32.3 158.8-61.9 25.3-25 41.3-64.8 46.2-111.4H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                </svg>
+                )}
+                Sign in with Google
+            </Button>
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -246,45 +158,28 @@ export default function LoginPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading || isGoogleLoading || !!firebaseError}>
-              {loading && !showAddSchoolDialog ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {loading && !showAddSchoolDialog ? 'Verifying...' : 'Login'}
-            </Button>
-          </CardFooter>
-        </form>
-
-        <div className="px-6 pb-6">
-            <div className="relative my-2">
+        </CardContent>
+         <CardFooter className="flex-col gap-4">
+            <div className="relative w-full">
                 <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-card px-2 text-muted-foreground">
-                        Or
+                        New User?
                     </span>
                 </div>
             </div>
-            <Button variant="outline" className="w-full mb-2" onClick={handleGoogleSignIn} disabled={isGoogleLoading || loading || !!firebaseError}>
-                {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
-                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                    <path fill="currentColor" d="M488 261.8C488 403.3 381.5 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 174 55.9L381.8 120.2C344.3 87.5 300.6 69.5 248 69.5c-108.6 0-197.3 88.8-197.3 186.5s88.8 186.5 197.3 186.5c78.2 0 129.5-32.3 158.8-61.9 25.3-25 41.3-64.8 46.2-111.4H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                </svg>
-                )}
-                Sign in with Google
-            </Button>
-            <Button variant="outline" className="w-full" type="button" onClick={handleRegisterClick} disabled={!!firebaseError || checkingSchool}>
-                {checkingSchool && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button variant="outline" className="w-full" type="button" onClick={handleRegisterClick} disabled={!!firebaseError || loading}>
                 Register a New School
             </Button>
-        </div>
+        </CardFooter>
       </Card>
       
       <AddSchoolDialog 
         open={showAddSchoolDialog}
         onOpenChange={setShowAddSchoolDialog}
-        udise={udise}
+        udise={initialUdise}
         onSave={handleSaveSchool}
       />
 
