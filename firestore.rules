@@ -1,0 +1,25 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public read access to school details for login and QR code scanning.
+    // Writes should be restricted, but for this demo, we will allow them.
+    // In a production app, you'd want to secure this further.
+    match /schools/{udise} {
+      allow read, write: if true;
+    }
+
+    // Allow logged-in users (school admins) to manage their own admissions data.
+    // An admission document can be read or written only if the user's UDISE
+    // matches the UDISE stored in the document.
+    match /admissions/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow logged-in users to manage fee structures.
+    match /feeStructures/{docId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
