@@ -131,7 +131,7 @@ function PrintableDCRContent() {
                     </TableRow>
                   ))}
                   <TableRow className="bg-gray-100 font-bold text-sm break-inside-avoid">
-                    <TableCell colSpan={4} className="border border-black text-right">Grand Total</TableCell>
+                    <TableCell colSpan={4} className="text-right">Grand Total</TableCell>
                     <TableCell className="border border-black text-right">{currencyFormatter.format(totals.studentFund)}</TableCell>
                     <TableCell className="border border-black text-right">{currencyFormatter.format(totals.devFund)}</TableCell>
                     <TableCell className="border border-black text-right">{currencyFormatter.format(totals.grandTotal)}</TableCell>

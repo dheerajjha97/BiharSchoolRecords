@@ -29,8 +29,8 @@ const calculateFeesForStudent = (student: FormValues, feeStructure: FeeHead[]) =
     return { ...head, amount };
   });
 
-  const studentFundItems = allHeads.slice(0, 4);
-  const developmentFundItems = allHeads.slice(4);
+  const developmentFundItems = allHeads.slice(0, 4);
+  const studentFundItems = allHeads.slice(4);
 
   const studentFundTotal = studentFundItems.reduce((sum, item) => sum + item.amount, 0);
   const developmentFundTotal = developmentFundItems.reduce((sum, item) => sum + item.amount, 0);

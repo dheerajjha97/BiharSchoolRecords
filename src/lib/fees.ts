@@ -14,13 +14,13 @@ export interface FeeHead {
 // This now serves as the default/fallback structure.
 // The primary source of truth will be the Firestore database.
 export const DEFAULT_FEE_STRUCTURE: FeeHead[] = [
-  // Student Fund
+  // Development Fund
   { id: 1, name_en: "Admission Fee", name_hi: "प्रवेश शुल्क", class9: 50, class10: 50, class11ac: 50, class11s: 50, class12ac: 50, class12s: 50 },
   { id: 2, name_en: "Tuition Fee", name_hi: "शिक्षण शुल्क", class9: 240, class10: 240, class11ac: 240, class11s: 240, class12ac: 240, class12s: 240 },
   { id: 3, name_en: "Development Fee", name_hi: "विकास शुल्क", class9: 480, class10: 480, class11ac: 480, class11s: 480, class12ac: 480, class12s: 480 },
   { id: 4, name_en: "Transfer Fee", name_hi: "स्थानांतरण शुल्क", class9: 100, class10: 100, class11ac: 100, class11s: 100, class12ac: 100, class12s: 100 },
 
-  // Development Fund
+  // Student Fund
   { id: 5, name_en: "Science Fee", name_hi: "विज्ञान शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 20, class12ac: 0, class12s: 20 },
   { id: 6, name_en: "Absence Fee", name_hi: "अनुपस्थिति शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 0, class12ac: 0, class12s: 0 },
   { id: 7, name_en: "Late Fine", name_hi: "विलंब दंड शुल्क", class9: 0, class10: 0, class11ac: 0, class11s: 0, class12ac: 0, class12s: 0 },

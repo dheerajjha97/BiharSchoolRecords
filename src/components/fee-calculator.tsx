@@ -87,8 +87,9 @@ export function FeeCalculator({ studentClass, studentCaste, admissionDate }: Fee
       return head;
     });
 
-    const studentFundItems = finalFees.slice(0, 4);
-    const developmentFundItems = finalFees.slice(4);
+    // Swapped: First 4 are Development Fund, the rest are Student Fund
+    const developmentFundItems = finalFees.slice(0, 4);
+    const studentFundItems = finalFees.slice(4);
 
     const studentFundTotal = studentFundItems.reduce((sum, item) => sum + item.amount, 0);
     const developmentFundTotal = developmentFundItems.reduce((sum, item) => sum + item.amount, 0);
@@ -112,7 +113,7 @@ export function FeeCalculator({ studentClass, studentCaste, admissionDate }: Fee
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Student Fund</CardTitle>
+          <CardTitle>Development Fund</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -123,7 +124,7 @@ export function FeeCalculator({ studentClass, studentCaste, admissionDate }: Fee
               </TableRow>
             </TableHeader>
             <TableBody>
-              {calculatedFees.studentFundItems.map(item => (
+              {calculatedFees.developmentFundItems.map(item => (
                 <TableRow key={item.id}>
                   <TableCell>
                     {item.name_en} ({item.name_hi})
@@ -135,17 +136,17 @@ export function FeeCalculator({ studentClass, studentCaste, admissionDate }: Fee
                 </TableRow>
               ))}
               <TableRow className="bg-muted/50 font-bold">
-                <TableCell>Student Fund Total</TableCell>
-                <TableCell className="text-right">{currencyFormatter.format(calculatedFees.studentFundTotal)}</TableCell>
+                <TableCell>Development Fund Total</TableCell>
+                <TableCell className="text-right">{currencyFormatter.format(calculatedFees.developmentFundTotal)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader>
-          <CardTitle>Development Fund</CardTitle>
+          <CardTitle>Student Fund</CardTitle>
         </CardHeader>
         <CardContent>
            <Table>
@@ -156,15 +157,15 @@ export function FeeCalculator({ studentClass, studentCaste, admissionDate }: Fee
               </TableRow>
             </TableHeader>
             <TableBody>
-              {calculatedFees.developmentFundItems.map(item => (
+              {calculatedFees.studentFundItems.map(item => (
                 <TableRow key={item.id}>
                   <TableCell>{item.name_en} ({item.name_hi})</TableCell>
                   <TableCell className="text-right">{currencyFormatter.format(item.amount)}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="bg-muted/50 font-bold">
-                <TableCell>Development Fund Total</TableCell>
-                <TableCell className="text-right">{currencyFormatter.format(calculatedFees.developmentFundTotal)}</TableCell>
+                <TableCell>Student Fund Total</TableCell>
+                <TableCell className="text-right">{currencyFormatter.format(calculatedFees.studentFundTotal)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

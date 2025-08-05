@@ -105,15 +105,15 @@ const calculateFees = (studentClass: string, studentCaste: string, feeStructure:
         return { ...head, amount, isExempted };
     });
 
-    const studentFundItems = finalFees.slice(0, 4);
-    const developmentFundItems = finalFees.slice(4);
+    const developmentFundItems = finalFees.slice(0, 4);
+    const studentFundItems = finalFees.slice(4);
 
     const studentFundTotal = studentFundItems.reduce((sum, item) => sum + item.amount, 0);
     const developmentFundTotal = developmentFundItems.reduce((sum, item) => sum + item.amount, 0);
     const totalFee = studentFundTotal + developmentFundTotal;
 
     const studentFundParticulars = studentFundItems.map(item => `${item.name_hi}${item.isExempted ? ' (छूट)' : ''}`);
-    const developmentFundParticulars = developmentFundItems.map(item => item.name_hi);
+    const developmentFundParticulars = developmentFundItems.map(item => `${item.name_hi}${item.isExempted ? ' (छूट)' : ''}`);
 
     return { studentFundTotal, developmentFundTotal, totalFee, studentFundParticulars, developmentFundParticulars };
 };
@@ -197,20 +197,20 @@ const ReceiptCopy = ({ copyType, formData, schoolData, feeStructure }: { copyTyp
                     <tr className="break-inside-avoid">
                         <td className="border border-black py-1 px-2 text-center align-top">1.</td>
                         <td className="border border-black py-1 px-2">
-                             {fees.studentFundParticulars.map((item, index) => (
-                                <div key={index}>{item}</div>
-                            ))}
-                        </td>
-                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.studentFundTotal)}</td>
-                    </tr>
-                     <tr className="break-inside-avoid">
-                        <td className="border border-black py-1 px-2 text-center align-top">2.</td>
-                        <td className="border border-black py-1 px-2">
-                            {fees.developmentFundParticulars.map((item, index) => (
+                             {fees.developmentFundParticulars.map((item, index) => (
                                 <div key={index}>{item}</div>
                             ))}
                         </td>
                         <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.developmentFundTotal)}</td>
+                    </tr>
+                     <tr className="break-inside-avoid">
+                        <td className="border border-black py-1 px-2 text-center align-top">2.</td>
+                        <td className="border border-black py-1 px-2">
+                            {fees.studentFundParticulars.map((item, index) => (
+                                <div key={index}>{item}</div>
+                            ))}
+                        </td>
+                        <td className="border border-black py-1 px-2 text-right align-top">{currencyFormatter.format(fees.studentFundTotal)}</td>
                     </tr>
                 </tbody>
                 <tfoot>
