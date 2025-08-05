@@ -80,7 +80,7 @@ export default function DashboardLayout({
                         <Image src="/logo.jpg" alt="School Logo" width={32} height={32} className="rounded-md" />
                     </div>
                     <div className="min-w-0">
-                        <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                        <div className="font-bold text-base text-sidebar-primary">{school?.name || 'School Records'}</div>
                         <p className="text-xs text-muted-foreground whitespace-normal">{school?.address}</p>
                     </div>
                 </Link>
@@ -167,7 +167,7 @@ export default function DashboardLayout({
                       <Image src="/logo.jpg" alt="School Logo" width={32} height={32} className="rounded-md" />
                   </div>
                   <div className="group-data-[collapsible=icon]:hidden min-w-0">
-                      <div className="font-bold text-base text-sidebar-primary">{school?.name || 'EduAssist'}</div>
+                      <div className="font-bold text-base text-sidebar-primary">{school?.name || 'School Records'}</div>
                   </div>
               </Link>
             )}
@@ -238,7 +238,7 @@ export default function DashboardLayout({
               <div className="flex items-center gap-4">
                   <MobileNav />
                   <div className="hidden md:block">
-                    <h1 className="text-xl font-bold">{school?.name || 'EduAssist'}</h1>
+                    <h1 className="text-xl font-bold">{school?.name || ''}</h1>
                   </div>
               </div>
               <div className="flex items-center gap-2">

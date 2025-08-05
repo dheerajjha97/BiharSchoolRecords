@@ -13,8 +13,8 @@ const noto_sans_devanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: 'EduAssist Forms',
-  description: 'Admission and Subject Selection Forms for Class 9 & Class 11 (Arts, Science, Commerce)',
+  title: 'Bihar School Records',
+  description: 'Online Admission and Data Management for Schools in Bihar',
   manifest: '/manifest.json',
 };
 

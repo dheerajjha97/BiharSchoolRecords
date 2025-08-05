@@ -75,7 +75,7 @@ function PrintableQrPage() {
 
              <footer className="mt-auto pt-8">
                 <p className="text-sm text-gray-500">
-                    Powered by EduAssist | Session 2025-2026
+                    Session 2025-2026
                 </p>
             </footer>
         </div>
