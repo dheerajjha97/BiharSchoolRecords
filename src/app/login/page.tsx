@@ -114,7 +114,7 @@ export default function LoginPage() {
 
       const school = await getSchoolByEmail(email);
       if (school) {
-        await login(school);
+        await login(school); // login will set the context and redirect is handled by AuthContext
         router.push('/dashboard');
       } else {
         setError("No school is registered with this Google account. Please log in with UDISE and password, or register your school.");
@@ -266,6 +266,14 @@ export default function LoginPage() {
                     </span>
                 </div>
             </div>
+            <Button variant="outline" className="w-full mb-2" onClick={handleGoogleSignIn} disabled={isGoogleLoading || loading || !!firebaseError}>
+                {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
+                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                    <path fill="currentColor" d="M488 261.8C488 403.3 381.5 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 174 55.9L381.8 120.2C344.3 87.5 300.6 69.5 248 69.5c-108.6 0-197.3 88.8-197.3 186.5s88.8 186.5 197.3 186.5c78.2 0 129.5-32.3 158.8-61.9 25.3-25 41.3-64.8 46.2-111.4H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                </svg>
+                )}
+                Sign in with Google
+            </Button>
             <Button variant="outline" className="w-full" type="button" onClick={handleRegisterClick} disabled={!!firebaseError || checkingSchool}>
                 {checkingSchool && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Register a New School
