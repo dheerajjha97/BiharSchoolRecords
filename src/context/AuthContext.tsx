@@ -4,7 +4,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { School } from '@/lib/school';
-import { getSchoolByUdise } from '@/lib/school';
+import { getSchoolByUdise, seedInitialSchools } from '@/lib/school';
 import { firebaseError, auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 
@@ -38,6 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         try {
+            // Seed the database with initial schools if they don't exist.
+            await seedInitialSchools();
+
             const storedUdise = localStorage.getItem('udise_code');
             if (storedUdise) {
                 const schoolData = await getSchoolByUdise(storedUdise);

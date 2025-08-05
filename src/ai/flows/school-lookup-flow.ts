@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A school lookup utility.
@@ -9,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
+import { getSchoolByUdise } from '@/lib/school';
 
 const SchoolLookupInputSchema = z.object({
   udise: z.string().describe('The 11-digit UDISE code of the school.'),
@@ -21,23 +23,6 @@ const SchoolLookupOutputSchema = z.object({
   udise: z.string().describe('The 11-digit UDISE code of the school.'),
 }).nullable();
 export type SchoolLookupOutput = z.infer<typeof SchoolLookupOutputSchema>;
-
-// This is a mock database to simulate fetching from the udise_schools repository.
-// In a real application, this would be a call to an external API or database.
-const schoolDatabase: Record<string, { name: string; address: string }> = {
-  '10141201505': {
-    name: 'उच्च माध्यमिक विद्यालय बेरुआ',
-    address: 'ग्राम – चोरनियां, पोस्ट – चिरैला, प्रखंड – गायघाट, जिला – मुजफ्फरपुर',
-  },
-  '10130100101': {
-    name: 'राजकीयकृत मध्य विद्यालय, मिठनपुरा',
-    address: 'मिठनपुरा, मुजफ्फरपुर, बिहार',
-  },
-  '10130100202': {
-      name: 'जिला स्कूल, मुजफ्फरपुर',
-      address: 'कलेक्ट्रेट के पास, मुजफ्फरपुर, बिहार',
-  }
-};
 
 
 export async function schoolLookup(
@@ -53,15 +38,19 @@ const schoolLookupFlow = ai.defineFlow(
     outputSchema: SchoolLookupOutputSchema,
   },
   async ({ udise }) => {
-    // This flow simulates looking up school data from a large public dataset.
-    // For this demo, we use a small, hardcoded map.
-    const schoolData = schoolDatabase[udise];
+    // This flow now looks up school data from the live Firestore database.
+    const schoolData = await getSchoolByUdise(udise);
 
     if (schoolData) {
-      return { ...schoolData, udise };
+      // Return only the public-facing details.
+      return { 
+        name: schoolData.name,
+        address: schoolData.address,
+        udise: schoolData.udise,
+      };
     }
     
-    // If not found in our mock database, return null.
+    // If not found in our database, return null.
     // The UI will then prompt the user for manual entry.
     return null;
   }

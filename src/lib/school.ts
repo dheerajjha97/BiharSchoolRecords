@@ -1,7 +1,6 @@
 
-
 import { db, firebaseError } from './firebase';
-import { doc, getDoc, setDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocs, collection, query, where, writeBatch } from 'firebase/firestore';
 
 export interface School {
     name: string;
@@ -91,5 +90,60 @@ export const getSchoolByEmail = async (email: string): Promise<School | null> =>
           throw new Error('Could not connect to the database. Please check your internet connection.');
         }
         return null;
+    }
+};
+
+
+/**
+ * Seeds the database with a list of initial schools if they don't already exist.
+ * This is useful for demos and initial setup.
+ */
+export const seedInitialSchools = async (): Promise<void> => {
+    if (!db) {
+        console.warn(firebaseError || "Database not available. Cannot seed initial schools.");
+        return;
+    }
+
+    const initialSchools: School[] = [
+        {
+            udise: '10141201505',
+            name: 'उच्च माध्यमिक विद्यालय बेरुआ',
+            address: 'ग्राम – चोरनियां, पोस्ट – चिरैला, प्रखंड – गायघाट, जिला – मुजफ्फरपुर',
+            password: '123456'
+        },
+        {
+            udise: '10130100101',
+            name: 'राजकीयकृत मध्य विद्यालय, मिठनपुरा',
+            address: 'मिठनपुरा, मुजफ्फरपुर, बिहार',
+            password: '123456'
+        },
+        {
+            udise: '10130100202',
+            name: 'जिला स्कूल, मुजफ्फरपुर',
+            address: 'कलेक्ट्रेट के पास, मुजफ्फरपुर, बिहार',
+            password: '123456'
+        }
+    ];
+
+    try {
+        const batch = writeBatch(db);
+        let writes = 0;
+
+        for (const school of initialSchools) {
+            const schoolDocRef = doc(db, 'schools', school.udise);
+            const docSnap = await getDoc(schoolDocRef);
+            if (!docSnap.exists()) {
+                batch.set(schoolDocRef, school);
+                writes++;
+                console.log(`Seeding school: ${school.name} (${school.udise})`);
+            }
+        }
+
+        if (writes > 0) {
+            await batch.commit();
+            console.log(`Successfully seeded ${writes} initial schools.`);
+        }
+    } catch (e) {
+        console.error("Error seeding initial schools:", e);
     }
 };
