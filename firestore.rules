@@ -3,25 +3,19 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Schools can be read by anyone to allow login and QR code functionality.
-    // Writing/deleting schools should be handled with care, possibly from an admin tool
-    // or through specific user roles, but for this app, we allow authenticated writes.
+    
+    // Schools collection:
+    // Anyone can read school details for login and QR code generation.
+    // Only authenticated users (admins) can create or update school info.
     match /schools/{udise} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // Admissions can only be created by anyone (public form), but can only be
-    // read, updated, or deleted by an authenticated user (school admin).
-    // This protects student data.
-    match /admissions/{docId} {
-      allow read, update, delete: if request.auth != null;
-      allow create: if true;
-    }
-    
-    // Fee structures are sensitive and should only be managed by authenticated users.
-    match /feeStructures/{docId} {
+    // Admissions and Fee Structures:
+    // Only allow read/write operations if the user is authenticated (logged in).
+    // This protects all sensitive student and financial data.
+    match /{document=**} {
       allow read, write: if request.auth != null;
     }
   }
