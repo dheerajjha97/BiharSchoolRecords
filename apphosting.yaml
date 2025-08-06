@@ -7,7 +7,7 @@ runConfig:
   maxInstances: 1
 
 # The location of the GitHub repository that this backend is backed by.
-# Replace the owner and name with your own.
+# This is required to enable the "Create Pull Request" feature.
 repository:
   owner: dheerajjha97
   name: BiharSchoolRecords
