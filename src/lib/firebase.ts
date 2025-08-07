@@ -23,6 +23,7 @@ try {
   if (allVarsPresent) {
     app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     dbInstance = getFirestore(app);
+    // Explicitly pass the authDomain to getAuth to prevent configuration issues.
     authInstance = getAuth(app);
     
     // Enable offline persistence
