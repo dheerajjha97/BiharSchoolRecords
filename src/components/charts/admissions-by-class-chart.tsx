@@ -1,18 +1,21 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell, ZAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useAuth } from '@/context/AuthContext';
 
 const classDisplayNameMap: { [key: string]: { name: string, color: string } } = {
     '9': { name: 'Class 9', color: 'hsl(var(--chart-1))' },
+    '10': { name: 'Class 10', color: 'hsl(var(--chart-5))'},
     '11-arts': { name: 'Arts', color: 'hsl(var(--chart-2))' },
     '11-science': { name: 'Science', color: 'hsl(var(--chart-3))' },
     '11-commerce': { name: 'Commerce', color: 'hsl(var(--chart-4))' },
+    '12-arts': { name: '12 Arts', color: 'hsl(var(--chart-2))' },
+    '12-science': { name: '12 Science', color: 'hsl(var(--chart-3))' },
+    '12-commerce': { name: '12 Commerce', color: 'hsl(var(--chart-4))' },
 };
 
 
@@ -35,17 +38,18 @@ export default function AdmissionsByClassChart() {
 
     setLoading(true);
     const unsubscribe = listenToAdmissions(school.udise, (students) => {
-      const classCounts = {
-        '9': students.filter(s => s.admissionDetails.classSelection === '9').length,
-        '11-arts': students.filter(s => s.admissionDetails.classSelection === '11-arts').length,
-        '11-science': students.filter(s => s.admissionDetails.classSelection === '11-science').length,
-        '11-commerce': students.filter(s => s.admissionDetails.classSelection === '11-commerce').length,
-      };
+      const classCounts = students.reduce((acc, student) => {
+        const classKey = student.admissionDetails.classSelection;
+        if (classKey) {
+            acc[classKey] = (acc[classKey] || 0) + 1;
+        }
+        return acc;
+      }, {} as {[key: string]: number});
       
       const dataForChart = Object.keys(classCounts).map(classKey => ({
-        name: classDisplayNameMap[classKey as keyof typeof classDisplayNameMap].name,
+        name: classDisplayNameMap[classKey as keyof typeof classDisplayNameMap]?.name || classKey,
         total: classCounts[classKey as keyof typeof classCounts],
-        fill: classDisplayNameMap[classKey as keyof typeof classDisplayNameMap].color,
+        fill: classDisplayNameMap[classKey as keyof typeof classDisplayNameMap]?.color || 'hsl(var(--chart-1))',
       }));
 
       setChartData(dataForChart);
