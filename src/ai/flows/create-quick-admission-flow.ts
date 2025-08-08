@@ -64,7 +64,7 @@ const createQuickAdmissionFlow = ai.defineFlow(
 
     try {
       let admissionNumber: string;
-      const admissionDate = new Date();
+      const admissionDate = input.admissionDate;
       const admissionYear = admissionDate.getFullYear();
       
       const admissionsCollection = collection(db, "admissions");
