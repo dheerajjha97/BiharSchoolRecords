@@ -79,7 +79,18 @@ export default function QuickReceiptPage() {
       
       // Open receipt in new tab and reset form
       window.open(`/print-receipt/${result.id}`, '_blank');
-      form.reset();
+      form.reset({
+        admissionDate: new Date(),
+        nameEn: '',
+        nameHi: '',
+        fatherNameEn: '',
+        fatherNameHi: '',
+        mobileNumber: '',
+        classSelection: undefined,
+        caste: undefined,
+        rollNumber: '',
+        admissionNumber: '',
+      });
 
     } catch (err: any) {
       console.error("Quick admission failed:", err);
