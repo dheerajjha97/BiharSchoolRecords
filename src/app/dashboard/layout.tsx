@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu, FileWarning, XCircle, Settings, ReceiptText, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Users, LogOut, Loader2, KeyRound, Building, History, CheckCircle2, Menu, FileWarning, XCircle, Settings, ReceiptText, BarChart3, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePendingAdmissionsCount } from '@/hooks/use-pending-admissions';
 
@@ -38,9 +38,11 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { school, loading, logout } = useAuth();
+  const { school, user, loading, logout } = useAuth();
   const { count: pendingCount } = usePendingAdmissionsCount();
   const [open, setOpen] = React.useState(false);
+
+  const isSuperAdmin = user?.email === 'dheerajjha97@gmail.com';
   
   React.useEffect(() => {
     if (!loading && !school) {
@@ -143,6 +145,13 @@ export default function DashboardLayout({
                   <Link href="/dashboard/reset-password"><KeyRound /><span>Reset Password</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {isSuperAdmin && (
+                <SidebarMenuItem onClick={handleLinkClick}>
+                  <SidebarMenuButton asChild isActive={pathname === '/super-admin'}>
+                    <Link href="/super-admin"><ShieldCheck /><span>Super Admin</span></Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </div>
         </SheetContent>
@@ -229,6 +238,13 @@ export default function DashboardLayout({
                   <Link href="/dashboard/reset-password"><KeyRound /><span>Reset Password</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {isSuperAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === '/super-admin'} tooltip="Super Admin">
+                    <Link href="/super-admin"><ShieldCheck /><span>Super Admin</span></Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
           </SidebarMenu>
         </SidebarHeader>
       </Sidebar>
