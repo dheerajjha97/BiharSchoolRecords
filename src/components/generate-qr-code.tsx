@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,39 +12,26 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, AlertCircle, Printer, Link2, Copy, Check } from 'lucide-react';
+import { QrCode, AlertCircle, Printer, Link2, Copy, Check, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function GenerateQrCode() {
   const [qrUrl, setQrUrl] = useState('');
-  const [baseUrl, setBaseUrl] = useState('');
-  const [showPublicUrlWarning, setShowPublicUrlWarning] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { school } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (publicUrl && publicUrl.startsWith('http')) {
-      setBaseUrl(publicUrl);
-      setShowPublicUrlWarning(false);
-    } else {
-      setShowPublicUrlWarning(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (baseUrl && school?.udise) {
-      const url = new URL(baseUrl);
+    // This effect runs on the client-side, so `window` is available.
+    if (typeof window !== 'undefined' && school?.udise) {
+      const url = new URL(window.location.origin);
       url.pathname = '/form';
       url.searchParams.set('udise', school.udise);
       setQrUrl(url.toString());
-    } else {
-      setQrUrl('');
     }
-  }, [baseUrl, school]);
+  }, [school]);
 
   const handleCopy = () => {
     if (!qrUrl) return;
@@ -96,20 +82,12 @@ export default function GenerateQrCode() {
             </div>
           </>
         ) : (
-           <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-md bg-muted/50">
-                <p className="text-muted-foreground text-center p-4">
-                  {showPublicUrlWarning ? "Cannot generate QR code. Public URL is not configured." : "Loading QR Code..."}
+           <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-md bg-muted/50">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <p className="text-muted-foreground text-center p-4 mt-2">
+                  Generating QR Code...
                 </p>
            </div>
-        )}
-        {showPublicUrlWarning && (
-            <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Action Required: Set Public URL</AlertTitle>
-                <AlertDescription>
-                    Your QR code will not work. To fix this, open the <code>.env.local</code> file, set <code>NEXT_PUBLIC_BASE_URL</code> to your app's public URL, and restart your server.
-                </AlertDescription>
-            </Alert>
         )}
       </CardContent>
        <CardFooter>

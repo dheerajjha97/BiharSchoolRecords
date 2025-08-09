@@ -19,16 +19,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
 const classVariantMap: { [key: string]: "default" | "secondary" | "destructive" | "outline" | null | undefined } = {
+    '9': 'outline',
+    '10': 'outline',
+    '11-arts': 'secondary',
     '11-science': 'default',
-    '11-commerce': 'secondary',
-    '11-arts': 'outline',
-    '9': 'outline'
+    '11-commerce': 'destructive',
+    '12-arts': 'secondary',
+    '12-science': 'default',
+    '12-commerce': 'destructive',
 };
+
 const classDisplayNameMap: { [key: string]: string } = {
+    '9': 'Class 9',
+    '10': 'Class 10',
+    '11-arts': 'Arts',
     '11-science': 'Science',
     '11-commerce': 'Commerce',
-    '11-arts': 'Arts',
-    '9': 'Class 9'
+    '12-arts': '12 Arts',
+    '12-science': '12 Science',
+    '12-commerce': '12 Commerce',
 };
 
 export default function RecentAdmissions() {

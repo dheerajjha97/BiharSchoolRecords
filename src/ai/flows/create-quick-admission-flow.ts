@@ -64,7 +64,7 @@ const createQuickAdmissionFlow = ai.defineFlow(
 
     try {
       let admissionNumber: string;
-      const admissionDate = new Date();
+      const admissionDate = input.admissionDate; // Use the date from the input
       const admissionYear = admissionDate.getFullYear();
       
       const admissionsCollection = collection(db, "admissions");
@@ -115,7 +115,7 @@ const createQuickAdmissionFlow = ai.defineFlow(
         admissionDetails: {
           admissionNumber: admissionNumber,
           rollNumber: input.rollNumber,
-          admissionDate: admissionDate,
+          admissionDate: admissionDate, // Use the selected date
           classSelection: input.classSelection,
           udise: input.udise,
           status: 'approved', // Automatically approved
