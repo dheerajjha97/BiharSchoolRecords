@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { getSchoolByEmail, saveSchool } from '@/lib/school';
 import type { School } from '@/lib/school';
@@ -17,6 +16,45 @@ import { AddSchoolDialog } from '@/components/add-school-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DebugEnvVars } from '@/components/debug-env-vars';
 import { useToast } from '@/hooks/use-toast';
+
+const LoginIllustration = () => (
+    <svg width="100%" height="100%" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor: 'hsl(var(--primary))', stopOpacity: 0.1}} />
+                <stop offset="100%" style={{stopColor: 'hsl(var(--secondary))', stopOpacity: 0.2}} />
+            </linearGradient>
+        </defs>
+        <rect width="800" height="800" fill="url(#grad1)" />
+        <g transform="translate(400, 400) scale(0.8)">
+            
+            {/* <!-- Person Studying --> */}
+            <g transform="translate(-150, 50)">
+                <circle cx="0" cy="-60" r="30" fill="hsl(var(--primary))" opacity="0.8"/>
+                <path d="M -50 0 C -50 60, 50 60, 50 0 Z" fill="hsl(var(--primary))" opacity="0.8"/>
+                <rect x="-70" y="30" width="140" height="20" rx="10" fill="#fff" />
+            </g>
+
+            {/* <!-- Open Book --> */}
+            <g transform="translate(100, 120)">
+                <path d="M-120 -10C-120 -60 0 -80 0 -10C0 -80 120 -60 120 -10 L120 80 C120 100 0 120 0 80 C0 120 -120 100 -120 80Z" fill="#fff" stroke="hsl(var(--border))" strokeWidth="5"/>
+                <line x1="-100" y1="10" x2="100" y2="10" stroke="hsl(var(--border))" strokeWidth="4" strokeDasharray="8 8"/>
+                <line x1="-100" y1="30" x2="100" y2="30" stroke="hsl(var(--border))" strokeWidth="4" strokeDasharray="8 8"/>
+                <line x1="-100" y1="50" x2="80" y2="50" stroke="hsl(var(--border))" strokeWidth="4" strokeDasharray="8 8"/>
+            </g>
+
+            {/* <!-- Decorative Elements --> */}
+            <circle cx="-250" cy="-150" r="20" fill="hsl(var(--primary))" opacity="0.3"/>
+            <path d="M 200 -200 L 250 -250 L 300 -200 Z" fill="hsl(var(--primary))" opacity="0.4" />
+            <rect x="220" y="50" width="80" height="80" rx="40" fill="hsl(var(--secondary))" opacity="0.5" transform="rotate(45 260 90)"/>
+
+            <g transform="translate(-200, 200)">
+                 <path d="M0,0 a30,30 0 0,1 60,0 a30,30 0 0,1 60,0" fill="none" stroke="hsl(var(--primary))" strokeWidth="6" opacity="0.2"/>
+            </g>
+        </g>
+    </svg>
+);
+
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -130,29 +168,25 @@ export default function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-       <div className="bg-muted lg:bg-background flex flex-col items-center justify-center p-6 lg:p-12">
-          <div className="relative w-full max-w-md aspect-[4/5] lg:aspect-auto lg:h-full overflow-hidden rounded-2xl shadow-xl">
-              <Image
-                  src="https://placehold.co/800x1000.png"
-                  alt="School Illustration"
-                  fill
-                  priority
-                  className="object-cover"
-                  data-ai-hint="education learning"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-primary/20 flex flex-col justify-end p-8 text-primary-foreground">
-                  <div className="space-y-2">
-                      <BookOpen className="h-10 w-10" />
-                      <h2 className="text-3xl font-bold">Streamline Your School's Admissions</h2>
-                      <p className="text-primary-foreground/80">
-                          Efficient, secure, and modern data management.
-                      </p>
-                  </div>
-              </div>
-          </div>
+       <div className="bg-muted lg:bg-background flex-col items-center justify-center p-6 lg:p-12 hidden lg:flex">
+            <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-xl">
+                 <LoginIllustration />
+                 <div className="absolute inset-0 flex flex-col justify-end p-8 text-primary-foreground from-black/30 to-transparent bg-gradient-to-t">
+                    <div className="space-y-2 text-white/90">
+                        <BookOpen className="h-10 w-10" />
+                        <h2 className="text-3xl font-bold">Streamline Your School's Admissions</h2>
+                        <p className="text-white/80">
+                            Efficient, secure, and modern data management.
+                        </p>
+                    </div>
+                 </div>
+            </div>
       </div>
-      <div className="flex items-center justify-center py-12 px-4">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
         <div className="mx-auto grid w-full max-w-sm gap-6">
+          <div className="lg:hidden w-full h-48 mb-6 rounded-xl overflow-hidden shadow-lg">
+             <LoginIllustration />
+          </div>
           <DebugEnvVars />
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">School Login</h1>
@@ -194,7 +228,7 @@ export default function LoginPage() {
             Crafted with ❤️ by Dheeraj Jha
           </div>
         </div>
-      </div>
+      </main>
        <AddSchoolDialog 
         open={showAddSchoolDialog}
         onOpenChange={setShowAddSchoolDialog}
