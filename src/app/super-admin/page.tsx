@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, ShieldAlert, Building, Users, Database } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const SUPER_ADMIN_EMAIL = 'dheerajjha97@gmail.com';
+const SUPER_ADMIN_EMAIL = 'jhadheeraj97@gmail.com';
 
 export default function SuperAdminPage() {
   const { user, loading: authLoading } = useAuth();
