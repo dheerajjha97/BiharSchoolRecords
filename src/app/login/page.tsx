@@ -130,6 +130,26 @@ export default function LoginPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
+       <div className="hidden bg-muted lg:flex items-center justify-center p-12">
+        <div className="relative w-full h-full max-w-md max-h-[600px]">
+            <Image
+                src="https://placehold.co/800x1000.png"
+                alt="School Illustration"
+                fill
+                className="object-cover rounded-2xl shadow-xl"
+                data-ai-hint="education learning"
+            />
+            <div className="absolute inset-0 bg-primary/80 rounded-2xl flex flex-col justify-end p-8 text-primary-foreground">
+                <div className="space-y-4">
+                    <BookOpen className="h-12 w-12" />
+                    <h2 className="text-3xl font-bold">Streamline Your School's Admissions</h2>
+                    <p className="text-lg text-primary-foreground/80">
+                        Efficient, secure, and modern data management for educational institutions in Bihar. Focus on education, let us handle the data.
+                    </p>
+                </div>
+            </div>
+        </div>
+      </div>
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <DebugEnvVars />
@@ -174,26 +194,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:flex items-center justify-center p-12">
-        <div className="relative w-full h-full max-w-md max-h-[600px]">
-            <Image
-                src="https://placehold.co/800x1000.png"
-                alt="Image"
-                fill
-                className="object-cover rounded-2xl shadow-xl"
-                data-ai-hint="education learning"
-            />
-            <div className="absolute inset-0 bg-primary/80 rounded-2xl flex flex-col justify-end p-8 text-primary-foreground">
-                <div className="space-y-4">
-                    <BookOpen className="h-12 w-12" />
-                    <h2 className="text-3xl font-bold">Streamline Your School's Admissions</h2>
-                    <p className="text-lg text-primary-foreground/80">
-                        Efficient, secure, and modern data management for educational institutions in Bihar. Focus on education, let us handle the data.
-                    </p>
-                </div>
-            </div>
-        </div>
-      </div>
        <AddSchoolDialog 
         open={showAddSchoolDialog}
         onOpenChange={setShowAddSchoolDialog}
@@ -203,3 +203,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
