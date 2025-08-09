@@ -129,29 +129,30 @@ export default function LoginPage() {
 
 
   return (
-    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
-       <div className="hidden bg-muted lg:flex items-center justify-center p-12">
-        <div className="relative w-full h-full max-w-md max-h-[600px]">
-            <Image
-                src="https://placehold.co/800x1000.png"
-                alt="School Illustration"
-                fill
-                className="object-cover rounded-2xl shadow-xl"
-                data-ai-hint="education learning"
-            />
-            <div className="absolute inset-0 bg-primary/80 rounded-2xl flex flex-col justify-end p-8 text-primary-foreground">
-                <div className="space-y-4">
-                    <BookOpen className="h-12 w-12" />
-                    <h2 className="text-3xl font-bold">Streamline Your School's Admissions</h2>
-                    <p className="text-lg text-primary-foreground/80">
-                        Efficient, secure, and modern data management for educational institutions in Bihar. Focus on education, let us handle the data.
-                    </p>
-                </div>
-            </div>
-        </div>
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+       <div className="bg-muted lg:bg-background flex flex-col items-center justify-center p-6 lg:p-12">
+          <div className="relative w-full max-w-md aspect-[4/5] lg:aspect-auto lg:h-full overflow-hidden rounded-2xl shadow-xl">
+              <Image
+                  src="https://placehold.co/800x1000.png"
+                  alt="School Illustration"
+                  fill
+                  priority
+                  className="object-cover"
+                  data-ai-hint="education learning"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-primary/20 flex flex-col justify-end p-8 text-primary-foreground">
+                  <div className="space-y-2">
+                      <BookOpen className="h-10 w-10" />
+                      <h2 className="text-3xl font-bold">Streamline Your School's Admissions</h2>
+                      <p className="text-primary-foreground/80">
+                          Efficient, secure, and modern data management.
+                      </p>
+                  </div>
+              </div>
+          </div>
       </div>
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
+      <div className="flex items-center justify-center py-12 px-4">
+        <div className="mx-auto grid w-full max-w-sm gap-6">
           <DebugEnvVars />
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">School Login</h1>
@@ -189,7 +190,7 @@ export default function LoginPage() {
                 Register a New School
             </Button>
           </div>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-center text-sm text-muted-foreground">
             Crafted with ❤️ by Dheeraj Jha
           </div>
         </div>
