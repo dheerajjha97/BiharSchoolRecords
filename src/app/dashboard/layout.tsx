@@ -42,7 +42,7 @@ export default function DashboardLayout({
   const { count: pendingCount } = usePendingAdmissionsCount();
   const [open, setOpen] = React.useState(false);
 
-  const isSuperAdmin = user?.email === 'dheerajjha97@gmail.com';
+  const isSuperAdmin = !loading && user?.email === 'dheerajjha97@gmail.com';
   
   React.useEffect(() => {
     if (!loading && !school) {
