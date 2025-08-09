@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -32,6 +33,7 @@ export default function QuickReceiptPage() {
   const form = useForm<QuickFormValues>({
     resolver: zodResolver(quickFormSchema),
     defaultValues: {
+      admissionDate: new Date(),
       nameEn: '',
       nameHi: '',
       fatherNameEn: '',
@@ -77,7 +79,18 @@ export default function QuickReceiptPage() {
       
       // Open receipt in new tab and reset form
       window.open(`/print-receipt/${result.id}`, '_blank');
-      form.reset();
+      form.reset({
+        admissionDate: new Date(),
+        nameEn: '',
+        nameHi: '',
+        fatherNameEn: '',
+        fatherNameHi: '',
+        mobileNumber: '',
+        classSelection: undefined,
+        caste: undefined,
+        rollNumber: '',
+        admissionNumber: '',
+      });
 
     } catch (err: any) {
       console.error("Quick admission failed:", err);
@@ -107,6 +120,20 @@ export default function QuickReceiptPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <FormField
+                  control={form.control}
+                  name="admissionDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Admission Date</FormLabel>
+                      <FormControl>
+                        <DatePicker date={field.value} setDate={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <div className="md:col-span-1"></div>
                 <FormField
                   control={form.control}
                   name="nameEn"

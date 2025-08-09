@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,14 +6,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip, Legend } from 'recharts';
 import { listenToAdmissions } from '@/lib/admissions';
 import { useAuth } from '@/context/AuthContext';
-import { processAdmissionsWithFees, AdmissionWithFee } from '@/lib/reports';
+import { processAdmissionsWithFees } from '@/lib/reports';
 import { currencyFormatter } from '@/lib/utils';
 
 const COLORS = {
   studentFund: 'hsl(var(--chart-1))',
   developmentFund: 'hsl(var(--chart-2))',
 };
-
 
 export default function FeeCollectionByFundChart() {
   const [chartData, setChartData] = useState<any[]>([]);
@@ -41,7 +39,7 @@ export default function FeeCollectionByFundChart() {
         return;
       }
       
-      const studentsWithFees: AdmissionWithFee[] = await processAdmissionsWithFees(school.udise, students);
+      const studentsWithFees = await processAdmissionsWithFees(school.udise, students);
       
       const totals = studentsWithFees.reduce((acc, item) => {
         acc.studentFund += item.fees.studentFundTotal;
@@ -52,7 +50,7 @@ export default function FeeCollectionByFundChart() {
       const dataForChart = [
         { name: 'Student Fund', value: totals.studentFund, color: COLORS.studentFund },
         { name: 'Development Fund', value: totals.devFund, color: COLORS.developmentFund },
-      ];
+      ].filter(item => item.value > 0); // Only show funds with collections
       
       setChartData(dataForChart);
       setLoading(false);

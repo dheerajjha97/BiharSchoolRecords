@@ -2,6 +2,7 @@
 import { z } from "zod";
 
 export const quickFormSchema = z.object({
+  admissionDate: z.date({ required_error: "Admission date is required." }),
   nameEn: z.string().min(1, "Student's name is required."),
   nameHi: z.string().min(1, "Student's name in Hindi is required."),
   fatherNameEn: z.string().min(1, "Father's name is required."),
