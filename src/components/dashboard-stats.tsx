@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -48,11 +49,11 @@ export default function DashboardStats() {
   }, [school, schoolLoading]);
 
   const statsData = [
-    { title: "Total Approved", value: stats.total.toLocaleString(), icon: Users, classId: "all", color: "text-chart-1" },
-    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9", color: "text-chart-2" },
-    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts", color: "text-chart-3" },
-    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science", color: "text-chart-4" },
-    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce", color: "text-chart-5" },
+    { title: "Total Approved", value: stats.total.toLocaleString(), icon: Users, classId: "all", color: "text-chart-1", pattern: "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50/80 to-transparent" },
+    { title: "Class 9", value: stats.class9.toLocaleString(), icon: BookOpen, classId: "9", color: "text-chart-2", pattern: "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-50/80 to-transparent" },
+    { title: "Class 11 Arts", value: stats.arts.toLocaleString(), icon: Palette, classId: "11-arts", color: "text-chart-3", pattern: "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-50/80 to-transparent" },
+    { title: "Class 11 Science", value: stats.science.toLocaleString(), icon: FlaskConical, classId: "11-science", color: "text-chart-4", pattern: "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-50/80 to-transparent" },
+    { title: "Class 11 Commerce", value: stats.commerce.toLocaleString(), icon: Landmark, classId: "11-commerce", color: "text-chart-5", pattern: "bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-50/80 to-transparent" },
   ];
 
   if (loading) {
@@ -77,7 +78,7 @@ export default function DashboardStats() {
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
       {statsData.map((stat) => (
         <Link href={`/dashboard/students?class=${stat.classId}`} key={stat.title} className="group">
-          <Card className="bg-card/60 backdrop-blur-sm shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between relative overflow-hidden rounded-xl p-5">
+          <Card className={`bg-card/60 backdrop-blur-sm shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[160px] flex flex-col justify-between relative overflow-hidden rounded-xl p-5 ${stat.pattern}`}>
             <div className="z-10">
               <div className="flex items-center gap-2">
                 <stat.icon className={`h-6 w-6 ${stat.color}`} />
