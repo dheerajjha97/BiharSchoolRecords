@@ -4,12 +4,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getAllSchoolsWithStudentCount, type SchoolWithStudentCount } from '@/lib/school';
+import { getAllSchoolsWithRecordCount, type SchoolWithRecordCount } from '@/lib/school';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, ShieldAlert, Building, Users } from 'lucide-react';
+import { Loader2, ShieldAlert, Building, Users, Database } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const SUPER_ADMIN_EMAIL = 'dheerajjha97@gmail.com';
@@ -18,7 +18,7 @@ export default function SuperAdminPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  const [schools, setSchools] = useState<SchoolWithStudentCount[]>([]);
+  const [schools, setSchools] = useState<SchoolWithRecordCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,8 +38,8 @@ export default function SuperAdminPage() {
       setLoading(true);
       setError(null);
       try {
-        const schoolData = await getAllSchoolsWithStudentCount();
-        schoolData.sort((a, b) => b.studentCount - a.studentCount); // Sort by student count
+        const schoolData = await getAllSchoolsWithRecordCount();
+        schoolData.sort((a, b) => b.recordCount - a.recordCount); // Sort by record count
         setSchools(schoolData);
       } catch (err) {
         console.error(err);
@@ -75,7 +75,7 @@ export default function SuperAdminPage() {
       <header>
         <h1 className="text-3xl font-bold tracking-tight">Super Admin Panel</h1>
         <p className="text-muted-foreground mt-1">
-          An overview of all registered schools in the system.
+          An overview of all registered schools and their data utilization.
         </p>
       </header>
       
@@ -83,7 +83,7 @@ export default function SuperAdminPage() {
           <CardHeader>
             <CardTitle>All Schools</CardTitle>
             <CardDescription>
-                A list of all schools that have registered on the platform, sorted by the number of approved students.
+                A list of all schools on the platform, sorted by their total number of admission records.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -101,7 +101,7 @@ export default function SuperAdminPage() {
                             <TableHead className="w-[40%]"><Building className="inline-block mr-2 h-4 w-4" />School Name</TableHead>
                             <TableHead>UDISE</TableHead>
                             <TableHead>Linked Email</TableHead>
-                            <TableHead className="text-right"><Users className="inline-block mr-2 h-4 w-4" />Students</TableHead>
+                            <TableHead className="text-right"><Database className="inline-block mr-2 h-4 w-4" />Total Records</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -117,7 +117,7 @@ export default function SuperAdminPage() {
                                     <TableCell className="font-medium">{school.name}</TableCell>
                                     <TableCell>{school.udise}</TableCell>
                                     <TableCell>{school.email || 'Not Linked'}</TableCell>
-                                    <TableCell className="text-right font-bold">{school.studentCount}</TableCell>
+                                    <TableCell className="text-right font-bold">{school.recordCount}</TableCell>
                                 </TableRow>
                             ))
                         ) : (

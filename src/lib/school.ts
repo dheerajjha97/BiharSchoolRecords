@@ -10,8 +10,8 @@ export interface School {
     email?: string;
 }
 
-export interface SchoolWithStudentCount extends School {
-    studentCount: number;
+export interface SchoolWithRecordCount extends School {
+    recordCount: number;
 }
 
 
@@ -96,10 +96,11 @@ export const getSchoolByEmail = async (email: string): Promise<School | null> =>
 };
 
 /**
- * Fetches all registered schools and their approved student counts.
- * @returns A promise that resolves to an array of schools with their student counts.
+ * Fetches all registered schools and their total admission record counts.
+ * This serves as a proxy for data utilization.
+ * @returns A promise that resolves to an array of schools with their record counts.
  */
-export const getAllSchoolsWithStudentCount = async (): Promise<SchoolWithStudentCount[]> => {
+export const getAllSchoolsWithRecordCount = async (): Promise<SchoolWithRecordCount[]> => {
     if (!db) {
         throw new Error(firebaseError || "Could not connect to the database.");
     }
@@ -110,22 +111,22 @@ export const getAllSchoolsWithStudentCount = async (): Promise<SchoolWithStudent
 
         const schoolsWithCounts = await Promise.all(
             schools.map(async (school) => {
-                const studentCountQuery = query(
+                // Counts ALL admission documents for the school, regardless of status.
+                const recordCountQuery = query(
                     collection(db, 'admissions'),
-                    where('admissionDetails.udise', '==', school.udise),
-                    where('admissionDetails.status', '==', 'approved')
+                    where('admissionDetails.udise', '==', school.udise)
                 );
-                const studentCountSnapshot = await getCountFromServer(studentCountQuery);
+                const recordCountSnapshot = await getCountFromServer(recordCountQuery);
                 return {
                     ...school,
-                    studentCount: studentCountSnapshot.data().count,
+                    recordCount: recordCountSnapshot.data().count,
                 };
             })
         );
         
         return schoolsWithCounts;
     } catch (e) {
-        console.error("Error fetching all schools with student counts:", e);
+        console.error("Error fetching all schools with record counts:", e);
         throw new Error("Failed to retrieve school data.");
     }
 };
